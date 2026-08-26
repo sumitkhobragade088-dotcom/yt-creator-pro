@@ -1,8 +1,16 @@
-YT Creator Pro ⭐ — Point 3 Build
-Supabase customer authentication and database connection included.
+YT Creator Pro ⭐ — Secure Admin Build
 
-Important:
-- Uses the Supabase publishable key only.
-- No service_role/secret key is included.
-- User creates a separate website password. Gmail/Google passwords are never collected.
-- Point 4 will add Google/YouTube API connection.
+Admin email:
+sumitkhobragade088@gmail.com
+
+Included:
+- Customer Supabase login/register
+- Protected /admin/ dashboard
+- Separate /admin/login.html
+- Admin role check through public.admin_users
+- Manager email updated everywhere
+- ADMIN-RLS.sql included for secure admin data access
+
+Next:
+Run ADMIN-RLS.sql in Supabase SQL Editor, then upload this build to GitHub.
+After that, test /admin/login.html.

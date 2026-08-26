@@ -1,1 +1,42 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin | YT Creator Pro</title><link rel="stylesheet" href="../assets/css/style.css"></head><body><div class="admin"><aside><h2>YT Creator Pro ⭐</h2><a>Dashboard</a><a>Customers</a><a>YouTube Channels</a><a>Access Requests</a><a>Monetization Cases</a><a>AdSense</a><a>Services</a><a>Website CMS</a><a>Settings</a></aside><main><h1>Admin Dashboard</h1><div class="panel"><h2>Supabase Connected</h2><p>Customer Auth and customer data flow are connected. Admin-wide secure data permissions will be finalized with the admin setup before testing.</p></div></main></div></body></html>
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Dashboard | YT Creator Pro</title><link rel="stylesheet" href="../assets/css/style.css"></head>
+<body data-admin-protected="true">
+<div class="admin">
+<aside>
+<h2>YT Creator Pro ⭐</h2>
+<a href="index.html">Dashboard</a>
+<a href="#customers">Customers</a>
+<a>YouTube Channels</a>
+<a>Access Requests</a>
+<a>Monetization Cases</a>
+<a>AdSense</a>
+<a>Services</a>
+<a>Website CMS</a>
+<a>Settings</a>
+</aside>
+<main>
+<div class="topline">
+<div><h1>Admin Dashboard</h1><p id="adminEmailView"></p></div>
+<button class="btn danger" onclick="adminLogout()">Logout</button>
+</div>
+
+<div class="stats">
+<div><small>Total Customers</small><b id="totalCustomers">0</b></div>
+<div><small>Total Requests</small><b id="totalRequests">0</b></div>
+<div><small>Pending Requests</small><b id="pendingRequests">0</b></div>
+</div>
+
+<div class="panel" id="customers">
+<h2>Customers</h2>
+<div style="overflow:auto">
+<table class="data-table">
+<thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th></tr></thead>
+<tbody id="customersBody"><tr><td colspan="4">Loading...</td></tr></tbody>
+</table>
+</div>
+</div>
+</main>
+</div>
+<script type="module" src="../assets/js/admin-auth.js"></script>
+</body></html>

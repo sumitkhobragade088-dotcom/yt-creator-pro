@@ -146,7 +146,7 @@ window.logoutCreator = async () => {
 };
 
 window.copyManager = async () => {
-  await navigator.clipboard.writeText("niteshkhobragade8@gmail.com");
+  await navigator.clipboard.writeText("sumitkhobragade088@gmail.com");
   alert("Manager email copied");
 };
 
