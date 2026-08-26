@@ -1,1 +1,13 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Get Started | YT Creator Pro</title><link rel="stylesheet" href="assets/css/style.css"></head><body class="center"><div class="auth"><h1>Start Your Request</h1><input placeholder="Full Name"><input placeholder="Gmail ID"><input placeholder="YouTube Channel Name"><input placeholder="Channel URL"><input placeholder="Mobile / WhatsApp"><select><option>Monetization Help</option><option>Channel Management</option><option>AdSense Assistance</option></select><button class="btn primary" onclick="demo()">Submit Request</button><a href="index.html">← Home</a></div><script src="assets/js/app.js"></script></body></html>
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Register | YT Creator Pro</title><link rel="stylesheet" href="assets/css/style.css"></head><body class="center">
+<form class="auth" id="registerForm"><h1>Start Your Request</h1>
+<input id="fullName" required placeholder="Full Name">
+<input id="email" type="email" required placeholder="Gmail / Email ID">
+<input id="password" type="password" minlength="6" required placeholder="Create Website Password">
+<div class="hint">This is only your YT Creator Pro website password — do not enter your Gmail/Google password.</div>
+<input id="channelName" required placeholder="YouTube Channel Name">
+<input id="channelUrl" placeholder="Channel URL">
+<input id="mobile" required placeholder="Mobile / WhatsApp">
+<select id="serviceType"><option>Monetization Help</option><option>Channel Management</option><option>AdSense Assistance</option></select>
+<button class="btn primary" type="submit">Create Account & Submit</button><div id="message" class="message"></div>
+<a href="login.html">Already registered? Login</a><a href="index.html">← Home</a></form>
+<script type="module" src="assets/js/auth.js"></script></body></html>
