@@ -1,4 +1,4 @@
-const CLIENT_ID = "699096777627-on3eo7fsl0n2qji6il47vi0itkbbumpf.apps.googleusercontent.com";
+const CLIENT_ID = "699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com";
 const REDIRECT_URI = "https://sumitkhobragade088-dotcom.github.io/yt-creator-pro/google-callback.html";
 const SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl";
 
