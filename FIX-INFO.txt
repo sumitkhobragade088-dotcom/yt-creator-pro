@@ -1,0 +1,7 @@
+YT Creator Pro - Exact OAuth Client ID Fix
+
+Exact Google OAuth Client ID used:
+699096777627-on3eo7fsl0n2qji6il47vi0itkbbumpf.apps.googleusercontent.com
+
+This ZIP has the corrected Client ID in the website files.
+No Google Client Secret is included.
