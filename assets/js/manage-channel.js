@@ -57,15 +57,62 @@ async function loadAll(){
   $("manageMessage").textContent="Connected channel loaded ✅"; renderVideos();renderPlaylists();
  }catch(e){$("manageMessage").textContent=e.message;$("videoList").textContent="Could not load videos."}
 }
+
+function isoDurationSeconds(iso="PT0S"){
+  const m=String(iso).match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);
+  if(!m)return 0;
+  return (Number(m[1]||0)*86400)+(Number(m[2]||0)*3600)+(Number(m[3]||0)*60)+Number(m[4]||0);
+}
+function contentType(v){
+  if(v.isLive || v.liveBroadcastContent==="live" || v.liveBroadcastContent==="upcoming" || v.hadLiveStream) return "live";
+  const sec=Number(v.durationSeconds || isoDurationSeconds(v.duration || "PT0S"));
+  if(sec>0 && sec<=180) return "short";
+  return "video";
+}
+
 function copyrightLabel(v){
  if(v.restrictions?.regionBlocked) return "⚠️ Region restriction";
  if(v.status?.uploadStatus && v.status.uploadStatus!=="processed") return "⚠️ "+v.status.uploadStatus;
  return "Claims: check Studio";
 }
 function renderVideos(){
- const box=$("videoList");if(!videos.length){box.innerHTML="<p>No videos found.</p>";return}
- box.innerHTML=videos.map((v,i)=>`<article class="yt-video-card"><img src="${esc(v.thumbnail||"")}" alt=""><div class="yt-video-copy"><b>${esc(v.title)}</b><small>${esc(v.id)}</small><div class="yt-chip-row"><span>${esc(v.privacyStatus||"-")}</span><span>${copyrightLabel(v)}</span><span>${fmt(v.views)} views</span></div></div><button class="btn primary" data-edit="${i}">Edit / Manage</button></article>`).join("");
- document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEdit(+b.dataset.edit));
+  const normal=(videos||[]).filter(v=>contentType(v)==="video");
+  const shorts=(videos||[]).filter(v=>contentType(v)==="short");
+  const live=(videos||[]).filter(v=>contentType(v)==="live");
+
+  $("videosCount").textContent=normal.length;
+  $("shortsCount").textContent=shorts.length;
+  $("liveCount").textContent=live.length;
+
+  const card=(v)=>{
+    const i=videos.indexOf(v);
+    const type=contentType(v);
+    const typeLabel=type==="short"?"SHORT":type==="live"?"LIVE":"VIDEO";
+    return `<article class="yt-video-card">
+      <img src="${esc(v.thumbnail||"")}" alt="">
+      <div class="yt-video-copy">
+        <div class="yt-title-row"><b>${esc(v.title)}</b><span class="yt-type-chip ${type}">${typeLabel}</span></div>
+        <small>${esc(v.id)}</small>
+        <div class="yt-chip-row">
+          <span>${esc(v.privacyStatus||"-")}</span>
+          <span>${copyrightLabel(v)}</span>
+          <span>${fmt(v.views)} views</span>
+          ${v.durationSeconds?`<span>${Math.floor(v.durationSeconds/60)}:${String(v.durationSeconds%60).padStart(2,"0")}</span>`:""}
+        </div>
+      </div>
+      <button class="btn primary" data-edit="${i}">Edit / Manage</button>
+    </article>`;
+  };
+
+  const draw=(id,arr,label)=>{
+    const box=$(id);
+    box.innerHTML=arr.length?arr.map(card).join(""):`<p class="yt-empty-content">No ${label} found.</p>`;
+  };
+  draw("normalVideoList",normal,"videos");
+  draw("shortVideoList",shorts,"shorts");
+  draw("liveVideoList",live,"live streams");
+
+  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEdit(Number(b.dataset.edit)));
 }
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
 function renderPlaylists(){const box=$("playlistList");if(!playlists.length){box.innerHTML="<p>No playlists found.</p>";return}box.innerHTML=playlists.map((p,i)=>`<div class="yt-playlist-row"><div><b>${esc(p.title)}</b><small>${p.itemCount||0} videos · ${esc(p.privacyStatus||"-")}</small></div><button class="btn" data-pl="${i}">Edit</button></div>`).join("");document.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>openPlaylist(+b.dataset.pl))}

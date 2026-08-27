@@ -1,0 +1,10 @@
+Existing content is now separated into three YouTube-Studio-style sections:
+- Videos
+- Shorts
+- Live
+
+Live detection uses YouTube live metadata.
+Shorts caveat: YouTube Data API does not expose a direct 'isShort' flag. This UI treats non-live content up to 3 minutes as a Short candidate. YouTube's own final Shorts classification can differ.
+
+IMPORTANT:
+Deploy the updated supabase/functions/youtube-manage/index.ts after uploading the website files, because Live/duration metadata is added by the Edge Function.

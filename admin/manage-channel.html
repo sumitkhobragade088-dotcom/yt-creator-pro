@@ -117,8 +117,31 @@
   </div>
 
   <section class="panel">
-    <div class="yt-manager-head"><div><h2>Existing Videos</h2><p class="yt-note">Copyright claim details YouTube Data API expose nahi karti. Restrictions/API status yahan dikhte hain; exact claims ke liye YouTube Studio Copyright tab use karein.</p></div><button id="refreshVideos" class="btn">Refresh Videos</button></div>
-    <div id="videoList">Loading…</div>
+    <div class="yt-manager-head">
+      <div>
+        <h2>Channel Content</h2>
+        <p class="yt-note">YouTube Studio jaisa separate view: Videos, Shorts aur Live.</p>
+      </div>
+      <button id="refreshVideos" class="btn">Refresh Content</button>
+    </div>
+
+    <div class="yt-content-section">
+      <div class="yt-content-heading"><h3>🎬 Videos</h3><span id="videosCount" class="yt-count-badge">0</span></div>
+      <div id="normalVideoList">Loading…</div>
+    </div>
+
+    <div class="yt-content-section">
+      <div class="yt-content-heading"><h3>📱 Shorts</h3><span id="shortsCount" class="yt-count-badge">0</span></div>
+      <p class="yt-note">Shorts flag YouTube Data API directly expose nahi karti; non-live videos up to 3 minutes ko yahan Short candidate ke roop me separate kiya jata hai.</p>
+      <div id="shortVideoList">Loading…</div>
+    </div>
+
+    <div class="yt-content-section">
+      <div class="yt-content-heading"><h3>🔴 Live</h3><span id="liveCount" class="yt-count-badge">0</span></div>
+      <div id="liveVideoList">Loading…</div>
+    </div>
+
+    <p class="yt-note">Copyright claim details YouTube Data API expose nahi karti. Restrictions/API status yahan dikhte hain; exact claims ke liye YouTube Studio Copyright tab use karein.</p>
   </section>
 
   <section class="panel">

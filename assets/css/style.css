@@ -127,3 +127,15 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 .yt-playlist-thumb-box{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center;padding:12px;border:1px solid #e5e7eb;border-radius:14px;background:#f8fafc;margin-bottom:14px}
 .yt-playlist-thumb-preview{width:160px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#e5e7eb}
 @media(max-width:600px){.yt-playlist-thumb-box{grid-template-columns:1fr}.yt-playlist-thumb-preview{width:100%}}
+
+/* YouTube Studio-style content sections */
+.yt-content-section{margin-top:18px;padding:16px;border:1px solid #e5e7eb;border-radius:16px;background:#fff}
+.yt-content-heading{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.yt-content-heading h3{margin:0;font-size:18px}
+.yt-count-badge{min-width:28px;height:24px;padding:0 8px;border-radius:999px;background:#eef2f7;color:#344054;font-size:12px;font-weight:900;display:inline-grid;place-items:center}
+.yt-title-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.yt-type-chip{font-size:10px;font-weight:900;padding:3px 7px;border-radius:999px}
+.yt-type-chip.video{background:#dbeafe;color:#1d4ed8}
+.yt-type-chip.short{background:#fce7f3;color:#be185d}
+.yt-type-chip.live{background:#fee2e2;color:#b91c1c}
+.yt-empty-content{padding:18px;text-align:center;color:#667085;background:#f8fafc;border-radius:12px}
