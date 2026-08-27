@@ -126,6 +126,7 @@ async function loadDashboard() {
 
   if (customer) {
     document.getElementById("userName").textContent = customer.full_name || "Creator";
+    const topName=document.getElementById("userNameTop"); if(topName) topName.textContent=customer.full_name||"Creator";
     const pName=document.getElementById("userNameProfile"); if(pName)pName.textContent=customer.full_name||"Creator";
     const pEmail=document.getElementById("userEmailProfile"); if(pEmail)pEmail.textContent=user.email||"-";
     const pChannel=document.getElementById("userChannelProfile"); if(pChannel)pChannel.textContent=customer.channel_name||"-";

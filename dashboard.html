@@ -7,60 +7,104 @@
 <title>Creator Dashboard | YT Creator Pro</title>
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
+
 <body id="creatorDashboard" class="yt-user-dashboard-page">
-<div class="yt-user-dashboard-shell">
-  <aside class="yt-user-dashboard-sidebar">
-    <div class="yt-user-dashboard-brand">
-      <div class="yt-user-dashboard-brand-icon">▶</div>
-      <div><b>YT Creator Pro</b><small>Creator Portal</small></div>
+<div class="yt-demo-user-shell">
+
+  <aside class="yt-demo-user-sidebar">
+    <div class="yt-demo-user-brand">
+      <div class="yt-demo-user-logo">▶</div>
+      <div>
+        <b>YT Creator Pro</b>
+        <small>Secure User Portal</small>
+      </div>
     </div>
-    <nav class="yt-user-dashboard-nav">
+
+    <div class="yt-demo-user-group-title">MY ACCOUNT</div>
+    <nav class="yt-demo-user-nav">
       <button class="active" data-user-view="dashboard">🏠 <span>Dashboard</span></button>
-      <button data-user-view="requests">🧰 <span>Service Requests</span></button>
+      <button data-user-view="requests">🧰 <span>Services</span></button>
       <button data-user-view="channel">📺 <span>YouTube Channel</span></button>
       <button data-user-view="access">🔐 <span>Channel Access</span></button>
       <button data-user-view="profile">👤 <span>Profile</span></button>
     </nav>
-    <div class="yt-user-dashboard-bottom"><button onclick="logoutCreator()">↪ Logout</button></div>
+
+    <div class="yt-demo-user-sidebar-bottom">
+      <button onclick="logoutCreator()">↪ Logout</button>
+      <div class="yt-demo-secure-note">🛡 Secure Account<br><span>Protected creator portal</span></div>
+    </div>
   </aside>
 
-  <button class="yt-user-dashboard-toggle" id="userDashboardToggle">☰</button>
+  <button class="yt-demo-user-toggle" id="userDashboardToggle">☰</button>
 
-  <main class="yt-user-dashboard-main">
-    <header class="yt-user-dashboard-header">
-      <div><span>USER PORTAL</span><h1 id="userDashboardTitle">Dashboard</h1><p id="userEmail"></p></div>
-</header>
+  <main class="yt-demo-user-main">
+    <header class="yt-demo-user-header">
+      <div>
+        <span class="yt-demo-user-eyebrow">USER PORTAL</span>
+        <h1 id="userDashboardTitle">Dashboard</h1>
+      </div>
+      <div class="yt-demo-user-account">
+        <div class="yt-demo-bell">🔔</div>
+        <div class="yt-demo-avatar">YT</div>
+        <div><b id="userNameTop">Creator</b><small id="userEmail">Member Account</small></div>
+      </div>
+    </header>
 
     <section class="yt-user-view active" id="user-view-dashboard">
-      <div class="yt-user-dashboard-hero">
-        <div><span>CREATOR DASHBOARD</span><h2>Welcome, <span id="userName">Creator</span></h2><p>Your YouTube creator support account at a glance.</p></div>
-        <div class="yt-user-dashboard-play">▶</div>
+      <div class="yt-demo-welcome">
+        <div>
+          <span>USER DASHBOARD</span>
+          <h2>Welcome, <span id="userName">Creator</span></h2>
+          <p>Your YouTube creator support account, channel and service status in one place.</p>
+        </div>
+        <div class="yt-demo-welcome-play">▶</div>
       </div>
 
-      <div class="yt-user-dashboard-cards">
-        <div class="green"><small>Channel</small><b id="channelNameView">Loading...</b><span>Registered channel</span></div>
-        <div class="yellow"><small>Subscribers</small><b id="ytSubscribers">0</b><span>Current total</span></div>
-        <div class="pink"><small>Views</small><b id="ytViews">0</b><span>Channel views</span></div>
-        <div class="red"><small>Videos</small><b id="ytVideos">0</b><span>Published content</span></div>
+      <div class="yt-demo-search-box">
+        <div>
+          <span>FIND A SERVICE</span>
+          <h3>Search Services</h3>
+        </div>
+        <input id="userServiceSearch" type="search" placeholder="Monetization, Channel, AdSense...">
+        <button id="userServiceSearchBtn" type="button">Search</button>
       </div>
 
-      <div class="yt-user-dashboard-summary panel">
-        <div><small>Channel URL</small><b id="channelUrlView">Loading...</b></div>
-        <div><small>Manager Email</small><b>sumitkhobragade088@gmail.com</b></div>
+      <div class="yt-demo-stat-grid">
+        <div class="s-blue"><small>Channel</small><b id="channelNameView">Loading...</b><span>Registered channel</span></div>
+        <div class="s-yellow"><small>Subscribers</small><b id="ytSubscribers">0</b><span>Current total</span></div>
+        <div class="s-green"><small>Views</small><b id="ytViews">0</b><span>Channel views</span></div>
+        <div class="s-pink"><small>Videos</small><b id="ytVideos">0</b><span>Published content</span></div>
+      </div>
+
+      <div class="yt-demo-quick-grid">
+        <button data-user-view="requests"><span>🧰</span><b>My Services</b><small>View service requests</small></button>
+        <button data-user-view="channel"><span>📺</span><b>Channel Status</b><small>See connected channel</small></button>
+        <button data-user-view="access"><span>🔐</span><b>Channel Access</b><small>Google + manager access</small></button>
+        <button data-user-view="profile"><span>👤</span><b>My Profile</b><small>Account information</small></button>
       </div>
     </section>
 
     <section class="yt-user-view" id="user-view-requests">
-      <div class="yt-user-view-head"><span>SERVICES</span><h2>Service Requests</h2><p>Your submitted service requests only.</p></div>
-      <div class="panel"><div id="requestList">Loading...</div></div>
+      <div class="yt-demo-section-head">
+        <div><span>SERVICES</span><h2>My Service Requests</h2><p>Only your submitted service requests.</p></div>
+      </div>
+      <div class="yt-demo-content-card">
+        <div id="requestList">Loading...</div>
+      </div>
     </section>
 
     <section class="yt-user-view" id="user-view-channel">
-      <div class="yt-user-view-head"><span>YOUTUBE</span><h2>YouTube Channel</h2><p>Connected channel details.</p></div>
-      <div class="panel youtube-profile">
+      <div class="yt-demo-section-head">
+        <div><span>YOUTUBE CHANNEL</span><h2>Channel Details</h2><p>Connected channel information and live statistics.</p></div>
+      </div>
+
+      <div class="yt-demo-content-card youtube-profile">
         <div class="yt-profile-head">
           <img id="ytChannelLogo" class="yt-logo" alt="YouTube Channel Logo">
-          <div><h2 id="ytChannelName">Loading...</h2><span id="youtubeConnectStatus" class="status-badge">Checking...</span></div>
+          <div>
+            <h2 id="ytChannelName">Loading...</h2>
+            <span id="youtubeConnectStatus" class="status-badge">Checking...</span>
+          </div>
         </div>
         <div class="yt-stats">
           <div><small>Channel ID</small><b id="ytChannelId">-</b></div>
@@ -72,65 +116,78 @@
     </section>
 
     <section class="yt-user-view" id="user-view-access">
-      <div class="yt-user-view-head"><span>SECURE ACCESS</span><h2>Channel Access</h2><p>Connect your YouTube channel securely with Google permission.</p></div>
-      <div class="panel yt-user-access-dashboard-panel">
+      <div class="yt-demo-section-head">
+        <div><span>SECURE ACCESS</span><h2>Channel Access</h2><p>Google connection and manager permission are handled here only.</p></div>
+      </div>
+
+      <div class="yt-demo-content-card">
         <div class="yt-user-access-action-card">
           <span>1</span>
-          <div><b>Connect YouTube Channel</b><p>Google permission se secure connection.</p></div>
+          <div><b>Connect YouTube Channel</b><p>Use secure Google permission to connect your channel.</p></div>
           <button id="connectYouTubeBtn" class="yt-user-red-btn" onclick="connectYouTube()">Connect YouTube Channel</button>
         </div>
+
         <div class="yt-user-access-action-card manager">
           <span>2</span>
-          <div><b>Give Manager Access</b><p>Official YouTube Studio permission invite.</p><small>Manager Email</small><strong>sumitkhobragade088@gmail.com</strong></div>
-          <div class="yt-user-access-buttons"><button id="copyUserManagerEmail" type="button" class="yt-user-outline-btn">Copy Email</button><a class="yt-user-red-btn" target="_blank" rel="noopener" href="https://studio.youtube.com/">Open YouTube Studio</a></div>
+          <div>
+            <b>Give Manager Access</b>
+            <p>Use official YouTube Studio permission invite.</p>
+            <small>Manager Email</small>
+            <strong>sumitkhobragade088@gmail.com</strong>
+          </div>
+          <div class="yt-user-access-buttons">
+            <button id="copyUserManagerEmail" type="button" class="yt-user-outline-btn">Copy Email</button>
+            <a class="yt-user-red-btn" target="_blank" rel="noopener" href="https://studio.youtube.com/">Open YouTube Studio</a>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="yt-user-view" id="user-view-profile">
-      <div class="yt-user-view-head"><span>ACCOUNT</span><h2>Profile</h2><p>Your creator account information.</p></div>
-      <div class="panel yt-user-profile-card">
+      <div class="yt-demo-section-head">
+        <div><span>PROFILE</span><h2>My Profile</h2><p>Your creator account information.</p></div>
+      </div>
+
+      <div class="yt-demo-profile-grid">
         <div><small>Name</small><b id="userNameProfile">Creator</b></div>
         <div><small>Email</small><b id="userEmailProfile">-</b></div>
         <div><small>Channel</small><b id="userChannelProfile">-</b></div>
+        <div><small>Channel URL</small><b id="channelUrlView">Not added</b></div>
       </div>
     </section>
+
   </main>
 </div>
 
 <script>
-const userViewTitles={dashboard:"Dashboard",requests:"Service Requests",channel:"YouTube Channel",access:"Channel Access",profile:"Profile"};
-document.addEventListener("click",e=>{
-  const btn=e.target.closest("[data-user-view]");
-  if(btn){
-    document.querySelectorAll("[data-user-view]").forEach(b=>b.classList.remove("active"));
-    document.querySelectorAll(".yt-user-view").forEach(v=>v.classList.remove("active"));
-    btn.classList.add("active");
-    const name=btn.dataset.userView;
-    document.getElementById(`user-view-${name}`)?.classList.add("active");
-    const title=document.getElementById("userDashboardTitle"); if(title) title.textContent=userViewTitles[name]||"Dashboard";
-    document.body.classList.remove("yt-user-sidebar-open");
-    window.scrollTo({top:0,behavior:"smooth"});
-  }
+const userViewTitles={
+  dashboard:"Dashboard",
+  requests:"My Service Requests",
+  channel:"YouTube Channel",
+  access:"Channel Access",
+  profile:"My Profile"
+};
+function openUserView(name){
+  document.querySelectorAll(".yt-user-view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll("[data-user-view]").forEach(b=>b.classList.remove("active"));
+  document.getElementById(`user-view-${name}`)?.classList.add("active");
+  document.querySelectorAll(`[data-user-view="${name}"]`).forEach(b=>b.classList.add("active"));
+  document.getElementById("userDashboardTitle").textContent=userViewTitles[name]||"Dashboard";
+  document.body.classList.remove("yt-user-sidebar-open");
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll("[data-user-view]").forEach(btn=>{
+  btn.addEventListener("click",()=>openUserView(btn.dataset.userView));
 });
 document.getElementById("userDashboardToggle")?.addEventListener("click",()=>document.body.classList.toggle("yt-user-sidebar-open"));
 document.getElementById("copyUserManagerEmail")?.addEventListener("click",async()=>{
   await navigator.clipboard.writeText("sumitkhobragade088@gmail.com");
   alert("Manager email copied");
 });
+document.getElementById("userServiceSearchBtn")?.addEventListener("click",()=>{
+  openUserView("requests");
+});
 </script>
-
-
-<script>
-(function(){
-  const titles={dashboard:"Dashboard",requests:"Service Requests",channel:"YouTube Channel",access:"Channel Access",profile:"Profile"};
-  const title=document.getElementById("userDashboardTitle");
-  document.querySelectorAll(".yt-user-dashboard-nav button[data-user-view]").forEach(btn=>{
-    btn.addEventListener("click",()=>{ if(title) title.textContent=titles[btn.dataset.userView]||"Dashboard"; });
-  });
-})();
-</script>
-
 <script type="module" src="assets/js/auth.js"></script>
 <script type="module" src="assets/js/google-youtube.js"></script>
-</body></html>
+</body>
