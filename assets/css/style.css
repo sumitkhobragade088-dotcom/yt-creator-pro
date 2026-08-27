@@ -65,34 +65,47 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 .yt-banner-preview{background:#111}.yt-banner-preview-wrap{position:relative}
 
 
-/* YouTube Studio buttons */
-.youtube-studio-btn{
-  background:#ff0000 !important;
-  color:#ffffff !important;
-  border:1px solid #ff0000 !important;
-  font-weight:800 !important;
-  box-shadow:0 5px 14px rgba(0,0,0,.14);
-}
-.youtube-studio-btn:hover{
-  background:#cc0000 !important;
-  border-color:#cc0000 !important;
-  color:#ffffff !important;
-}
 
-
-/* HARD FIX: YouTube Studio red buttons */
-#openStudioBranding,
-#editNameLogoStudio,
-#openBannerStudio,
-#removeChannelBanner{
+/* Main YouTube Studio button only */
+.youtube-main-studio-btn{
   background:#ff0000 !important;
   color:#fff !important;
-  border-color:#ff0000 !important;
+  border:1px solid #ff0000 !important;
+  font-weight:850 !important;
 }
-#openStudioBranding:hover,
-#editNameLogoStudio:hover,
-#openBannerStudio:hover,
-#removeChannelBanner:hover{
+.youtube-main-studio-btn:hover{background:#cc0000 !important;border-color:#cc0000 !important;color:#fff !important}
+
+/* Separate permissions / manager flows */
+.yt-access-flow-card{max-width:620px}
+.yt-access-flow-icon{width:52px;height:52px;border-radius:16px;background:#f8fafc;display:grid;place-items:center;font-size:26px;margin-bottom:10px}
+.yt-flow-steps{display:grid;gap:10px;margin:16px 0}
+.yt-flow-steps>div{display:grid;grid-template-columns:30px 1fr;gap:10px;align-items:start;padding:11px 12px;border:1px solid #e5e7eb;border-radius:12px;background:#f8fafc}
+.yt-flow-steps b{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#fde047;color:#111827}
+.yt-flow-steps span{padding-top:4px;line-height:1.45}
+.yt-manager-email-box{padding:14px;border:1px solid #e5e7eb;border-radius:12px;margin:14px 0}
+.yt-copy-row{display:flex;gap:8px}.yt-copy-row input{flex:1}
+@media(max-width:620px){.yt-copy-row{flex-direction:column}}
+
+/* FINAL manager access gate */
+.yt-gate-badge{display:inline-flex;align-items:center;padding:8px 12px;border-radius:999px;font-size:12px;font-weight:900}
+.yt-gate-badge.pending{background:#fef3c7;color:#92400e}
+.yt-gate-badge.granted{background:#dcfce7;color:#166534}
+.yt-manager-locked{position:relative;opacity:.58;filter:grayscale(.1)}
+.yt-manager-locked::before{content:"Manager Access Required";position:sticky;top:12px;z-index:30;display:block;width:max-content;max-width:90%;margin:0 auto 10px;padding:9px 14px;border-radius:999px;background:#111827;color:#fff;font-weight:850;font-size:12px}
+.yt-manager-locked button,.yt-manager-locked input,.yt-manager-locked textarea,.yt-manager-locked select{pointer-events:none}
+.yt-manager-locked #openPermissions,.yt-manager-locked #openManagerAccess,.yt-manager-locked #openCustomization{pointer-events:auto}
+.yt-manager-unlocked{opacity:1;filter:none}
+
+/* ONLY existing Open YouTube Studio button is YouTube red */
+#openCustomization.youtube-main-studio-btn,
+#openCustomization{
+  background:#ff0000 !important;
+  color:#fff !important;
+  border:1px solid #ff0000 !important;
+  font-weight:900 !important;
+}
+#openCustomization.youtube-main-studio-btn:hover,
+#openCustomization:hover{
   background:#cc0000 !important;
   color:#fff !important;
   border-color:#cc0000 !important;

@@ -21,19 +21,36 @@
     <div class="yt-access-grid">
       <div class="yt-access-card"><h3>🔐 Channel Access</h3><p>Settings → Permissions kholkar kisi Google account ko channel access dein.</p><button id="openPermissions" class="btn primary">Open Channel Permissions</button></div>
       <div class="yt-access-card"><h3>👤 Manager Access</h3><p>Permissions me INVITE dabayein, email dalein aur <b>Manager</b> role select karein.</p><button id="openManagerAccess" class="btn primary">Give Manager Access</button></div>
-      <div class="yt-access-card"><h3>🎨 Channel Name & Logo</h3><p>Name, profile picture/logo aur Studio-only branding settings manage karein.</p><button id="openCustomization" class="btn">Open YouTube Studio</button></div>
+      <div class="yt-access-card"><h3>🎨 Channel Name & Logo</h3><p>Name, profile picture/logo aur Studio-only branding settings manage karein.</p><button id="openCustomization" class="btn youtube-main-studio-btn">Open YouTube Studio</button></div>
     </div>
     <p id="accessMessage" class="yt-note">Security: password share nahi hota. Permission YouTube Studio ke official invite se di jati hai.</p>
   </section>
 
 
+
+  <section class="panel yt-access-gate-panel">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Manager Access Status</h2>
+        <p id="managerGateText" class="yt-note">Checking manager access…</p>
+      </div>
+      <span id="managerGateBadge" class="yt-gate-badge pending">PENDING 🟡</span>
+    </div>
+    <div class="yt-action-row">
+      <button id="markManagerGranted" class="btn primary">Mark Access Granted</button>
+      <button id="markManagerPending" class="btn">Mark Pending</button>
+    </div>
+    <p class="yt-note">Channel owner invite bhejega aur admin invite accept karega. Uske baad admin yahan Granted mark karega.</p>
+  </section>
+
+  <div id="managerUnlockedArea" class="yt-manager-locked">
   <section class="panel yt-banner-panel">
     <div class="yt-manager-head">
       <div>
         <h2>Channel Banner</h2>
         <p class="yt-note">Banner ko yahin se Upload / Replace karein. Remove ke liye official YouTube Studio Branding khulega.</p>
       </div>
-      <button id="openBannerStudio" class="btn youtube-studio-btn" style="background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important;font-weight:800!important;">Open Banner in Studio</button>
+      <button id="openBannerStudio" class="btn">Open Banner in Studio</button>
     </div>
     <div class="yt-banner-grid">
       <div class="yt-banner-preview-wrap">
@@ -46,7 +63,7 @@
         <p class="yt-note">Koi bhi photo size select karo — system automatically 2560×1440 YouTube banner me fit karega. Preview upload se pehle dikhega.</p>
         <div class="yt-action-row">
           <button id="uploadChannelBanner" class="btn primary">Upload / Replace Banner</button>
-          <button id="removeChannelBanner" class="btn youtube-studio-btn" style="background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important;font-weight:800!important;">Remove Banner in Studio</button>
+          <button id="removeChannelBanner" class="btn">Remove Banner in Studio</button>
         </div>
         <p id="bannerMessage"></p>
       </div>
@@ -57,7 +74,7 @@
     <section class="panel">
       <h2>Channel Details</h2>
       <p class="yt-note">Channel name YouTube API se read-only hai. Description aur keywords update kiye ja sakte hain.</p>
-      <label>Channel Name</label><div class="yt-inline-edit"><input id="channelName" disabled><button id="editNameLogoStudio" class="btn youtube-studio-btn" style="background:#ff0000!important;color:#fff!important;border:1px solid #ff0000!important;font-weight:800!important;">Edit Name / Logo in Studio</button></div>
+      <label>Channel Name</label><div class="yt-inline-edit"><input id="channelName" disabled><button id="editNameLogoStudio" class="btn">Edit Name / Logo in Studio</button></div>
       <label>Description</label><textarea id="channelDescription" rows="6"></textarea>
       <label>Keywords</label><input id="channelKeywords" placeholder="keyword1 keyword2">
       <button id="saveChannel" class="btn primary">Update Channel</button>
@@ -87,7 +104,35 @@
     <div class="yt-manager-head"><h2>Playlists</h2><button id="newPlaylistBtn" class="btn primary">+ New Playlist</button></div>
     <div id="playlistList">Loading…</div>
   </section>
+
+  </div>
 </main>
+
+
+<div id="accessFlowModal" class="yt-modal" hidden>
+  <div class="yt-modal-card yt-access-flow-card">
+    <button id="closeAccessFlow" class="yt-close">×</button>
+    <div id="accessFlowIcon" class="yt-access-flow-icon">🔐</div>
+    <h2 id="accessFlowTitle">Channel Permissions</h2>
+    <p id="accessFlowIntro" class="yt-note"></p>
+
+    <div id="permissionSteps" class="yt-flow-steps"></div>
+
+    <div id="managerEmailBox" class="yt-manager-email-box" hidden>
+      <label>Manager Google Email</label>
+      <div class="yt-copy-row">
+        <input id="managerEmail" type="email" placeholder="manager@gmail.com">
+        <button id="copyManagerEmail" class="btn">Copy Email</button>
+      </div>
+      <p id="managerEmailMessage" class="yt-note"></p>
+    </div>
+
+    <div class="yt-action-row">
+      <button id="continueAccessFlow" class="btn primary">Open YouTube Studio</button>
+      <button id="cancelAccessFlow" class="btn">Cancel</button>
+    </div>
+  </div>
+</div>
 
 <div id="editModal" class="yt-modal" hidden><div class="yt-modal-card">
 <button id="closeModal" class="yt-close">×</button><h2>Edit Video</h2>

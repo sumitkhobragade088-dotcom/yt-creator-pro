@@ -2,11 +2,49 @@ import { supabase } from "./supabase.js";
 const FUNCTION_URL="https://ncxexmekzlrliicaqfcl.supabase.co/functions/v1/youtube-manage";
 const customerId=new URLSearchParams(location.search).get("customer");
 let videos=[],playlists=[];
+let managerAccessGranted=false;
 const $=id=>document.getElementById(id);
 async function session(){const {data:{session}}=await supabase.auth.getSession();if(!session){location.href="login.html";throw new Error("Login required")}return session}
 async function api(action,payload={}){const s=await session();const r=await fetch(FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},body:JSON.stringify({action,customer_id:customerId,...payload})});const d=await r.json();if(!r.ok)throw new Error(d.details||d.error||"Request failed");return d}
 const esc=(x="")=>String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const fmt=n=>Number(n||0).toLocaleString("en-IN");
+
+function applyManagerGate(granted){
+  managerAccessGranted=!!granted;
+  const badge=$("managerGateBadge");
+  const text=$("managerGateText");
+  const area=$("managerUnlockedArea");
+  if(granted){
+    badge.textContent="GRANTED ✅";
+    badge.className="yt-gate-badge granted";
+    text.textContent="Manager access granted. Full admin YouTube management unlocked.";
+    area.classList.remove("yt-manager-locked");
+    area.classList.add("yt-manager-unlocked");
+  }else{
+    badge.textContent="PENDING 🟡";
+    badge.className="yt-gate-badge pending";
+    text.textContent="Manager invite/acceptance pending. Full Studio management locked.";
+    area.classList.add("yt-manager-locked");
+    area.classList.remove("yt-manager-unlocked");
+  }
+}
+async function loadManagerGate(){
+  try{
+    const {data:{session}}=await supabase.auth.getSession();
+    if(!session) return;
+    const {data:customer}=await supabase.from("customers").select("id").eq("id",customerId).maybeSingle();
+    if(!customer) return applyManagerGate(false);
+    const {data:access,error}=await supabase.from("channel_access").select("manager_access").eq("customer_id",customerId).maybeSingle();
+    if(error) console.error(error);
+    applyManagerGate(!!access?.manager_access);
+  }catch(e){console.error(e);applyManagerGate(false)}
+}
+async function setManagerGate(granted){
+  const {data,error}=await supabase.from("channel_access").update({manager_access:granted,updated_at:new Date().toISOString()}).eq("customer_id",customerId).select("manager_access").maybeSingle();
+  if(error) throw error;
+  applyManagerGate(!!data?.manager_access);
+}
+
 async function loadAll(){
  try{
   $("manageMessage").textContent="Syncing YouTube…";
@@ -33,13 +71,86 @@ function renderVideos(){
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
 function renderPlaylists(){const box=$("playlistList");if(!playlists.length){box.innerHTML="<p>No playlists found.</p>";return}box.innerHTML=playlists.map((p,i)=>`<div class="yt-playlist-row"><div><b>${esc(p.title)}</b><small>${p.itemCount||0} videos · ${esc(p.privacyStatus||"-")}</small></div><button class="btn" data-pl="${i}">Edit</button></div>`).join("");document.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>openPlaylist(+b.dataset.pl))}
 function openPlaylist(i){const p=playlists[i];$("playlistId").value=p.id;$("playlistTitle").value=p.title||"";$("playlistDescription").value=p.description||"";$("playlistPrivacy").value=p.privacyStatus||"private";$("playlistMessage").textContent="";$("playlistModal").hidden=false}
+
+$("markManagerGranted").onclick=async()=>{
+  try{
+    $("managerGateText").textContent="Saving…";
+    await setManagerGate(true);
+  }catch(e){$("managerGateText").textContent=e.message}
+};
+$("markManagerPending").onclick=async()=>{
+  try{
+    $("managerGateText").textContent="Saving…";
+    await setManagerGate(false);
+  }catch(e){$("managerGateText").textContent=e.message}
+};
+
 $("refreshAll").onclick=loadAll;$("refreshVideos").onclick=loadAll;
 const studioPermissions="https://studio.youtube.com/";
 const studioCustomization="https://studio.youtube.com/";
-function openStudio(url,msg){$("accessMessage").textContent=msg;window.open(url,"_blank","noopener,noreferrer")}
-$("openPermissions").onclick=()=>openStudio(studioPermissions,"YouTube Studio khul raha hai → Settings → Permissions → INVITE.");
-$("openManagerAccess").onclick=()=>openStudio(studioPermissions,"INVITE → admin Google email → Access: Manager → DONE. Invite owner/authorized manager ko approve/send karna hoga.");
-$("openCustomization").onclick=()=>openStudio(studioCustomization,"YouTube Studio Branding khul raha hai. Yahan channel name/profile picture jaise Studio-supported changes karein.");
+function openStudio(url,msg){
+  if($("accessMessage")) $("accessMessage").textContent=msg;
+  window.open(url,"_blank","noopener,noreferrer");
+}
+
+let accessFlowMode="permissions";
+function showAccessFlow(mode){
+  accessFlowMode=mode;
+  const isManager=mode==="manager";
+  $("accessFlowIcon").textContent=isManager?"👤":"🔐";
+  $("accessFlowTitle").textContent=isManager?"Give Manager Access":"Open Channel Permissions";
+  $("accessFlowIntro").textContent=isManager
+    ?"Manager invite ka official YouTube Studio flow khulega. Password share nahi hoga."
+    :"Channel owner ke YouTube Studio me official Permissions section use karna hai.";
+  $("managerEmailBox").hidden=!isManager;
+  $("continueAccessFlow").textContent=isManager?"Open Studio & Invite Manager":"Open Studio Permissions";
+  $("permissionSteps").innerHTML=isManager
+    ? `<div><b>1</b><span>YouTube Studio kholkar <strong>Settings</strong> par jao.</span></div>
+       <div><b>2</b><span><strong>Permissions → INVITE</strong> dabao.</span></div>
+       <div><b>3</b><span>Manager ka Google email paste karo.</span></div>
+       <div><b>4</b><span>Role me <strong>Manager</strong> select karke <strong>DONE</strong> karo.</span></div>`
+    : `<div><b>1</b><span>YouTube Studio kholkar <strong>Settings</strong> par jao.</span></div>
+       <div><b>2</b><span><strong>Permissions</strong> kholo.</span></div>
+       <div><b>3</b><span>Yahin se current access dekho, role change karo, invite ya remove karo.</span></div>`;
+  $("managerEmailMessage").textContent="";
+  $("accessFlowModal").hidden=false;
+}
+$("openPermissions").onclick=()=>showAccessFlow("permissions");
+$("openManagerAccess").onclick=()=>showAccessFlow("manager");
+$("openCustomization").onclick=()=>openStudio(studioCustomization,"YouTube Studio khul raha hai. Manager access granted account se login rahna chahiye.");
+
+$("closeAccessFlow").onclick=()=>$("accessFlowModal").hidden=true;
+$("cancelAccessFlow").onclick=()=>$("accessFlowModal").hidden=true;
+$("copyManagerEmail").onclick=async()=>{
+  const email=$("managerEmail").value.trim();
+  if(!email || !email.includes("@")){
+    $("managerEmailMessage").textContent="Valid manager Google email dalo.";
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(email);
+    $("managerEmailMessage").textContent="Email copied ✅";
+  }catch(_){
+    $("managerEmail").select();
+    document.execCommand("copy");
+    $("managerEmailMessage").textContent="Email copied ✅";
+  }
+};
+$("continueAccessFlow").onclick=async()=>{
+  if(accessFlowMode==="manager"){
+    const email=$("managerEmail").value.trim();
+    if(email && email.includes("@")){
+      try{ await navigator.clipboard.writeText(email); }catch(_){}
+      $("accessMessage").textContent="Manager email copied. Studio → Settings → Permissions → INVITE → paste email → Manager → DONE.";
+    }else{
+      $("accessMessage").textContent="Studio → Settings → Permissions → INVITE → manager email → Manager → DONE.";
+    }
+  }else{
+    $("accessMessage").textContent="Studio → Settings → Permissions kholkar channel access manage karein.";
+  }
+  $("accessFlowModal").hidden=true;
+  window.open(studioPermissions,"_blank","noopener,noreferrer");
+};
 $("closeModal").onclick=()=>$("editModal").hidden=true;$("closePlaylistModal").onclick=()=>$("playlistModal").hidden=true;
 $("saveChannel").onclick=async()=>{try{$("channelMessage").textContent="Updating…";await api("update_channel",{description:$("channelDescription").value,keywords:$("channelKeywords").value});$("channelMessage").textContent="Channel updated ✅";await loadAll()}catch(e){$("channelMessage").textContent=e.message}};
 $("saveVideo").onclick=async()=>{try{$("editMessage").textContent="Updating…";await api("update_video",{video_id:$("editVideoId").value,title:$("editTitle").value.trim(),description:$("editDescription").value,tags:$("editTags").value.split(",").map(x=>x.trim()).filter(Boolean),category_id:$("editCategory").value.trim()||"22",privacy_status:$("editPrivacy").value});$("editMessage").textContent="Updated on YouTube ✅";await loadAll()}catch(e){$("editMessage").textContent=e.message}};
@@ -120,7 +231,8 @@ $("uploadChannelBanner").onclick=async()=>{
   const base64=await fileData(blob);
   await api("set_channel_banner",{mime_type:"image/jpeg",data_base64:base64});
   $("bannerMessage").textContent="Channel banner updated ✅";
-  await loadAll();
+  await loadManagerGate();
+loadAll();
  }catch(e){
   $("bannerMessage").textContent=e.message;
  }finally{
