@@ -20,7 +20,7 @@
     <a href="#services">Services</a>
     <a href="login.html">Login</a>
     <a class="register" href="register.html">Register</a>
-  </nav>
+  <button id="installUserAppTop" class="yt-user-nav-install" type="button">📱 Install App</button></nav>
 </header>
 
 <main class="yt-user-public-main">
@@ -99,6 +99,9 @@ async function runUserInstall(){
   }
 }
 document.getElementById("installUserApp")?.addEventListener("click",runUserInstall);
+
+document.getElementById("installUserAppTop")?.addEventListener("click",runUserInstall);
+
 document.getElementById("installUserAppBanner")?.addEventListener("click",runUserInstall);
 document.getElementById("closeUserInstallBanner")?.addEventListener("click",()=>document.getElementById("userInstallBanner")?.setAttribute("hidden",""));
 if(new URLSearchParams(location.search).get("install")==="1"){

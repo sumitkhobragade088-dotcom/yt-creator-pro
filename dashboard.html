@@ -119,6 +119,18 @@ document.getElementById("copyUserManagerEmail")?.addEventListener("click",async(
   alert("Manager email copied");
 });
 </script>
+
+
+<script>
+(function(){
+  const titles={dashboard:"Dashboard",requests:"Service Requests",channel:"YouTube Channel",access:"Channel Access",profile:"Profile"};
+  const title=document.getElementById("userDashboardTitle");
+  document.querySelectorAll(".yt-user-dashboard-nav button[data-user-view]").forEach(btn=>{
+    btn.addEventListener("click",()=>{ if(title) title.textContent=titles[btn.dataset.userView]||"Dashboard"; });
+  });
+})();
+</script>
+
 <script type="module" src="assets/js/auth.js"></script>
 <script type="module" src="assets/js/google-youtube.js"></script>
 </body></html>

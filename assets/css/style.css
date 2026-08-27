@@ -544,3 +544,62 @@ body header{margin-left:250px}
 @media(max-width:700px){
   .yt-user-access-action-card{grid-template-columns:38px 1fr}.yt-user-access-action-card>button,.yt-user-access-action-card>.yt-user-access-buttons{grid-column:1/-1}.yt-user-access-buttons{align-items:stretch;flex-direction:column}
 }
+
+
+/* ===== EXACT 3 CORRECTIONS ===== */
+
+/* User dashboard: use available width professionally, remove oversized side whitespace */
+.yt-user-dashboard-main{
+  padding:20px 22px 28px !important;
+  max-width:none !important;
+  width:auto !important;
+}
+.yt-user-dashboard-header,
+.yt-user-dashboard-content,
+.yt-user-section{
+  max-width:none !important;
+  width:100% !important;
+}
+.yt-user-dashboard-grid{
+  width:100% !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:14px !important;
+}
+.yt-user-dashboard-grid .panel,
+.yt-user-dashboard-card{
+  min-width:0 !important;
+}
+@media(max-width:1000px){
+  .yt-user-dashboard-grid{grid-template-columns:repeat(2,minmax(0,1fr)) !important}
+}
+@media(max-width:650px){
+  .yt-user-dashboard-main{padding:14px !important}
+  .yt-user-dashboard-grid{grid-template-columns:1fr !important}
+}
+
+/* Public website: Install App must be visible in header */
+.yt-user-public-nav{
+  display:flex !important;
+  align-items:center !important;
+  gap:10px !important;
+}
+.yt-user-nav-install{
+  border:0;
+  border-radius:9px;
+  padding:10px 14px;
+  background:#ff0000;
+  color:#fff;
+  font:inherit;
+  font-size:11px;
+  font-weight:900;
+  cursor:pointer;
+  white-space:nowrap;
+  box-shadow:0 5px 14px rgba(255,0,0,.18);
+}
+.yt-user-nav-install:hover{background:#d90000}
+
+.yt-user-dashboard-cards{width:100%!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:14px!important}
+.yt-user-dashboard-summary{width:100%!important}
+.yt-user-view{width:100%!important;max-width:none!important}
+@media(max-width:900px){.yt-user-dashboard-cards{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+@media(max-width:600px){.yt-user-dashboard-cards{grid-template-columns:1fr!important}}
