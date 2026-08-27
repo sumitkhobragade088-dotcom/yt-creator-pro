@@ -2,6 +2,7 @@ import { supabase } from "./supabase.js";
 const FUNCTION_URL="https://ncxexmekzlrliicaqfcl.supabase.co/functions/v1/youtube-manage";
 const customerId=new URLSearchParams(location.search).get("customer");
 let videos=[],playlists=[];
+let activeContentTab="video";
 let uploadBusy=false;
 let managerAccessGranted=false;
 const $=id=>document.getElementById(id);
@@ -10,8 +11,12 @@ async function api(action,payload={}){const s=await session();const r=await fetc
 const esc=(x="")=>String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const fmt=n=>Number(n||0).toLocaleString("en-IN");
 
+
+function managerGateStorageKey(){return `yt_manager_access_${customerId||"unknown"}`;}
+
 function applyManagerGate(granted){
   managerAccessGranted=!!granted;
+  try{localStorage.setItem(managerGateStorageKey(),managerAccessGranted?"1":"0")}catch(_){}
   const badge=$("managerGateBadge");
   const text=$("managerGateText");
   const area=$("managerUnlockedArea");
@@ -30,16 +35,26 @@ function applyManagerGate(granted){
   }
 }
 async function loadManagerGate(){
+  // Show saved local status immediately so refresh does not jump back to Pending.
+  try{
+    if(localStorage.getItem(managerGateStorageKey())==="1") applyManagerGate(true);
+  }catch(_){}
+
   try{
     const d=await api("get_manager_access");
     applyManagerGate(!!d.manager_access);
   }catch(e){
     console.error(e);
-    applyManagerGate(false);
-    $("managerGateText").textContent="Manager access status load failed: "+e.message;
+    // Keep local granted state if backend is temporarily unavailable.
+    let localGranted=false;
+    try{localGranted=localStorage.getItem(managerGateStorageKey())==="1"}catch(_){}
+    applyManagerGate(localGranted);
+    if(!localGranted) $("managerGateText").textContent="Manager access status load failed: "+e.message;
   }
 }
 async function setManagerGate(granted){
+  // Persist UI immediately, then save permanently to backend.
+  applyManagerGate(!!granted);
   const d=await api("set_manager_access",{manager_access:!!granted});
   applyManagerGate(!!d.manager_access);
 }
@@ -76,46 +91,108 @@ function copyrightLabel(v){
  return "Claims: check Studio";
 }
 function renderVideos(){
-  const normal=(videos||[]).filter(v=>contentType(v)==="video");
-  const shorts=(videos||[]).filter(v=>contentType(v)==="short");
-  const live=(videos||[]).filter(v=>contentType(v)==="live");
-
-  $("videosCount").textContent=normal.length;
-  $("shortsCount").textContent=shorts.length;
-  $("liveCount").textContent=live.length;
-
-  const card=(v)=>{
-    const i=videos.indexOf(v);
-    const type=contentType(v);
-    const typeLabel=type==="short"?"SHORT":type==="live"?"LIVE":"VIDEO";
-    return `<article class="yt-video-card">
-      <img src="${esc(v.thumbnail||"")}" alt="">
-      <div class="yt-video-copy">
-        <div class="yt-title-row"><b>${esc(v.title)}</b><span class="yt-type-chip ${type}">${typeLabel}</span></div>
-        <small>${esc(v.id)}</small>
-        <div class="yt-chip-row">
-          <span>${esc(v.privacyStatus||"-")}</span>
-          <span>${copyrightLabel(v)}</span>
-          <span>${fmt(v.views)} views</span>
-          ${v.durationSeconds?`<span>${Math.floor(v.durationSeconds/60)}:${String(v.durationSeconds%60).padStart(2,"0")}</span>`:""}
-        </div>
-      </div>
-      <button class="btn primary" data-edit="${i}">Edit / Manage</button>
-    </article>`;
+  const counts={
+    video:(videos||[]).filter(v=>contentType(v)==="video").length,
+    short:(videos||[]).filter(v=>contentType(v)==="short").length,
+    live:(videos||[]).filter(v=>contentType(v)==="live").length,
+    playlist:(playlists||[]).length
   };
+  $("videosCount").textContent=counts.video;
+  $("shortsCount").textContent=counts.short;
+  $("liveCount").textContent=counts.live;
+  $("playlistsCount").textContent=counts.playlist;
 
-  const draw=(id,arr,label)=>{
-    const box=$(id);
-    box.innerHTML=arr.length?arr.map(card).join(""):`<p class="yt-empty-content">No ${label} found.</p>`;
-  };
-  draw("normalVideoList",normal,"videos");
-  draw("shortVideoList",shorts,"shorts");
-  draw("liveVideoList",live,"live streams");
-
-  document.querySelectorAll("[data-edit]").forEach(b=>b.onclick=()=>openEdit(Number(b.dataset.edit)));
+  renderContentTable();
 }
+
+function formatDate(v){
+  const raw=v.publishedAt||v.createdAt||v.updatedAt||"";
+  if(!raw)return "-";
+  const d=new Date(raw);
+  return Number.isNaN(d.getTime())?"-":d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+}
+function contentRows(){
+  const q=String($("contentSearch")?.value||"").trim().toLowerCase();
+
+  if(activeContentTab==="playlist"){
+    return (playlists||[])
+      .filter(p=>!q || `${p.title||""} ${p.description||""}`.toLowerCase().includes(q))
+      .map(p=>({
+        kind:"playlist",
+        id:p.id,
+        title:p.title||"",
+        description:p.description||"",
+        thumbnail:p.thumbnail||"",
+        privacyStatus:p.privacyStatus||"-",
+        date:p.publishedAt||"",
+        views:"-",
+        comments:"-",
+        object:p
+      }));
+  }
+
+  return (videos||[])
+    .filter(v=>contentType(v)===activeContentTab)
+    .filter(v=>!q || `${v.title||""} ${v.description||""}`.toLowerCase().includes(q))
+    .map(v=>({
+      kind:"video",
+      id:v.id,
+      title:v.title||"",
+      description:v.description||"",
+      thumbnail:v.thumbnail||"",
+      privacyStatus:v.privacyStatus||"-",
+      date:v.publishedAt||"",
+      views:v.views||0,
+      comments:v.comments||0,
+      object:v
+    }));
+}
+
+function renderContentTable(){
+  const body=$("contentTableBody");
+  if(!body)return;
+  const rows=contentRows();
+
+  if(!rows.length){
+    const label=activeContentTab==="video"?"videos":activeContentTab==="short"?"shorts":activeContentTab==="live"?"live streams":"playlists";
+    body.innerHTML=`<tr><td colspan="6" class="yt-table-empty">No ${label} found.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML=rows.map((r,idx)=>`
+    <tr>
+      <td>
+        <div class="yt-table-content-cell">
+          <img src="${esc(r.thumbnail||"")}" alt="">
+          <div>
+            <b>${esc(r.title)}</b>
+            <small>${esc(r.description||"").slice(0,80)}</small>
+          </div>
+        </div>
+      </td>
+      <td><span class="yt-visibility-chip">${esc(r.privacyStatus||"-")}</span></td>
+      <td>${formatDate(r.object)}</td>
+      <td>${r.views==="-"?"-":fmt(r.views)}</td>
+      <td>${r.comments==="-"?"-":fmt(r.comments)}</td>
+      <td><button class="btn primary" data-content-edit="${idx}">${r.kind==="playlist"?"Edit Playlist":"Edit / Manage"}</button></td>
+    </tr>`).join("");
+
+  document.querySelectorAll("[data-content-edit]").forEach(btn=>{
+    btn.onclick=()=>{
+      const row=rows[Number(btn.dataset.contentEdit)];
+      if(row.kind==="playlist"){
+        const i=playlists.indexOf(row.object);
+        openPlaylist(i);
+      }else{
+        const i=videos.indexOf(row.object);
+        openEdit(i);
+      }
+    };
+  });
+}
+
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
-function renderPlaylists(){const box=$("playlistList");if(!playlists.length){box.innerHTML="<p>No playlists found.</p>";return}box.innerHTML=playlists.map((p,i)=>`<div class="yt-playlist-row"><div><b>${esc(p.title)}</b><small>${p.itemCount||0} videos · ${esc(p.privacyStatus||"-")}</small></div><button class="btn" data-pl="${i}">Edit</button></div>`).join("");document.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>openPlaylist(+b.dataset.pl))}
+function renderPlaylists(){if($("playlistsCount")) $("playlistsCount").textContent=(playlists||[]).length; if(activeContentTab==="playlist") renderContentTable(); const box=$("playlistList");if(!playlists.length){box.innerHTML="<p>No playlists found.</p>";return}box.innerHTML=playlists.map((p,i)=>`<div class="yt-playlist-row"><div><b>${esc(p.title)}</b><small>${p.itemCount||0} videos · ${esc(p.privacyStatus||"-")}</small></div><button class="btn" data-pl="${i}">Edit</button></div>`).join("");document.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>openPlaylist(+b.dataset.pl))}
 function openPlaylist(i){
  const p=playlists[i];
  $("playlistId").value=p.id;
@@ -142,6 +219,17 @@ $("markManagerPending").onclick=async()=>{
     await setManagerGate(false);
   }catch(e){$("managerGateText").textContent=e.message}
 };
+
+
+document.querySelectorAll(".yt-content-tab").forEach(btn=>{
+  btn.onclick=()=>{
+    document.querySelectorAll(".yt-content-tab").forEach(b=>b.classList.remove("active"));
+    btn.classList.add("active");
+    activeContentTab=btn.dataset.contentTab;
+    renderContentTable();
+  };
+});
+if($("contentSearch")) $("contentSearch").oninput=renderContentTable;
 
 $("refreshAll").onclick=loadAll;$("refreshVideos").onclick=loadAll;
 const studioPermissions="https://studio.youtube.com/";

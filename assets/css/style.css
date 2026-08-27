@@ -139,3 +139,22 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 .yt-type-chip.short{background:#fce7f3;color:#be185d}
 .yt-type-chip.live{background:#fee2e2;color:#b91c1c}
 .yt-empty-content{padding:18px;text-align:center;color:#667085;background:#f8fafc;border-radius:12px}
+
+/* YouTube Studio-like content tabs/table */
+.yt-content-tabs{display:flex;gap:24px;overflow-x:auto;border-bottom:1px solid #e5e7eb;margin-top:18px}
+.yt-content-tab{appearance:none;border:0;background:transparent;padding:12px 2px;color:#475467;font-weight:800;cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap}
+.yt-content-tab.active{color:#111827;border-bottom-color:#111827}
+.yt-content-tab span{margin-left:6px;font-size:11px;background:#f2f4f7;padding:2px 7px;border-radius:999px}
+.yt-content-toolbar{padding:12px 0}
+.yt-content-toolbar input{width:min(360px,100%);padding:10px 12px;border:1px solid #d0d5dd;border-radius:10px}
+.yt-content-table-wrap{overflow:auto}
+.yt-studio-table{width:100%;border-collapse:collapse;min-width:820px}
+.yt-studio-table th,.yt-studio-table td{padding:12px 10px;border-bottom:1px solid #eaecf0;text-align:left;vertical-align:middle}
+.yt-studio-table th{font-size:12px;color:#667085;font-weight:800;background:#fff}
+.yt-table-content-cell{display:flex;gap:12px;align-items:center;min-width:340px}
+.yt-table-content-cell img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:8px;background:#f2f4f7}
+.yt-table-content-cell div{display:grid;gap:4px}
+.yt-table-content-cell b{font-size:13px;color:#101828}
+.yt-table-content-cell small{font-size:11px;color:#667085;max-width:360px}
+.yt-visibility-chip{font-size:11px;padding:4px 8px;border-radius:999px;background:#f2f4f7;color:#344054}
+.yt-table-empty{text-align:center!important;padding:28px!important;color:#667085}

@@ -27,20 +27,26 @@ Deno.serve(async req=>{
 
   if(b.action==="set_manager_access"){
     const value=!!b.manager_access;
-    const ur=await fetch(`${url}/rest/v1/channel_access?customer_id=eq.${encodeURIComponent(b.customer_id)}`,{
-      method:"PATCH",
+
+    // Permanent upsert: create row if missing, update if it already exists.
+    const ur=await fetch(`${url}/rest/v1/channel_access?on_conflict=customer_id`,{
+      method:"POST",
       headers:{
         apikey:service,
         Authorization:`Bearer ${service}`,
         "Content-Type":"application/json",
-        Prefer:"return=representation"
+        Prefer:"resolution=merge-duplicates,return=representation"
       },
-      body:JSON.stringify({manager_access:value,updated_at:new Date().toISOString()})
+      body:JSON.stringify({
+        customer_id:b.customer_id,
+        manager_access:value,
+        updated_at:new Date().toISOString()
+      })
     });
+
     const rows=await ur.json();
     if(!ur.ok)return J({error:"Manager access save failed",details:rows},400);
-    if(!rows?.length)return J({error:"Channel access row not found"},404);
-    return J({success:true,manager_access:!!rows[0].manager_access});
+    return J({success:true,manager_access:value});
   }
 
   if(b.action==="dashboard"){
@@ -54,9 +60,9 @@ hadLiveStream:!!v.liveStreamingDetails,
 duration:v.contentDetails?.duration||"PT0S",
 durationSeconds:(()=>{const m=String(v.contentDetails?.duration||"PT0S").match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);return m?((Number(m[1]||0)*86400)+(Number(m[2]||0)*3600)+(Number(m[3]||0)*60)+Number(m[4]||0)):0})(),
 status:{uploadStatus:v.status?.uploadStatus||"",license:v.status?.license||"",embeddable:v.status?.embeddable},
-views:v.statistics?.viewCount||0,
+views:v.statistics?.viewCount||0,comments:v.statistics?.commentCount||0,publishedAt:v.snippet?.publishedAt||"",
 restrictions:{regionBlocked:!!(v.contentDetails?.regionRestriction?.blocked?.length)}}))}
-   const pl=await gj("https://www.googleapis.com/youtube/v3/playlists?part=snippet,status,contentDetails&mine=true&maxResults=50",token);const playlists=(pl.items||[]).map((p:any)=>({id:p.id,title:p.snippet?.title||"",description:p.snippet?.description||"",privacyStatus:p.status?.privacyStatus||"",itemCount:p.contentDetails?.itemCount||0,thumbnail:p.snippet?.thumbnails?.medium?.url||p.snippet?.thumbnails?.default?.url||""}));
+   const pl=await gj("https://www.googleapis.com/youtube/v3/playlists?part=snippet,status,contentDetails&mine=true&maxResults=50",token);const playlists=(pl.items||[]).map((p:any)=>({id:p.id,title:p.snippet?.title||"",description:p.snippet?.description||"",privacyStatus:p.status?.privacyStatus||"",itemCount:p.contentDetails?.itemCount||0,thumbnail:p.snippet?.thumbnails?.medium?.url||p.snippet?.thumbnails?.default?.url||"",publishedAt:p.snippet?.publishedAt||""}));
    return J({channel:{channelId:ch.id,title:ch.snippet?.title||"",description:ch.snippet?.description||"",keywords:ch.brandingSettings?.channel?.keywords||"",bannerUrl:ch.brandingSettings?.image?.bannerExternalUrl||"",subscribers:ch.statistics?.subscriberCount||0,views:ch.statistics?.viewCount||0,videos:ch.statistics?.videoCount||0},videos,playlists,copyright_note:"Copyright claim details are not exposed by YouTube Data API; use YouTube Studio for exact claims."});
   }
 
