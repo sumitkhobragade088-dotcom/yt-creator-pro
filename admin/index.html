@@ -24,6 +24,7 @@
       <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
       <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
       <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
+      <button class="yt-premium-nav-btn" data-view="manage">🎛️ <span>Manage Channel</span></button>
       <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="monetization">💰 <span>Monetization Cases</span></button>
       <button class="yt-premium-nav-btn" data-view="adsense">₹ <span>AdSense</span></button>
@@ -146,24 +147,24 @@
     <section class="yt-premium-view" id="view-channels">
       <div class="yt-premium-section-head"><div><span>CHANNELS</span><h2>YouTube Channels</h2><p>Sirf connected channel data.</p></div><b id="channelsSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Customer</th><th>Email</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manager</th><th>Action</th></tr></thead>
-        <tbody id="youtubeChannelsBody"><tr><td colspan="9">Loading...</td></tr></tbody></table>
+        <table class="data-table"><thead><tr><th>Customer</th><th>Email</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manager Access</th></tr></thead>
+        <tbody id="youtubeChannelsBody"><tr><td colspan="8">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
     <section class="yt-premium-view" id="view-access">
       <div class="yt-premium-section-head"><div><span>ACCESS</span><h2>Access Requests</h2><p>Sirf permission/access data.</p></div><b id="accessSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Google Connected</th><th>Manager Access</th><th>Updated</th><th>Action</th></tr></thead>
-        <tbody id="accessRequestsBody"><tr><td colspan="6">Loading...</td></tr></tbody></table>
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Google Connected</th><th>Manager Access</th><th>Updated</th></tr></thead>
+        <tbody id="accessRequestsBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
     <section class="yt-premium-view" id="view-monetization">
       <div class="yt-premium-section-head"><div><span>MONETIZATION</span><h2>Monetization Cases</h2><p>Sirf monetization case data.</p></div><b id="monetizationSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manage</th></tr></thead>
-        <tbody id="monetizationBody"><tr><td colspan="7">Loading...</td></tr></tbody></table>
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th></tr></thead>
+        <tbody id="monetizationBody"><tr><td colspan="6">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -186,6 +187,15 @@
     <section class="yt-premium-view" id="view-history">
       <div class="yt-premium-section-head"><div><span>HISTORY</span><h2>History</h2><p>Recent admin/customer/channel activity.</p></div></div>
       <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">Loading...</div></div></div>
+    </section>
+
+
+    <section class="yt-premium-view" id="view-manage">
+      <div class="yt-premium-section-head"><div><span>CHANNEL CONTROL</span><h2>Manage Channel</h2><p>Only channels with Manager Access Granted are available for full edit / update / delete management.</p></div><b id="manageSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Manager Access</th><th>Action</th></tr></thead>
+        <tbody id="manageChannelsBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
+      </div></div>
     </section>
 
     <section class="yt-premium-view" id="view-analytics">
@@ -242,21 +252,6 @@
       </div>
     </section>
   </main>
-
-<div id="adminInlineDrawer" class="yt-inline-drawer" hidden>
-  <div class="yt-inline-drawer-backdrop" data-close-inline></div>
-  <section class="yt-inline-drawer-panel" role="dialog" aria-modal="true" aria-labelledby="inlineDrawerTitle">
-    <header class="yt-inline-drawer-head">
-      <div>
-        <span id="inlineDrawerEyebrow">CHANNEL</span>
-        <h2 id="inlineDrawerTitle">Channel Details</h2>
-      </div>
-      <button type="button" class="yt-inline-close" data-close-inline>✕</button>
-    </header>
-    <div id="adminInlineDrawerBody" class="yt-inline-drawer-body"></div>
-  </section>
-</div>
-
 </div>
 
 

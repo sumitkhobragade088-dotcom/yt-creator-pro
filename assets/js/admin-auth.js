@@ -73,7 +73,6 @@ async function loadAdminDashboard(){
   dashboardCache={customers,access,requests};
 
   const customerMap=new Map(customers.map(c=>[c.id,c]));
-  window.__adminInlineData={customers,access,requests,customerMap};
   const connected=access.filter(a=>a.google_connected);
   const pendingAccess=access.filter(a=>!a.manager_access);
   const granted=access.filter(a=>a.manager_access);
@@ -111,6 +110,7 @@ async function loadAdminDashboard(){
   renderAdsense(customerMap,access);
   renderServices(requests);
   renderHistory(customers,access,requests,customerMap);
+  renderAdminManage(customerMap,access);
   renderAdminAnalytics(customerMap,access);
   renderAdminCopyright(customerMap,access);
   applyAdminCmsAndEditor();
@@ -142,8 +142,7 @@ function renderChannels(customers,access){
       <td>${fmt(a.views)}</td>
       <td>${fmt(a.videos)}</td>
       <td>${a.manager_access?'<span class="yt-status-chip good">GRANTED ✅</span>':'<span class="yt-status-chip pending">PENDING 🟡</span>'}</td>
-      <td><button class="btn primary js-inline-channel" type="button" data-mode="channel" data-customer="${esc(c.id)}">${a.manager_access?"Manage":"Access Setup"}</button></td>
-    </tr>`).join(""):'<tr><td colspan="9">No connected channels.</td></tr>';
+    </tr>`).join(""):'<tr><td colspan="8">No connected channels.</td></tr>';
 }
 
 function renderAccess(customerMap,rows){
@@ -156,9 +155,8 @@ function renderAccess(customerMap,rows){
       <td>${a.google_connected?'<span class="yt-status-chip good">Connected</span>':'<span class="yt-status-chip bad">Not Connected</span>'}</td>
       <td>${a.manager_access?'<span class="yt-status-chip good">Granted</span>':'<span class="yt-status-chip pending">Pending</span>'}</td>
       <td>${dateText(a.updated_at)}</td>
-      <td><button class="btn js-inline-channel" type="button" data-mode="access" data-customer="${esc(a.customer_id)}">Open</button></td>
     </tr>`;
-  }).join(""):'<tr><td colspan="6">No access records.</td></tr>';
+  }).join(""):'<tr><td colspan="5">No access records.</td></tr>';
 }
 
 function renderMonetization(customerMap,rows){
@@ -171,9 +169,8 @@ function renderMonetization(customerMap,rows){
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
       <td><span class="yt-status-chip">${esc(a.monetization_status||"pending")}</span></td>
       <td>${fmt(a.subscribers)}</td><td>${fmt(a.views)}</td><td>${fmt(a.videos)}</td>
-      <td><button class="btn primary js-inline-channel" type="button" data-mode="monetization" data-customer="${esc(a.customer_id)}">Manage</button></td>
     </tr>`;
-  }).join(""):'<tr><td colspan="7">No monetization cases.</td></tr>';
+  }).join(""):'<tr><td colspan="6">No monetization cases.</td></tr>';
 }
 
 function renderAdsense(customerMap,rows){
@@ -238,6 +235,7 @@ const premiumViewTitles={
   dashboard:"Dashboard",
   customers:"Users / Customers",
   channels:"YouTube Channels",
+  manage:"Manage Channel",
   access:"Access Requests",
   monetization:"Monetization Cases",
   adsense:"AdSense",
@@ -292,6 +290,20 @@ if("serviceWorker" in navigator){
 }
 
 
+function renderAdminManage(customerMap, rows){
+  const body=$("manageChannelsBody"); if(!body)return;
+  const granted=(rows||[]).filter(a=>a.google_connected && a.manager_access);
+  setText("manageSectionCount",granted.length);
+  body.innerHTML=granted.length?granted.map(a=>{
+    const c=customerMap.get(a.customer_id)||{};
+    return `<tr>
+      <td>${esc(c.full_name||c.email||"-")}</td>
+      <td>${esc(a.channel_name||c.channel_name||"-")}</td>
+      <td><span class="yt-status-chip good">GRANTED ✅</span></td>
+      <td><a class="btn primary" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}">Manage Channel</a></td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="4">No channel has Manager Access Granted yet.</td></tr>';
+}
 function renderAdminAnalytics(customerMap, rows){
   const connected=(rows||[]).filter(a=>a.google_connected);
   const subs=connected.reduce((n,a)=>n+Number(a.subscribers||0),0);
@@ -307,7 +319,7 @@ function renderAdminAnalytics(customerMap, rows){
     return `<tr>
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
       <td>${fmt(a.subscribers)}</td><td>${fmt(a.views)}</td><td>${fmt(a.videos)}</td>
-      <td><button class="btn js-inline-channel" type="button" data-mode="analytics" data-customer="${esc(a.customer_id)}">Open</button></td>
+      <td><a class="btn" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}">Open</a></td>
     </tr>`;
   }).join(""):'<tr><td colspan="5">No connected channels.</td></tr>';
 }
@@ -372,65 +384,3 @@ if($("resetAdminEditor")) $("resetAdminEditor").onclick=()=>{
   applyAdminCmsAndEditor();
   $("adminEditorMessage").textContent="Labels reset ✅";
 };
-
-
-function openAdminInline(customerId,mode="channel"){
-  const data=window.__adminInlineData||{};
-  const c=data.customerMap?.get(customerId)||{};
-  const a=(data.access||[]).find(x=>String(x.customer_id)===String(customerId))||{};
-  const drawer=$("adminInlineDrawer"), body=$("adminInlineDrawerBody");
-  if(!drawer||!body)return;
-
-  const labels={
-    channel:["CHANNEL MANAGEMENT","YouTube Channel"],
-    access:["ACCESS REQUEST","Channel Access"],
-    monetization:["MONETIZATION","Monetization Case"],
-    analytics:["ANALYTICS","Channel Analytics"]
-  };
-  const [eyebrow,title]=labels[mode]||labels.channel;
-  setText("inlineDrawerEyebrow",eyebrow);
-  setText("inlineDrawerTitle",title);
-
-  const status=a.google_connected?'<span class="yt-status-chip good">Connected ✅</span>':'<span class="yt-status-chip bad">Not Connected</span>';
-  const manager=a.manager_access?'<span class="yt-status-chip good">Granted ✅</span>':'<span class="yt-status-chip pending">Pending 🟡</span>';
-  const mono=esc(a.monetization_status||"Pending");
-  const adsense=a.adsense_access?'<span class="yt-status-chip good">Linked / Access ✅</span>':'<span class="yt-status-chip pending">Not Linked</span>';
-
-  body.innerHTML=`
-    <div class="yt-inline-profile">
-      <div class="yt-inline-avatar">▶</div>
-      <div><small>${esc(c.full_name||"Customer")}</small><h3>${esc(a.channel_name||c.channel_name||"YouTube Channel")}</h3><p>${esc(c.email||"-")}</p></div>
-    </div>
-    <div class="yt-inline-stats">
-      <div><small>Subscribers</small><b>${fmt(a.subscribers)}</b></div>
-      <div><small>Views</small><b>${fmt(a.views)}</b></div>
-      <div><small>Videos</small><b>${fmt(a.videos)}</b></div>
-      <div><small>Google</small><b>${status}</b></div>
-    </div>
-    <div class="yt-inline-info">
-      <div><span>Manager Access</span><b>${manager}</b></div>
-      <div><span>Monetization</span><b>${mono}</b></div>
-      <div><span>AdSense</span><b>${adsense}</b></div>
-      <div><span>Last Updated</span><b>${dateText(a.updated_at)}</b></div>
-    </div>
-    <div class="yt-inline-actions">
-      <a class="btn primary" target="_blank" rel="noopener" href="https://studio.youtube.com/">Open YouTube Studio</a>
-      <button class="btn" type="button" data-close-inline>Close</button>
-    </div>`;
-  drawer.hidden=false;
-  document.body.classList.add("yt-inline-open");
-}
-
-document.addEventListener("click",(e)=>{
-  const action=e.target.closest(".js-inline-channel");
-  if(action){
-    e.preventDefault();
-    openAdminInline(action.dataset.customer,action.dataset.mode);
-    return;
-  }
-  if(e.target.closest("[data-close-inline]")){
-    const drawer=$("adminInlineDrawer");
-    if(drawer)drawer.hidden=true;
-    document.body.classList.remove("yt-inline-open");
-  }
-});
