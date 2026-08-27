@@ -1,13 +1,58 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Register | YT Creator Pro</title><link rel="stylesheet" href="assets/css/style.css"></head><body class="center">
-<form class="auth" id="registerForm"><h1>Start Your Request</h1>
-<input id="fullName" required placeholder="Full Name">
-<input id="email" type="email" required placeholder="Gmail / Email ID">
-<input id="password" type="password" minlength="6" required placeholder="Create Website Password">
-<div class="hint">This is only your YT Creator Pro website password — do not enter your Gmail/Google password.</div>
-<input id="channelName" required placeholder="YouTube Channel Name">
-<input id="channelUrl" placeholder="Channel URL">
-<input id="mobile" required placeholder="Mobile / WhatsApp">
-<select id="serviceType"><option>Monetization Help</option><option>Channel Management</option><option>AdSense Assistance</option></select>
-<button class="btn primary" type="submit">Create Account & Submit</button><div id="message" class="message"></div>
-<a href="login.html">Already registered? Login</a><a href="index.html">← Home</a></form>
-<script type="module" src="assets/js/auth.js"></script></body></html>
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ff0000">
+<title>Register | YT Creator Pro</title>
+<link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="yt-user-auth-page">
+<header class="yt-user-auth-header">
+  <a class="yt-user-public-brand" href="index.html"><span class="yt-user-play-logo">▶</span><div><b>YT Creator Pro</b><small>Creator Support Portal</small></div></a>
+  <nav><a href="index.html">Home</a><a href="login.html">Login</a><a class="active" href="register.html">Register</a></nav>
+</header>
+
+<main class="yt-user-auth-shell register-mode">
+  <section class="yt-user-auth-visual">
+    <div class="yt-user-auth-monitor">
+      <div class="yt-user-auth-monitor-bar"><i></i><i></i><i></i></div>
+      <div class="yt-user-auth-monitor-screen">
+        <span>CREATE YOUR ACCOUNT</span>
+        <h1>YT Creator Pro</h1>
+        <p>Secure YouTube Creator Support Portal</p>
+        <div>▶</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="yt-user-auth-card-wrap">
+    <form class="yt-user-auth-card register" id="registerForm">
+      <div class="yt-user-auth-heading"><span>NEW CREATOR ACCOUNT</span><h1>Register</h1><p>Create your secure website account.</p></div>
+      <div class="yt-user-form-grid">
+        <div><label>Full Name</label><div class="yt-user-auth-input"><span>👤</span><input id="fullName" required placeholder="Full Name"></div></div>
+        <div><label>Email ID</label><div class="yt-user-auth-input"><span>✉</span><input id="email" type="email" required placeholder="Gmail / Email ID"></div></div>
+        <div><label>Create Password</label><div class="yt-user-auth-input"><span>●</span><input id="password" type="password" minlength="6" required placeholder="Website Password"><button class="yt-user-eye" type="button" data-eye="password">👁</button></div></div>
+        <div><label>Mobile / WhatsApp</label><div class="yt-user-auth-input"><span>☎</span><input id="mobile" required placeholder="Mobile / WhatsApp"></div></div>
+        <div><label>YouTube Channel Name</label><div class="yt-user-auth-input"><span>▶</span><input id="channelName" required placeholder="YouTube Channel Name"></div></div>
+        <div><label>Channel URL</label><div class="yt-user-auth-input"><span>🔗</span><input id="channelUrl" placeholder="Channel URL"></div></div>
+      </div>
+      <label>Service Required</label>
+      <div class="yt-user-auth-input"><span>🧰</span><select id="serviceType"><option>Monetization Help</option><option>Channel Management</option><option>AdSense Assistance</option></select></div>
+      <div class="hint">This is only your YT Creator Pro website password — do not enter your Gmail/Google password.</div>
+      <button class="yt-user-auth-submit" type="submit">▶ Create Account & Submit</button>
+      <div id="message" class="message"></div>
+      <div class="yt-user-auth-links"><a href="login.html">Already registered? Login</a><a href="index.html">Home</a></div>
+    </form>
+  </section>
+</main>
+<script>
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-eye]"); if(!b)return;
+  const i=document.getElementById(b.dataset.eye); if(!i)return;
+  i.type=i.type==="password"?"text":"password";
+  b.textContent=i.type==="password"?"👁":"🙈";
+});
+</script>
+<script type="module" src="assets/js/auth.js"></script>
+</body></html>

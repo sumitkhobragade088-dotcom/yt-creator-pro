@@ -126,6 +126,9 @@ async function loadDashboard() {
 
   if (customer) {
     document.getElementById("userName").textContent = customer.full_name || "Creator";
+    const pName=document.getElementById("userNameProfile"); if(pName)pName.textContent=customer.full_name||"Creator";
+    const pEmail=document.getElementById("userEmailProfile"); if(pEmail)pEmail.textContent=user.email||"-";
+    const pChannel=document.getElementById("userChannelProfile"); if(pChannel)pChannel.textContent=customer.channel_name||"-";
     document.getElementById("channelNameView").textContent = customer.channel_name || "Not connected";
     document.getElementById("channelUrlView").textContent = customer.channel_url || "Not added";
 
@@ -155,6 +158,9 @@ async function loadDashboard() {
       setText("ytSubscribers", fmt(access.subscribers));
       setText("ytViews", fmt(access.views));
       setText("ytVideos", fmt(access.videos));
+      setText("ytSubscribersChannel", fmt(access.subscribers));
+      setText("ytViewsChannel", fmt(access.views));
+      setText("ytVideosChannel", fmt(access.videos));
 
       const img = document.getElementById("ytChannelLogo");
       if (img) {

@@ -1,0 +1,23 @@
+USER SIDE FIXED — requested scope only
+
+1) Normal user Home:
+- Professional YouTube-inspired red/black visual
+- Top-right Home / Services / Manager Access / Login / Register
+- Computer/monitor contains project name: YT Creator Pro
+- Existing Services / Manager Access / Monetization content retained
+
+2) Login / Register:
+- Professional matching YouTube-inspired design
+- Home / Login / Register top navigation
+- Existing Supabase login/register IDs and JS flow retained
+- Password show/hide added
+
+3) After login User Dashboard:
+- Same professional visual system as Admin Dashboard
+- Fixed colorful sidebar + clean main page
+- User-side functions only:
+  Dashboard / Service Requests / YouTube Channel / Channel Access / Profile / Logout
+- Sidebar button shows only its own related data
+- Existing user data, Google connect and manager access functions retained
+
+No Admin Dashboard files, Edge Functions, SQL or YouTube management backend were changed in this user-side fix.
