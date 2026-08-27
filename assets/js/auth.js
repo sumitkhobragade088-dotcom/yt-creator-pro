@@ -131,7 +131,7 @@ async function loadDashboard() {
 
     const { data: access, error: accessError } = await supabase
       .from("channel_access")
-      .select("google_connected,manager_access,adsense_access,monetization_status,updated_at,channel_id,channel_name,channel_thumbnail,subscribers,views,videos")
+      .select("*")
       .eq("customer_id", customer.id)
       .maybeSingle();
 
@@ -141,16 +141,30 @@ async function loadDashboard() {
     const connectBtn = document.getElementById("connectYouTubeBtn");
 
     if (access) {
-      const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value ?? "-"; };
-      set("ytChannelName", access.channel_name || customer.channel_name || "-");
-      set("ytChannelId", access.channel_id || "-");
-      set("ytSubscribers", Number(access.subscribers || 0).toLocaleString());
-      set("ytViews", Number(access.views || 0).toLocaleString());
-      set("ytVideos", Number(access.videos || 0).toLocaleString());
+      const setText = (id, value) => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = (value === null || value === undefined || value === "") ? "-" : String(value);
+      };
+      const fmt = (value) => {
+        const n = Number(value);
+        return Number.isFinite(n) ? n.toLocaleString("en-IN") : (value || "0");
+      };
+
+      setText("ytChannelName", access.channel_name || customer?.channel_name || "YouTube Channel");
+      setText("ytChannelId", access.channel_id || "-");
+      setText("ytSubscribers", fmt(access.subscribers));
+      setText("ytViews", fmt(access.views));
+      setText("ytVideos", fmt(access.videos));
+
       const img = document.getElementById("ytChannelLogo");
-      if (img && access.channel_thumbnail) {
-        img.src = access.channel_thumbnail;
-        img.style.display = "block";
+      if (img) {
+        if (access.channel_thumbnail) {
+          img.src = access.channel_thumbnail;
+          img.style.display = "block";
+          img.onerror = () => { img.style.display = "none"; };
+        } else {
+          img.style.display = "none";
+        }
       }
     }
 
