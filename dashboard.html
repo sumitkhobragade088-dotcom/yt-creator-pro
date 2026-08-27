@@ -238,6 +238,7 @@ function openUserView(name){
   document.getElementById("userDashboardTitle").textContent=userViewTitles[name]||"Dashboard";
   document.body.classList.remove("yt-user-sidebar-open");
   window.scrollTo({top:0,behavior:"smooth"});
+  sessionStorage.setItem("yt_user_view",name);
 }
 document.querySelectorAll("[data-user-view]").forEach(btn=>{
   btn.addEventListener("click",()=>openUserView(btn.dataset.userView));
@@ -260,6 +261,16 @@ document.getElementById("userServiceSearchBtn")?.addEventListener("click",()=>{
   openUserView("requests");
 });
 </script>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const saved=sessionStorage.getItem("yt_user_view");
+  if(saved && document.getElementById(`user-view-${saved}`)){
+    setTimeout(()=>openUserView(saved),0);
+  }
+});
+</script>
+
 <script type="module" src="assets/js/auth.js"></script>
 <script type="module" src="assets/js/google-youtube.js"></script>
 <script>

@@ -257,6 +257,7 @@ function showPremiumAdminView(name){
   if($("adminPageTitle")) $("adminPageTitle").textContent=premiumViewTitles[name]||"Dashboard";
   if(innerWidth<900) document.body.classList.remove("yt-premium-sidebar-open");
   window.scrollTo({top:0,behavior:"smooth"});
+  sessionStorage.setItem("yt_admin_view",name);
 }
 document.querySelectorAll(".yt-premium-nav-btn").forEach(btn=>{
   btn.addEventListener("click",()=>showPremiumAdminView(btn.dataset.view));
@@ -394,6 +395,7 @@ function openInlineChannelManager(customerId,target="channel"){
   if(listPanel) listPanel.classList.add("yt-manage-list-compact");
   if(typeof window.ytManageSelectCustomer==="function"){
     window.ytManageSelectCustomer(customerId,target);
+    window.dispatchEvent(new CustomEvent("yt-manage-opened",{detail:{target}}));
   }else{
     alert("Channel manager loading. Please click again.");
   }
@@ -410,3 +412,33 @@ if($("closeManageWorkspace")) $("closeManageWorkspace").onclick=()=>{
   if(workspace)workspace.hidden=true;
   if(listPanel)listPanel.classList.remove("yt-manage-list-compact");
 };
+
+const manageTabTargets={
+  channel:["channelDetails","channelBanner","channelProfile"],
+  content:["channelContent"],
+  analytics:["analyticsOverview"],
+  copyright:["copyrightStatus"],
+  playlists:["playlistsSection"],
+  settings:["settingsSection"]
+};
+function applyManageTab(tab="channel"){
+  const allIds=["channelDetails","channelBanner","channelProfile","channelContent","analyticsOverview","copyrightStatus","playlistsSection","settingsSection"];
+  allIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
+  (manageTabTargets[tab]||manageTabTargets.channel).forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="";});
+  document.querySelectorAll("[data-manage-tab]").forEach(btn=>btn.classList.toggle("active",btn.dataset.manageTab===tab));
+  sessionStorage.setItem("yt_manage_tab",tab);
+}
+document.addEventListener("click",(e)=>{
+  const tabBtn=e.target.closest("[data-manage-tab]");
+  if(tabBtn){applyManageTab(tabBtn.dataset.manageTab);}
+});
+window.addEventListener("yt-manage-opened",(e)=>{
+  applyManageTab(e.detail?.target||sessionStorage.getItem("yt_manage_tab")||"channel");
+});
+
+document.addEventListener("DOMContentLoaded",()=>{
+  const saved=sessionStorage.getItem("yt_admin_view");
+  if(saved && document.getElementById(`view-${saved}`)){
+    setTimeout(()=>showPremiumAdminView(saved),0);
+  }
+});
