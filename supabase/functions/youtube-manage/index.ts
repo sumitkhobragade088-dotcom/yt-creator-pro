@@ -12,8 +12,7 @@ Deno.serve(async req=>{
   const ar=await fetch(`${url}/rest/v1/admin_users?${adminFilter}&select=id,email&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});
   const admins=await ar.json();if(!admins?.length)return J({error:"Admin access required",details:"Logged-in admin was not found in admin_users."},403);
   const b=await req.json();if(!b.customer_id)return J({error:"Customer missing"},400);
-  const tr=await fetch(`${url}/rest/v1/youtube_oauth_tokens?customer_id=eq.${b.customer_id}&select=refresh_token&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});const ts=await tr.json();if(!ts?.length)return J({error:"YouTube token not found. Customer must reconnect."},404);
-  const rr=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:cid,client_secret:secret,refresh_token:ts[0].refresh_token,grant_type:"refresh_token"})});const rt=await rr.json();if(!rr.ok)return J({error:"Google refresh failed",details:(rt.error_description||rt.error)+" — Check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in Supabase Edge Function secrets; they must belong to the same Google OAuth Web Client used by the website."},400);const token=rt.access_token;
+
 
 
   if(b.action==="get_manager_access"){
@@ -48,6 +47,9 @@ Deno.serve(async req=>{
     if(!ur.ok)return J({error:"Manager access save failed",details:rows},400);
     return J({success:true,manager_access:value});
   }
+
+  const tr=await fetch(`${url}/rest/v1/youtube_oauth_tokens?customer_id=eq.${b.customer_id}&select=refresh_token&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});const ts=await tr.json();if(!ts?.length)return J({error:"YouTube token not found. Customer must reconnect."},404);
+  const rr=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:cid,client_secret:secret,refresh_token:ts[0].refresh_token,grant_type:"refresh_token"})});const rt=await rr.json();if(!rr.ok)return J({error:"Google refresh failed",details:(rt.error_description||rt.error)+" — Check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in Supabase Edge Function secrets; they must belong to the same Google OAuth Web Client used by the website."},400);const token=rt.access_token;
 
   if(b.action==="dashboard"){
    const cd=await gj("https://www.googleapis.com/youtube/v3/channels?part=snippet,brandingSettings,statistics,contentDetails&mine=true",token);const ch=cd.items?.[0];if(!ch)return J({error:"Channel not found"},404);

@@ -1,0 +1,32 @@
+EXACT FIX — NO GUESS
+
+1) WHY 'MARK ACCESS GRANTED' RESET ON REFRESH
+Confirmed in the actual latest manage-channel.js:
+- Page startup called ONLY loadAll().
+- loadManagerGate() was NOT called on page startup.
+- Therefore managerAccessGranted started false every refresh and UI showed PENDING.
+- loadManagerGate() existed, but was accidentally called only inside banner-upload success.
+
+FIX:
+- New startManagePage() calls loadManagerGate() first, then loadAll().
+- Removed accidental banner-only gate load.
+- Manager access get/set Edge actions are moved before Google OAuth refresh because they do not need YouTube OAuth.
+
+2) PLAYLIST DUPLICATE
+Confirmed in actual latest manage-channel.html:
+- New Playlists tab existed.
+- Old standalone 'Playlists' section also still existed below it.
+
+FIX:
+- Old standalone Playlists section removed.
+- Only Playlists tab remains.
+- + New Playlist appears inside toolbar only when Playlists tab is selected.
+- Same Playlists tab supports New, Edit/Update, Description/Privacy update, and Delete.
+
+DEPLOY:
+A) GitHub: replace files and commit.
+B) Supabase: replace youtube-manage Edge Function with
+   supabase/functions/youtube-manage/index.ts
+   and Deploy updates.
+
+No new SQL is required by THIS fix if MANAGER-ACCESS-PERSIST-SQL.sql from the prior step was already run.

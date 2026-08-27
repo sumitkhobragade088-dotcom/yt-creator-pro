@@ -70,7 +70,10 @@ async function loadAll(){
   if(c.bannerUrl){bp.src=c.bannerUrl;bp.style.display="block";be.style.display="none"}else{bp.removeAttribute("src");bp.style.display="none";be.style.display="grid"}
   $("channelStats").innerHTML=`<div><b>${fmt(c.subscribers)}</b><span>Subscribers</span></div><div><b>${fmt(c.views)}</b><span>Views</span></div><div><b>${fmt(c.videos)}</b><span>Videos</span></div><div><b>${esc(c.channelId||"-")}</b><span>Channel ID</span></div>`;
   $("manageMessage").textContent="Connected channel loaded ✅"; renderVideos();renderPlaylists();
- }catch(e){$("manageMessage").textContent=e.message;$("videoList").textContent="Could not load videos."}
+ }catch(e){
+    $("manageMessage").textContent=e.message;
+    if($("contentTableBody")) $("contentTableBody").innerHTML='<tr><td colspan="6">Could not load content.</td></tr>';
+  }
 }
 
 function isoDurationSeconds(iso="PT0S"){
@@ -174,7 +177,12 @@ function renderContentTable(){
       <td>${formatDate(r.object)}</td>
       <td>${r.views==="-"?"-":fmt(r.views)}</td>
       <td>${r.comments==="-"?"-":fmt(r.comments)}</td>
-      <td><button class="btn primary" data-content-edit="${idx}">${r.kind==="playlist"?"Edit Playlist":"Edit / Manage"}</button></td>
+      <td>
+        <div class="yt-row-actions">
+          <button class="btn primary" data-content-edit="${idx}">${r.kind==="playlist"?"Edit / Update":"Edit / Manage"}</button>
+          ${r.kind==="playlist"?`<button class="btn danger" data-playlist-delete="${idx}">Delete</button>`:""}
+        </div>
+      </td>
     </tr>`).join("");
 
   document.querySelectorAll("[data-content-edit]").forEach(btn=>{
@@ -189,22 +197,29 @@ function renderContentTable(){
       }
     };
   });
+  document.querySelectorAll("[data-playlist-delete]").forEach(btn=>{
+    btn.onclick=async()=>{
+      const row=rows[Number(btn.dataset.playlistDelete)];
+      if(!row || row.kind!=="playlist") return;
+      if(!confirm(`Playlist "${row.title}" permanently delete karna hai?`)) return;
+      try{
+        btn.disabled=true;
+        btn.textContent="Deleting…";
+        await api("delete_playlist",{playlist_id:row.id});
+        await loadAll();
+      }catch(e){
+        alert(e.message);
+        btn.disabled=false;
+        btn.textContent="Delete";
+      }
+    };
+  });
 }
 
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
-function renderPlaylists(){if($("playlistsCount")) $("playlistsCount").textContent=(playlists||[]).length; if(activeContentTab==="playlist") renderContentTable(); const box=$("playlistList");if(!playlists.length){box.innerHTML="<p>No playlists found.</p>";return}box.innerHTML=playlists.map((p,i)=>`<div class="yt-playlist-row"><div><b>${esc(p.title)}</b><small>${p.itemCount||0} videos · ${esc(p.privacyStatus||"-")}</small></div><button class="btn" data-pl="${i}">Edit</button></div>`).join("");document.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>openPlaylist(+b.dataset.pl))}
-function openPlaylist(i){
- const p=playlists[i];
- $("playlistId").value=p.id;
- $("playlistTitle").value=p.title||"";
- $("playlistDescription").value=p.description||"";
- $("playlistPrivacy").value=p.privacyStatus||"private";
- $("playlistMessage").textContent="";
- const box=$("playlistThumbBox"),img=$("playlistThumbPreview");
- if(p.thumbnail){img.src=p.thumbnail;box.hidden=false}else{img.removeAttribute("src");box.hidden=true}
- $("deletePlaylist").hidden=false;
- $("openPlaylistStudio").hidden=false;
- $("playlistModal").hidden=false
+function renderPlaylists(){
+  if($("playlistsCount")) $("playlistsCount").textContent=(playlists||[]).length;
+  if(activeContentTab==="playlist") renderContentTable();
 }
 
 $("markManagerGranted").onclick=async()=>{
@@ -226,6 +241,7 @@ document.querySelectorAll(".yt-content-tab").forEach(btn=>{
     document.querySelectorAll(".yt-content-tab").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     activeContentTab=btn.dataset.contentTab;
+    if($("newPlaylistBtn")) $("newPlaylistBtn").hidden=activeContentTab!=="playlist";
     renderContentTable();
   };
 });
@@ -524,8 +540,7 @@ $("uploadChannelBanner").onclick=async()=>{
   const base64=await fileData(blob);
   await api("set_channel_banner",{mime_type:"image/jpeg",data_base64:base64});
   $("bannerMessage").textContent="Channel banner updated ✅";
-  await loadManagerGate();
-loadAll();
+  await loadAll();
  }catch(e){
   $("bannerMessage").textContent=e.message;
  }finally{
@@ -533,4 +548,9 @@ loadAll();
  }
 };
 
-loadAll();
+
+async function startManagePage(){
+  await loadManagerGate();
+  await loadAll();
+}
+startManagePage();

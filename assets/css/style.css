@@ -158,3 +158,7 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 .yt-table-content-cell small{font-size:11px;color:#667085;max-width:360px}
 .yt-visibility-chip{font-size:11px;padding:4px 8px;border-radius:999px;background:#f2f4f7;color:#344054}
 .yt-table-empty{text-align:center!important;padding:28px!important;color:#667085}
+
+.yt-content-toolbar{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.yt-row-actions{display:flex;gap:7px;align-items:center;white-space:nowrap}
+@media(max-width:620px){.yt-content-toolbar{align-items:stretch;flex-direction:column}}
