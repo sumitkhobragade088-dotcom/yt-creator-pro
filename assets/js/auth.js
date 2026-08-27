@@ -131,7 +131,7 @@ async function loadDashboard() {
 
     const { data: access, error: accessError } = await supabase
       .from("channel_access")
-      .select("google_connected,manager_access,adsense_access,monetization_status,updated_at")
+      .select("google_connected,manager_access,adsense_access,monetization_status,updated_at,channel_id,channel_name,channel_thumbnail,subscribers,views,videos")
       .eq("customer_id", customer.id)
       .maybeSingle();
 
@@ -139,6 +139,20 @@ async function loadDashboard() {
 
     const statusEl = document.getElementById("youtubeConnectStatus");
     const connectBtn = document.getElementById("connectYouTubeBtn");
+
+    if (access) {
+      const set = (id, value) => { const el = document.getElementById(id); if (el) el.textContent = value ?? "-"; };
+      set("ytChannelName", access.channel_name || customer.channel_name || "-");
+      set("ytChannelId", access.channel_id || "-");
+      set("ytSubscribers", Number(access.subscribers || 0).toLocaleString());
+      set("ytViews", Number(access.views || 0).toLocaleString());
+      set("ytVideos", Number(access.videos || 0).toLocaleString());
+      const img = document.getElementById("ytChannelLogo");
+      if (img && access.channel_thumbnail) {
+        img.src = access.channel_thumbnail;
+        img.style.display = "block";
+      }
+    }
 
     if (access?.google_connected) {
       if (statusEl) {
