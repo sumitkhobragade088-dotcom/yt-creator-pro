@@ -1,0 +1,8 @@
+FINAL POLISH ONLY
+
+- Sidebar scrollbar/state line removed.
+- 8 dashboard cards enlarged.
+- Reduced unused white space around cards.
+- Card grid fills the dashboard width more tightly.
+- Stronger professional spacing, shadows and accents.
+- Existing working JS, Supabase logic, YouTube manager, OAuth, PWA, Website button and Install Admin App were NOT changed.

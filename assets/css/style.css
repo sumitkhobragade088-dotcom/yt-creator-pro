@@ -372,3 +372,112 @@ body header{margin-left:250px}
  .yt-premium-header{align-items:flex-start;flex-direction:column}.yt-premium-header-actions{justify-content:flex-start}
  .yt-premium-card-grid,.yt-premium-summary-strip{grid-template-columns:1fr}.yt-premium-stat-card{min-height:128px}
 }
+
+
+/* ===== FINAL ADMIN POLISH ===== */
+
+/* Remove the thin sidebar scrollbar/state line */
+.yt-premium-nav{
+  scrollbar-width:none !important;
+  -ms-overflow-style:none !important;
+  overflow-y:auto !important;
+  padding-right:0 !important;
+}
+.yt-premium-nav::-webkit-scrollbar{display:none !important;width:0 !important;height:0 !important}
+.yt-premium-sidebar:after,
+.yt-premium-sidebar:before{display:none !important}
+
+/* Use dashboard width better */
+.yt-premium-main{
+  margin-left:238px !important;
+  padding:14px 14px 34px !important;
+  max-width:none !important;
+}
+.yt-premium-header{
+  margin:-14px -14px 18px !important;
+  padding:16px 18px !important;
+}
+.yt-premium-hero{
+  margin-bottom:12px !important;
+  padding:0 2px !important;
+}
+
+/* 8 large cards fill the available area */
+.yt-premium-card-grid{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr)) !important;
+  gap:10px !important;
+  width:100% !important;
+}
+.yt-premium-stat-card{
+  min-height:160px !important;
+  border-radius:20px !important;
+  padding:19px 18px !important;
+  box-shadow:0 12px 30px rgba(30,48,83,.10) !important;
+}
+.yt-premium-stat-card .stat-icon{
+  width:44px !important;
+  height:44px !important;
+  font-size:21px !important;
+}
+.yt-premium-stat-card .stat-label{
+  margin-top:17px !important;
+  font-size:12px !important;
+}
+.yt-premium-stat-card .stat-value{
+  font-size:36px !important;
+  margin-top:7px !important;
+}
+.yt-premium-stat-card .stat-foot{
+  font-size:10.5px !important;
+  margin-top:7px !important;
+}
+
+/* Stronger professional card accents */
+.yt-premium-stat-card.green{border-left:7px solid #22c55e !important}
+.yt-premium-stat-card.yellow{border-left:7px solid #facc15 !important}
+.yt-premium-stat-card.pink{border-left:7px solid #ec4899 !important}
+.yt-premium-stat-card.red{border-left:7px solid #ef4444 !important}
+.yt-premium-stat-card.blue{border-left:7px solid #2563eb !important}
+.yt-premium-stat-card.black{border-left:7px solid #111827 !important}
+.yt-premium-stat-card.white{border-left:7px solid #cbd5e1 !important}
+.yt-premium-stat-card.green2{border-left:7px solid #10b981 !important}
+
+/* Bottom metrics tighter and aligned */
+.yt-premium-summary-strip{
+  gap:10px !important;
+  margin-top:10px !important;
+}
+.yt-premium-summary-strip>div{
+  min-height:58px !important;
+  padding:13px 15px !important;
+}
+
+/* Sidebar slightly cleaner */
+.yt-premium-sidebar{
+  padding-right:12px !important;
+}
+.yt-premium-nav-btn{
+  min-height:44px !important;
+}
+
+/* Wider laptop screens */
+@media(min-width:1200px){
+  .yt-premium-card-grid{
+    grid-template-columns:repeat(4,minmax(220px,1fr)) !important;
+  }
+}
+
+/* Medium screens */
+@media(max-width:1100px){
+  .yt-premium-card-grid{
+    grid-template-columns:repeat(2,minmax(0,1fr)) !important;
+  }
+}
+
+/* Mobile */
+@media(max-width:620px){
+  .yt-premium-main{padding:12px !important}
+  .yt-premium-card-grid{grid-template-columns:1fr !important;gap:10px !important}
+  .yt-premium-stat-card{min-height:138px !important}
+}
