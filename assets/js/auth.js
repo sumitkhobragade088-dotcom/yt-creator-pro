@@ -104,23 +104,54 @@ if (loginForm) {
   });
 }
 
+
 async function loadDashboard() {
-  if (!$("creatorDashboard")) return;
+  if (!document.getElementById("creatorDashboard")) return;
+
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return location.href = "login.html";
 
-  $("userEmail").textContent = user.email || "";
+  document.getElementById("userEmail").textContent = user.email || "";
 
-  const { data: customer } = await supabase
+  const { data: customer, error: customerError } = await supabase
     .from("customers")
     .select("*")
     .eq("user_id", user.id)
     .maybeSingle();
 
+  if (customerError) {
+    console.error(customerError);
+    return;
+  }
+
   if (customer) {
-    $("userName").textContent = customer.full_name || "Creator";
-    $("channelNameView").textContent = customer.channel_name || "Not added";
-    $("channelUrlView").textContent = customer.channel_url || "Not added";
+    document.getElementById("userName").textContent = customer.full_name || "Creator";
+    document.getElementById("channelNameView").textContent = customer.channel_name || "Not connected";
+    document.getElementById("channelUrlView").textContent = customer.channel_url || "Not added";
+
+    const { data: access, error: accessError } = await supabase
+      .from("channel_access")
+      .select("google_connected,manager_access,adsense_access,monetization_status,updated_at")
+      .eq("customer_id", customer.id)
+      .maybeSingle();
+
+    if (accessError) console.error(accessError);
+
+    const statusEl = document.getElementById("youtubeConnectStatus");
+    const connectBtn = document.getElementById("connectYouTubeBtn");
+
+    if (access?.google_connected) {
+      if (statusEl) {
+        statusEl.textContent = "YouTube Connected ✅";
+        statusEl.className = "status-badge connected";
+      }
+      if (connectBtn) connectBtn.textContent = "Reconnect YouTube";
+    } else {
+      if (statusEl) {
+        statusEl.textContent = "Not Connected";
+        statusEl.className = "status-badge";
+      }
+    }
 
     const { data: reqs } = await supabase
       .from("service_requests")
@@ -128,15 +159,17 @@ async function loadDashboard() {
       .eq("customer_id", customer.id)
       .order("created_at", { ascending: false });
 
-    const list = $("requestList");
-    list.innerHTML = "";
-    (reqs || []).forEach(r => {
-      const div = document.createElement("div");
-      div.className = "request-row";
-      div.innerHTML = `<b>${r.service_type || "Service"}</b><span>${r.status || "pending"}</span>`;
-      list.appendChild(div);
-    });
-    if (!reqs || reqs.length === 0) list.innerHTML = "<p>No service requests yet.</p>";
+    const list = document.getElementById("requestList");
+    if (list) {
+      list.innerHTML = "";
+      (reqs || []).forEach(r => {
+        const div = document.createElement("div");
+        div.className = "request-row";
+        div.innerHTML = `<b>${r.service_type || "Service"}</b><span>${r.status || "pending"}</span>`;
+        list.appendChild(div);
+      });
+      if (!reqs || reqs.length === 0) list.innerHTML = "<p>No service requests yet.</p>";
+    }
   }
 }
 
