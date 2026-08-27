@@ -1,42 +1,165 @@
 <!doctype html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin Dashboard | YT Creator Pro</title><link rel="stylesheet" href="../assets/css/style.css"></head>
-<body data-admin-protected="true">
-<div class="admin">
-<aside>
-<h2>YT Creator Pro ⭐</h2>
-<a href="index.html">Dashboard</a>
-<a href="#customers">Customers</a>
-<a>YouTube Channels</a>
-<a>Access Requests</a>
-<a>Monetization Cases</a>
-<a>AdSense</a>
-<a>Services</a>
-<a>Website CMS</a>
-<a>Settings</a>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Admin Dashboard | YT Creator Pro</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body data-admin-protected="true" class="yt-admin-dashboard-page">
+
+<aside class="yt-admin-sidebar" id="ytAdminSidebar">
+  <div class="yt-sidebar-brand">
+    <div class="yt-sidebar-logo">YT</div>
+    <div><b>YT Creator Pro</b><small>Admin Panel</small></div>
+  </div>
+
+  <nav class="yt-sidebar-nav">
+    <a href="#dashboardOverview" class="active">🏠 <span>Dashboard</span></a>
+    <a href="#customers">👥 <span>Customers / Users</span></a>
+    <a href="#channels">📺 <span>YouTube Channels</span></a>
+    <a href="#accessRequests">🔐 <span>Access Requests</span></a>
+    <a href="#monetizationCases">💰 <span>Monetization Cases</span></a>
+    <a href="#adsense">💳 <span>AdSense</span></a>
+    <a href="#services">🧰 <span>Services</span></a>
+    <a href="#history">🕘 <span>History</span></a>
+    <a href="#settings">⚙️ <span>Settings</span></a>
+  </nav>
+
+  <div class="yt-sidebar-footer">
+    <button id="sidebarLogout" class="yt-sidebar-logout">↪ Logout</button>
+  </div>
 </aside>
-<main>
-<div class="topline">
-<div><h1>Admin Dashboard</h1><p id="adminEmailView"></p></div>
-<button class="btn danger" onclick="adminLogout()">Logout</button>
-</div>
 
-<div class="stats">
-<div><small>Total Customers</small><b id="totalCustomers">0</b></div>
-<div><small>Total Requests</small><b id="totalRequests">0</b></div>
-<div><small>Pending Requests</small><b id="pendingRequests">0</b></div>
-</div>
+<button id="ytSidebarToggle" class="yt-sidebar-toggle" aria-label="Toggle admin menu">☰</button>
 
-<div class="panel" id="customers">
-<h2>Customers</h2>
-<div style="overflow:auto">
-<table class="data-table">
-<thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th></tr></thead>
-<tbody id="customersBody"><tr><td colspan="4">Loading...</td></tr></tbody>
-</table>
-</div>
-</div>
-<br><div class="panel"><h2>Connected YouTube Channels</h2><div style="overflow:auto"><table class="data-table"><thead><tr><th>Customer</th><th>Email</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Monetization</th><th>Manager Access</th><th>Action</th></tr></thead><tbody id="youtubeChannelsBody"><tr><td colspan="10">Loading...</td></tr></tbody></table></div></div></main>
-</div>
+<header class="yt-admin-topbar">
+  <div class="yt-admin-topbar-inner">
+    <div>
+      <small>ADMIN CONTROL CENTER</small>
+      <h1>YT Creator Pro Dashboard</h1>
+      <p id="adminEmailView"></p>
+    </div>
+    <button class="btn danger" onclick="adminLogout()">Logout</button>
+  </div>
+</header>
+
+<main class="yt-admin-main">
+
+<section id="dashboardOverview" class="yt-admin-section">
+  <div class="yt-section-heading">
+    <div><span>LIVE OVERVIEW</span><h2>Dashboard</h2><p>Customers, connected channels, access, monetization, AdSense aur service activity ka complete count.</p></div>
+    <button id="refreshAdminDashboard" class="btn primary">Refresh Data</button>
+  </div>
+
+  <div class="yt-pro-stat-grid">
+    <a href="#customers" class="yt-pro-stat-card green">
+      <div class="icon">👥</div><small>Total Customers</small><b id="totalCustomers">0</b><span>Registered users</span>
+    </a>
+    <a href="#channels" class="yt-pro-stat-card yellow">
+      <div class="icon">▶</div><small>YouTube Channels</small><b id="totalChannels">0</b><span>Connected channels</span>
+    </a>
+    <a href="#accessRequests" class="yt-pro-stat-card pink">
+      <div class="icon">🔐</div><small>Access Requests</small><b id="totalAccessRequests">0</b><span>Total access records</span>
+    </a>
+    <a href="#accessRequests" class="yt-pro-stat-card red">
+      <div class="icon">⏳</div><small>Access Pending</small><b id="pendingAccess">0</b><span>Manager access pending</span>
+    </a>
+    <a href="#monetizationCases" class="yt-pro-stat-card blue">
+      <div class="icon">₹</div><small>Monetization Cases</small><b id="totalMonetizationCases">0</b><span>Tracked cases</span>
+    </a>
+    <a href="#adsense" class="yt-pro-stat-card black">
+      <div class="icon">💳</div><small>AdSense Linked</small><b id="totalAdsenseLinked">0</b><span>Access available</span>
+    </a>
+    <a href="#services" class="yt-pro-stat-card white">
+      <div class="icon">🧰</div><small>Service Requests</small><b id="totalRequests">0</b><span>All service cases</span>
+    </a>
+    <a href="#services" class="yt-pro-stat-card green2">
+      <div class="icon">✓</div><small>Completed Requests</small><b id="completedRequests">0</b><span>Completed work</span>
+    </a>
+  </div>
+
+  <div class="yt-mini-summary-grid">
+    <div><span>Pending Service Requests</span><b id="pendingRequests">0</b></div>
+    <div><span>Manager Access Granted</span><b id="grantedAccess">0</b></div>
+    <div><span>Monetized / Approved</span><b id="approvedMonetization">0</b></div>
+    <div><span>Total Channel Views</span><b id="allChannelViews">0</b></div>
+  </div>
+</section>
+
+<section id="customers" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>CUSTOMERS</span><h2>Customers / Users</h2></div><b id="customersSectionCount" class="yt-section-count">0</b></div>
+  <div class="yt-table-scroll">
+    <table class="data-table">
+      <thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th></tr></thead>
+      <tbody id="customersBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="channels" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>CHANNELS</span><h2>Connected YouTube Channels</h2></div><b id="channelsSectionCount" class="yt-section-count">0</b></div>
+  <div class="yt-table-scroll">
+    <table class="data-table">
+      <thead><tr><th>Customer</th><th>Email</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manager</th><th>Action</th></tr></thead>
+      <tbody id="youtubeChannelsBody"><tr><td colspan="9">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="accessRequests" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>ACCESS</span><h2>Channel Access Requests</h2></div><b id="accessSectionCount" class="yt-section-count">0</b></div>
+  <div class="yt-table-scroll">
+    <table class="data-table">
+      <thead><tr><th>Customer</th><th>Channel</th><th>Google Connected</th><th>Manager Access</th><th>Updated</th><th>Action</th></tr></thead>
+      <tbody id="accessRequestsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="monetizationCases" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>MONETIZATION</span><h2>Monetization Cases</h2></div><b id="monetizationSectionCount" class="yt-section-count">0</b></div>
+  <div class="yt-table-scroll">
+    <table class="data-table">
+      <thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manage</th></tr></thead>
+      <tbody id="monetizationBody"><tr><td colspan="7">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="adsense" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>ADSENSE</span><h2>AdSense Access</h2></div><b id="adsenseSectionCount" class="yt-section-count">0</b></div>
+  <div class="yt-table-scroll">
+    <table class="data-table">
+      <thead><tr><th>Customer</th><th>Channel</th><th>AdSense Access</th><th>Monetization</th><th>Updated</th></tr></thead>
+      <tbody id="adsenseBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="services" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>SERVICES</span><h2>Service Requests</h2></div><b id="servicesSectionCount" class="yt-section-count">0</b></div>
+  <div class="yt-table-scroll">
+    <table class="data-table">
+      <thead><tr><th>Service</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody id="serviceRequestsBody"><tr><td colspan="3">Loading...</td></tr></tbody>
+    </table>
+  </div>
+</section>
+
+<section id="history" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>HISTORY</span><h2>Recent Activity History</h2></div></div>
+  <div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">Loading activity...</div></div>
+</section>
+
+<section id="settings" class="yt-admin-section panel">
+  <div class="yt-section-heading compact"><div><span>SETTINGS</span><h2>Admin Settings</h2></div></div>
+  <p>Dashboard data Supabase se live load hota hai. Refresh Data se latest counts aur history update hogi.</p>
+  <button id="settingsRefreshAdmin" class="btn primary">Refresh All Dashboard Data</button>
+</section>
+
+</main>
+
 <script type="module" src="../assets/js/admin-auth.js"></script>
-</body></html>
+</body>
+</html>
