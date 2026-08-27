@@ -521,3 +521,26 @@ body header{margin-left:250px}
 @media(max-width:1000px){.yt-user-service-grid{grid-template-columns:repeat(2,1fr)}.yt-user-home-hero{grid-template-columns:1fr}.yt-user-auth-shell{grid-template-columns:1fr}.yt-user-auth-visual{min-height:360px}.yt-user-dashboard-cards{grid-template-columns:repeat(2,1fr)}}
 @media(max-width:800px){.yt-user-public-nav a:not(.active):not(.register){display:none}.yt-user-dashboard-sidebar{transform:translateX(-100%);transition:.2s}.yt-user-sidebar-open .yt-user-dashboard-sidebar{transform:translateX(0)}.yt-user-dashboard-toggle{display:block;position:fixed;left:12px;top:12px;z-index:1200;border:0;border-radius:10px;background:#fff;width:42px;height:42px;box-shadow:0 7px 20px rgba(0,0,0,.14)}.yt-user-dashboard-main{margin-left:0;padding:65px 12px 35px}}
 @media(max-width:600px){.yt-user-home-copy h1{font-size:42px}.yt-user-service-grid,.yt-user-process-row,.yt-user-form-grid,.yt-user-dashboard-cards,.yt-user-dashboard-summary,.yt-user-profile-card{grid-template-columns:1fr}.yt-user-access-panel{flex-direction:column;align-items:stretch}.yt-user-manager-box{min-width:0}.yt-user-auth-card-wrap{padding:22px 14px}.yt-user-auth-visual{padding:25px 15px;min-height:290px}}
+
+
+/* ===== USER CORRECTIONS + APP SHARE ===== */
+.yt-user-install-btn{padding:12px 17px;border-radius:10px;border:1px solid #111827;background:#111827;color:#fff;font-size:12px;font-weight:900;cursor:pointer}
+.yt-user-install-btn.ready{background:#ff0000;border-color:#ff0000}
+.yt-user-install-banner{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:1500;width:min(620px,calc(100% - 24px));padding:13px 14px;border-radius:14px;background:#111827;color:#fff;box-shadow:0 18px 45px rgba(0,0,0,.28);display:flex;gap:13px;align-items:center}
+.yt-user-install-banner[hidden]{display:none}.yt-user-install-banner>div{flex:1}.yt-user-install-banner b,.yt-user-install-banner span{display:block}.yt-user-install-banner span{font-size:10px;color:#cbd5e1;margin-top:3px}.yt-user-install-banner button{border:0;border-radius:9px;padding:9px 12px;background:#ff0000;color:#fff;font-weight:900;cursor:pointer}.yt-user-install-banner .close{background:transparent;font-size:18px;padding:5px}
+
+.yt-user-auth-switch{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:5px;background:#f2f4f7;border-radius:12px;margin-bottom:20px}
+.yt-user-auth-switch a{text-decoration:none;text-align:center;padding:10px;border-radius:9px;color:#667085;font-size:12px;font-weight:900}
+.yt-user-auth-switch a.active{background:#ff0000;color:#fff;box-shadow:0 6px 16px rgba(255,0,0,.16)}
+
+.yt-user-dashboard-header{min-height:62px}.yt-user-dashboard-header>div{width:100%}
+.yt-user-access-dashboard-panel{display:grid!important;gap:12px!important}
+.yt-user-access-action-card{display:grid;grid-template-columns:42px minmax(0,1fr) auto;gap:13px;align-items:center;padding:16px;border:1px solid #e5e7eb;border-radius:15px;background:#fff}
+.yt-user-access-action-card>span{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;background:#fee2e2;color:#b91c1c;font-weight:950}
+.yt-user-access-action-card b{display:block}.yt-user-access-action-card p{margin:4px 0;color:#667085;font-size:11px}.yt-user-access-action-card small{display:block;margin-top:8px;color:#667085}.yt-user-access-action-card strong{display:block;margin-top:3px;font-size:12px;word-break:break-all}
+.yt-user-access-buttons{display:flex;gap:8px;align-items:center}.yt-user-access-buttons button{font-family:inherit}
+.yt-premium-top-btn.share{background:linear-gradient(135deg,#059669,#10b981);color:#fff}
+
+@media(max-width:700px){
+  .yt-user-access-action-card{grid-template-columns:38px 1fr}.yt-user-access-action-card>button,.yt-user-access-action-card>.yt-user-access-buttons{grid-column:1/-1}.yt-user-access-buttons{align-items:stretch;flex-direction:column}
+}

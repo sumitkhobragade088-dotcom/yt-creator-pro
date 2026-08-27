@@ -48,6 +48,8 @@
       </div>
       <div class="yt-premium-header-actions">
         <a class="yt-premium-top-btn website" href="../index.html" target="_blank" rel="noopener noreferrer">🌐 Website</a>
+        <button id="shareUserApp" class="yt-premium-top-btn share" type="button">📤 Share App</button>
+        <button id="shareUserApp" class="yt-premium-top-btn share" type="button">📤 Share App</button>
         <button id="installAdminApp" class="yt-premium-top-btn install">📱 Install Admin App</button>
         <button id="refreshAdminDashboard" class="yt-premium-top-btn refresh">↻ Refresh</button>
       </div>
@@ -190,6 +192,25 @@
     </section>
   </main>
 </div>
+
+
+<script>
+document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
+  const appUrl=new URL("../index.html?install=1",location.href).href;
+  try{
+    if(navigator.share){
+      await navigator.share({title:"YT Creator Pro App",text:"YT Creator Pro app install link",url:appUrl});
+    }else{
+      await navigator.clipboard.writeText(appUrl);
+      alert("Normal website app link copied");
+    }
+  }catch(err){
+    if(err?.name!=="AbortError"){
+      try{await navigator.clipboard.writeText(appUrl);alert("Normal website app link copied");}catch(_){}
+    }
+  }
+});
+</script>
 
 <script type="module" src="../assets/js/admin-auth.js"></script>
 </body>

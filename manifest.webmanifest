@@ -1,0 +1,10 @@
+{
+  "name": "YT Creator Pro",
+  "short_name": "YT Creator Pro",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0f0f0f",
+  "theme_color": "#ff0000",
+  "icons": []
+}

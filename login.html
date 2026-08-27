@@ -10,7 +10,12 @@
 <body class="yt-user-auth-page">
 <header class="yt-user-auth-header">
   <a class="yt-user-public-brand" href="index.html"><span class="yt-user-play-logo">▶</span><div><b>YT Creator Pro</b><small>Creator Support Portal</small></div></a>
-  <nav><a href="index.html">Home</a><a class="active" href="login.html">Login</a><a href="register.html">Register</a></nav>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="index.html#services">Services</a>
+    <a class="active" href="login.html">Login</a>
+    <a href="register.html">Register</a>
+  </nav>
 </header>
 
 <main class="yt-user-auth-shell">
@@ -28,6 +33,10 @@
 
   <section class="yt-user-auth-card-wrap">
     <form class="yt-user-auth-card" id="loginForm">
+      <div class="yt-user-auth-switch">
+        <a class="active" href="login.html">Login</a>
+        <a href="register.html">Register</a>
+      </div>
       <div class="yt-user-auth-heading"><span>SECURE USER ACCESS</span><h1>Login</h1><p>Use your YT Creator Pro website account.</p></div>
       <label>Email ID</label>
       <div class="yt-user-auth-input"><span>✉</span><input id="email" type="email" required placeholder="Email ID"></div>
