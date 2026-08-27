@@ -14,6 +14,8 @@ async function loadAll(){
   const c=d.channel||{}; videos=d.videos||[]; playlists=d.playlists||[];
   $("channelTitle").textContent="Manage: "+(c.title||"YouTube Channel");
   $("channelName").value=c.title||"";$("channelDescription").value=c.description||"";$("channelKeywords").value=c.keywords||"";
+  const bp=$("channelBannerPreview"), be=$("noBannerPreview");
+  if(c.bannerUrl){bp.src=c.bannerUrl;bp.style.display="block";be.style.display="none"}else{bp.removeAttribute("src");bp.style.display="none";be.style.display="grid"}
   $("channelStats").innerHTML=`<div><b>${fmt(c.subscribers)}</b><span>Subscribers</span></div><div><b>${fmt(c.views)}</b><span>Views</span></div><div><b>${fmt(c.videos)}</b><span>Videos</span></div><div><b>${esc(c.channelId||"-")}</b><span>Channel ID</span></div>`;
   $("manageMessage").textContent="Connected channel loaded ✅"; renderVideos();renderPlaylists();
  }catch(e){$("manageMessage").textContent=e.message;$("videoList").textContent="Could not load videos."}
@@ -32,8 +34,8 @@ function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle"
 function renderPlaylists(){const box=$("playlistList");if(!playlists.length){box.innerHTML="<p>No playlists found.</p>";return}box.innerHTML=playlists.map((p,i)=>`<div class="yt-playlist-row"><div><b>${esc(p.title)}</b><small>${p.itemCount||0} videos · ${esc(p.privacyStatus||"-")}</small></div><button class="btn" data-pl="${i}">Edit</button></div>`).join("");document.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>openPlaylist(+b.dataset.pl))}
 function openPlaylist(i){const p=playlists[i];$("playlistId").value=p.id;$("playlistTitle").value=p.title||"";$("playlistDescription").value=p.description||"";$("playlistPrivacy").value=p.privacyStatus||"private";$("playlistMessage").textContent="";$("playlistModal").hidden=false}
 $("refreshAll").onclick=loadAll;$("refreshVideos").onclick=loadAll;
-const studioPermissions="https://studio.youtube.com/channel/UC/settings/permissions";
-const studioCustomization="https://studio.youtube.com/channel/UC/customization/branding";
+const studioPermissions="https://studio.youtube.com/";
+const studioCustomization="https://studio.youtube.com/";
 function openStudio(url,msg){$("accessMessage").textContent=msg;window.open(url,"_blank","noopener,noreferrer")}
 $("openPermissions").onclick=()=>openStudio(studioPermissions,"YouTube Studio khul raha hai → Settings → Permissions → INVITE.");
 $("openManagerAccess").onclick=()=>openStudio(studioPermissions,"INVITE → admin Google email → Access: Manager → DONE. Invite owner/authorized manager ko approve/send karna hoga.");
@@ -47,4 +49,27 @@ $("setThumbnail").onclick=async()=>{const f=$("thumbnailFile").files[0];if(!f)re
 $("newPlaylistBtn").onclick=()=>{$("playlistId").value="";$("playlistTitle").value="";$("playlistDescription").value="";$("playlistPrivacy").value="private";$("playlistModal").hidden=false};
 $("savePlaylist").onclick=async()=>{try{const id=$("playlistId").value;await api(id?"update_playlist":"create_playlist",{playlist_id:id,title:$("playlistTitle").value.trim(),description:$("playlistDescription").value,privacy_status:$("playlistPrivacy").value});$("playlistModal").hidden=true;await loadAll()}catch(e){$("playlistMessage").textContent=e.message}};
 $("uploadVideo").onclick=async()=>{const f=$("uploadFile").files[0];if(!f)return $("uploadMessage").textContent="Video file choose karo.";try{$("uploadVideo").disabled=true;$("uploadMessage").textContent="Preparing secure upload…";const d=await api("start_upload",{title:$("uploadTitle").value.trim()||f.name,description:$("uploadDescription").value,tags:$("uploadTags").value.split(",").map(x=>x.trim()).filter(Boolean),category_id:$("uploadCategory").value||"22",privacy_status:$("uploadPrivacy").value,mime_type:f.type||"video/*",file_size:f.size});const x=new XMLHttpRequest();x.open("PUT",d.upload_url);x.setRequestHeader("Content-Type",f.type||"application/octet-stream");x.upload.onprogress=e=>{if(e.lengthComputable){$("uploadProgress").hidden=false;$("uploadProgress").value=e.loaded/e.total*100;$("uploadMessage").textContent=`Uploading ${Math.round(e.loaded/e.total*100)}%…`}};x.onload=async()=>{if(x.status>=200&&x.status<300){$("uploadMessage").textContent="Video uploaded ✅";$("uploadProgress").value=100;await loadAll()}else $("uploadMessage").textContent="Upload failed: "+x.status;$("uploadVideo").disabled=false};x.onerror=()=>{$("uploadMessage").textContent="Upload network error";$("uploadVideo").disabled=false};x.send(f)}catch(e){$("uploadMessage").textContent=e.message;$("uploadVideo").disabled=false}};
+
+$("openBannerStudio").onclick=()=>openStudio(studioCustomization,"YouTube Studio Branding khul raha hai. Banner ko yahan manage/remove kar sakte hain.");
+$("removeChannelBanner").onclick=()=>openStudio(studioCustomization,"Banner remove karne ke liye YouTube Studio → Customization → Branding use karein.");
+$("editNameLogoStudio").onclick=()=>openStudio(studioCustomization,"Channel name aur profile logo YouTube Studio me edit karein.");
+
+$("uploadChannelBanner").onclick=async()=>{
+ const f=$("channelBannerFile").files[0];
+ if(!f)return $("bannerMessage").textContent="Banner image choose karo.";
+ if(!["image/jpeg","image/png"].includes(f.type))return $("bannerMessage").textContent="Sirf JPG/PNG banner use karo.";
+ if(f.size>6*1024*1024)return $("bannerMessage").textContent="Banner file 6 MB se kam rakho.";
+ try{
+  $("uploadChannelBanner").disabled=true;
+  $("bannerMessage").textContent="Banner upload ho raha hai…";
+  await api("set_channel_banner",{mime_type:f.type,data_base64:await fileData(f)});
+  $("bannerMessage").textContent="Channel banner updated ✅";
+  await loadAll();
+ }catch(e){
+  $("bannerMessage").textContent=e.message;
+ }finally{
+  $("uploadChannelBanner").disabled=false;
+ }
+};
+
 loadAll();

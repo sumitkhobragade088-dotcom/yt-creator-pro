@@ -1,0 +1,16 @@
+YT Creator Pro - Banner + Branding Fix
+
+Added:
+- Channel Banner Upload / Replace from Admin Manage Channel
+- Banner preview when YouTube returns bannerExternalUrl
+- Remove Banner in Studio button
+- Edit Channel Name / Profile Logo in Studio button
+- Existing Channel Access + Manager Access kept
+- Existing Videos / Upload / Playlists / Copyright/Restrictions kept
+- youtube-manage Edge Function uses the known working Google OAuth Client ID directly
+
+After GitHub upload:
+Replace Supabase Edge Function youtube-manage code with:
+supabase/functions/youtube-manage/index.ts
+then Deploy updates.
+Keep the current working GOOGLE_CLIENT_SECRET secret.

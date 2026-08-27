@@ -5,7 +5,7 @@ async function gj(url:string,token:string,init:any={}){const r=await fetch(url,{
 Deno.serve(async req=>{
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
  try{
-  const url=Deno.env.get("SUPABASE_URL")!,anon=Deno.env.get("SUPABASE_ANON_KEY")!,service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,cid=Deno.env.get("GOOGLE_CLIENT_ID")!,secret=Deno.env.get("GOOGLE_CLIENT_SECRET")!;
+  const url=Deno.env.get("SUPABASE_URL")!,anon=Deno.env.get("SUPABASE_ANON_KEY")!,service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,cid="699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com",secret=Deno.env.get("GOOGLE_CLIENT_SECRET")!;
   const auth=req.headers.get("Authorization");if(!auth)return J({error:"Login required"},401);
   const ur=await fetch(`${url}/auth/v1/user`,{headers:{Authorization:auth,apikey:anon}});if(!ur.ok)return J({error:"Invalid session"},401);const user=await ur.json();
   const adminFilter = user.email ? `or=(id.eq.${user.id},email.eq.${encodeURIComponent(user.email)})` : `id=eq.${user.id}`;
@@ -21,8 +21,36 @@ Deno.serve(async req=>{
    let ids:string[]=[];if(uploads){const pd=await gj(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploads}&maxResults=50`,token);ids=(pd.items||[]).map((x:any)=>x.contentDetails?.videoId).filter(Boolean)}
    let videos:any[]=[];if(ids.length){const vd=await gj(`https://www.googleapis.com/youtube/v3/videos?part=snippet,status,statistics,contentDetails&id=${ids.join(",")}`,token);videos=(vd.items||[]).map((v:any)=>({id:v.id,title:v.snippet?.title||"",description:v.snippet?.description||"",tags:v.snippet?.tags||[],categoryId:v.snippet?.categoryId||"22",thumbnail:v.snippet?.thumbnails?.medium?.url||v.snippet?.thumbnails?.default?.url||"",privacyStatus:v.status?.privacyStatus||"",status:{uploadStatus:v.status?.uploadStatus||"",license:v.status?.license||"",embeddable:v.status?.embeddable},views:v.statistics?.viewCount||0,restrictions:{regionBlocked:!!(v.contentDetails?.regionRestriction?.blocked?.length)}}))}
    const pl=await gj("https://www.googleapis.com/youtube/v3/playlists?part=snippet,status,contentDetails&mine=true&maxResults=50",token);const playlists=(pl.items||[]).map((p:any)=>({id:p.id,title:p.snippet?.title||"",description:p.snippet?.description||"",privacyStatus:p.status?.privacyStatus||"",itemCount:p.contentDetails?.itemCount||0}));
-   return J({channel:{channelId:ch.id,title:ch.snippet?.title||"",description:ch.snippet?.description||"",keywords:ch.brandingSettings?.channel?.keywords||"",subscribers:ch.statistics?.subscriberCount||0,views:ch.statistics?.viewCount||0,videos:ch.statistics?.videoCount||0},videos,playlists,copyright_note:"Copyright claim details are not exposed by YouTube Data API; use YouTube Studio for exact claims."});
+   return J({channel:{channelId:ch.id,title:ch.snippet?.title||"",description:ch.snippet?.description||"",keywords:ch.brandingSettings?.channel?.keywords||"",bannerUrl:ch.brandingSettings?.image?.bannerExternalUrl||"",subscribers:ch.statistics?.subscriberCount||0,views:ch.statistics?.viewCount||0,videos:ch.statistics?.videoCount||0},videos,playlists,copyright_note:"Copyright claim details are not exposed by YouTube Data API; use YouTube Studio for exact claims."});
   }
+
+  if(b.action==="set_channel_banner"){
+    const bytes=Uint8Array.from(atob(b.data_base64||""),c=>c.charCodeAt(0));
+    if(!bytes.length)return J({error:"Banner image missing"},400);
+    const up=await fetch("https://www.googleapis.com/upload/youtube/v3/channelBanners/insert?uploadType=media",{
+      method:"POST",
+      headers:{...H(token),"Content-Type":b.mime_type||"image/jpeg"},
+      body:bytes
+    });
+    const ud=await up.json();
+    if(!up.ok)return J({error:"Banner upload failed",details:ud?.error?.message||up.status},400);
+    const bannerUrl=ud?.url;
+    if(!bannerUrl)return J({error:"YouTube banner URL missing"},500);
+
+    const current=await gj("https://www.googleapis.com/youtube/v3/channels?part=brandingSettings&mine=true",token);
+    const ch=current.items?.[0];
+    if(!ch)return J({error:"Channel not found"},404);
+    const branding=ch.brandingSettings||{};
+    branding.image={...(branding.image||{}),bannerExternalUrl:bannerUrl};
+
+    await gj("https://www.googleapis.com/youtube/v3/channels?part=brandingSettings",token,{
+      method:"PUT",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({id:ch.id,brandingSettings:branding})
+    });
+    return J({success:true,banner_url:bannerUrl});
+  }
+
   if(b.action==="update_channel"){const current=await gj("https://www.googleapis.com/youtube/v3/channels?part=brandingSettings&mine=true",token);const ch=current.items?.[0];if(!ch)return J({error:"Channel not found"},404);const branding=ch.brandingSettings||{};branding.channel={...(branding.channel||{}),description:String(b.description||""),keywords:String(b.keywords||"")};await gj("https://www.googleapis.com/youtube/v3/channels?part=brandingSettings",token,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:ch.id,brandingSettings:branding})});return J({success:true})}
   if(b.action==="update_video"){const cur=await gj(`https://www.googleapis.com/youtube/v3/videos?part=snippet,status&id=${encodeURIComponent(b.video_id)}`,token);const v=cur.items?.[0];if(!v)return J({error:"Video not found"},404);const snippet={...v.snippet,title:b.title,description:b.description??v.snippet.description,categoryId:b.category_id||v.snippet.categoryId};if(Array.isArray(b.tags))snippet.tags=b.tags;const status={...v.status,privacyStatus:b.privacy_status||v.status?.privacyStatus};await gj("https://www.googleapis.com/youtube/v3/videos?part=snippet,status",token,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify({id:b.video_id,snippet,status})});return J({success:true})}
   if(b.action==="delete_video"){await gj(`https://www.googleapis.com/youtube/v3/videos?id=${encodeURIComponent(b.video_id)}`,token,{method:"DELETE"});return J({success:true})}

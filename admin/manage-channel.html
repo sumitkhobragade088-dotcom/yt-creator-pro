@@ -26,11 +26,38 @@
     <p id="accessMessage" class="yt-note">Security: password share nahi hota. Permission YouTube Studio ke official invite se di jati hai.</p>
   </section>
 
+
+  <section class="panel yt-banner-panel">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Channel Banner</h2>
+        <p class="yt-note">Banner ko yahin se Upload / Replace karein. Remove ke liye official YouTube Studio Branding khulega.</p>
+      </div>
+      <button id="openBannerStudio" class="btn">Open Banner in Studio</button>
+    </div>
+    <div class="yt-banner-grid">
+      <div class="yt-banner-preview-wrap">
+        <img id="channelBannerPreview" class="yt-banner-preview" alt="Channel banner preview">
+        <div id="noBannerPreview" class="yt-banner-empty">Current banner preview API me available na ho to yahan placeholder dikhega.</div>
+      </div>
+      <div>
+        <label>New Banner JPG / PNG</label>
+        <input id="channelBannerFile" type="file" accept="image/jpeg,image/png">
+        <p class="yt-note">Recommended: 2560×1440. File ko reasonable size me rakhein.</p>
+        <div class="yt-action-row">
+          <button id="uploadChannelBanner" class="btn primary">Upload / Replace Banner</button>
+          <button id="removeChannelBanner" class="btn danger">Remove Banner in Studio</button>
+        </div>
+        <p id="bannerMessage"></p>
+      </div>
+    </div>
+  </section>
+
   <div class="yt-manager-grid">
     <section class="panel">
       <h2>Channel Details</h2>
       <p class="yt-note">Channel name YouTube API se read-only hai. Description aur keywords update kiye ja sakte hain.</p>
-      <label>Channel Name</label><input id="channelName" disabled>
+      <label>Channel Name</label><div class="yt-inline-edit"><input id="channelName" disabled><button id="editNameLogoStudio" class="btn">Edit Name / Logo in Studio</button></div>
       <label>Description</label><textarea id="channelDescription" rows="6"></textarea>
       <label>Keywords</label><input id="channelKeywords" placeholder="keyword1 keyword2">
       <button id="saveChannel" class="btn primary">Update Channel</button>
