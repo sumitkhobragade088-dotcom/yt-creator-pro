@@ -1,0 +1,7 @@
+FIXED BUILD
+1. Admin check now supports your actual admin_users columns: id + email.
+2. No user_id column is required.
+3. youtube-manage gives an exact Google OAuth secret error instead of a vague failure.
+4. Deploy supabase/functions/youtube-manage/index.ts with Verify JWT OFF.
+5. Supabase secrets GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be from the SAME Google OAuth Web Client as assets/js/google-youtube.js.
+6. GitHub Pages files can be uploaded normally.
