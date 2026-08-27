@@ -7,12 +7,6 @@
 <title>Creator Dashboard | YT Creator Pro</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="assets/css/style.css">
-<script>
-try{
-  const v=sessionStorage.getItem("yt_user_view");
-  if(v && v!=="dashboard") document.documentElement.classList.add("yt-user-view-restoring");
-}catch(e){}
-</script>
 </head>
 
 <body id="creatorDashboard" class="yt-user-dashboard-page">
@@ -267,11 +261,13 @@ document.getElementById("userServiceSearchBtn")?.addEventListener("click",()=>{
   openUserView("requests");
 });
 </script>
+
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
-  const saved=sessionStorage.getItem("yt_user_view")||"dashboard";
-  if(document.getElementById(`user-view-${saved}`)) openUserView(saved);
-  document.documentElement.classList.remove("yt-user-view-restoring");
+  const saved=sessionStorage.getItem("yt_user_view");
+  if(saved && document.getElementById(`user-view-${saved}`)){
+    setTimeout(()=>openUserView(saved),0);
+  }
 });
 </script>
 

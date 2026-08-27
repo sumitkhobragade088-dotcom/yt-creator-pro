@@ -780,6 +780,7 @@ body header{margin-left:250px}
 #view-manage .yt-admin-sidebar,#view-manage header{display:none!important}
 .yt-manage-list-compact{margin-bottom:10px!important}
 
-/* TARGETED FIX: no Dashboard flash during refresh restore */
-html.yt-admin-view-restoring .yt-premium-main{visibility:hidden!important}
-html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
+/* TARGETED FIX: Manage Channel section tabs */
+.yt-manage-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:10px;background:#fff;border:1px solid #e5eaf2;border-radius:14px;position:sticky;top:0;z-index:5}
+.yt-manage-tabs button{border:1px solid #dbe2ea;background:#f8fafc;color:#334155;border-radius:10px;padding:9px 13px;font-weight:850;cursor:pointer}
+.yt-manage-tabs button.active{background:#111d4f;color:#fff;border-color:#111d4f;box-shadow:0 6px 16px rgba(17,29,79,.16)}

@@ -45,7 +45,6 @@ if (form) {
       return showMessage("This account is not authorized as admin.");
     }
     showMessage("Admin login successful.", true);
-    sessionStorage.setItem("yt_admin_view","dashboard");
     setTimeout(() => location.href = "index.html", 400);
   });
 }
@@ -396,6 +395,7 @@ function openInlineChannelManager(customerId,target="channel"){
   if(listPanel) listPanel.classList.add("yt-manage-list-compact");
   if(typeof window.ytManageSelectCustomer==="function"){
     window.ytManageSelectCustomer(customerId,target);
+    window.dispatchEvent(new CustomEvent("yt-manage-opened",{detail:{target}}));
   }else{
     alert("Channel manager loading. Please click again.");
   }
@@ -413,8 +413,32 @@ if($("closeManageWorkspace")) $("closeManageWorkspace").onclick=()=>{
   if(listPanel)listPanel.classList.remove("yt-manage-list-compact");
 };
 
+const manageTabTargets={
+  channel:["channelDetails","channelBanner","channelProfile"],
+  content:["channelContent"],
+  analytics:["analyticsOverview"],
+  copyright:["copyrightStatus"],
+  playlists:["playlistsSection"],
+  settings:["settingsSection"]
+};
+function applyManageTab(tab="channel"){
+  const allIds=["channelDetails","channelBanner","channelProfile","channelContent","analyticsOverview","copyrightStatus","playlistsSection","settingsSection"];
+  allIds.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="none";});
+  (manageTabTargets[tab]||manageTabTargets.channel).forEach(id=>{const el=document.getElementById(id);if(el)el.style.display="";});
+  document.querySelectorAll("[data-manage-tab]").forEach(btn=>btn.classList.toggle("active",btn.dataset.manageTab===tab));
+  sessionStorage.setItem("yt_manage_tab",tab);
+}
+document.addEventListener("click",(e)=>{
+  const tabBtn=e.target.closest("[data-manage-tab]");
+  if(tabBtn){applyManageTab(tabBtn.dataset.manageTab);}
+});
+window.addEventListener("yt-manage-opened",(e)=>{
+  applyManageTab(e.detail?.target||sessionStorage.getItem("yt_manage_tab")||"channel");
+});
+
 document.addEventListener("DOMContentLoaded",()=>{
-  const saved=sessionStorage.getItem("yt_admin_view")||"dashboard";
-  if(document.getElementById(`view-${saved}`)) showPremiumAdminView(saved);
-  document.documentElement.classList.remove("yt-admin-view-restoring");
+  const saved=sessionStorage.getItem("yt_admin_view");
+  if(saved && document.getElementById(`view-${saved}`)){
+    setTimeout(()=>showPremiumAdminView(saved),0);
+  }
 });
