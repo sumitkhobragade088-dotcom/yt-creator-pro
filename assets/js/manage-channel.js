@@ -2,6 +2,7 @@ import { supabase } from "./supabase.js";
 const FUNCTION_URL="https://ncxexmekzlrliicaqfcl.supabase.co/functions/v1/youtube-manage";
 const customerId=new URLSearchParams(location.search).get("customer");
 let videos=[],playlists=[];
+let currentChannel={};
 let activeContentTab="video";
 let uploadBusy=false;
 let managerAccessGranted=false;
@@ -63,13 +64,13 @@ async function loadAll(){
  try{
   $("manageMessage").textContent="Syncing YouTube…";
   const d=await api("dashboard");
-  const c=d.channel||{}; videos=d.videos||[]; playlists=d.playlists||[];
+  const c=d.channel||{}; currentChannel=c; videos=d.videos||[]; playlists=d.playlists||[];
   $("channelTitle").textContent="Manage: "+(c.title||"YouTube Channel");
   $("channelName").value=c.title||"";$("channelDescription").value=c.description||"";$("channelKeywords").value=c.keywords||"";
   const bp=$("channelBannerPreview"), be=$("noBannerPreview");
   if(c.bannerUrl){bp.src=c.bannerUrl;bp.style.display="block";be.style.display="none"}else{bp.removeAttribute("src");bp.style.display="none";be.style.display="grid"}
   $("channelStats").innerHTML=`<div><b>${fmt(c.subscribers)}</b><span>Subscribers</span></div><div><b>${fmt(c.views)}</b><span>Views</span></div><div><b>${fmt(c.videos)}</b><span>Videos</span></div><div><b>${esc(c.channelId||"-")}</b><span>Channel ID</span></div>`;
-  $("manageMessage").textContent="Connected channel loaded ✅"; renderVideos();renderPlaylists();
+  $("manageMessage").textContent="Connected channel loaded ✅"; renderVideos();renderPlaylists();renderAnalytics();renderCopyright();
  }catch(e){
     $("manageMessage").textContent=e.message;
     if($("contentTableBody")) $("contentTableBody").innerHTML='<tr><td colspan="6">Could not load content.</td></tr>';
@@ -217,6 +218,64 @@ function renderContentTable(){
 }
 
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
+
+function renderAnalytics(){
+  if(!$("analyticsSubscribers")) return;
+  $("analyticsSubscribers").textContent=fmt(currentChannel.subscribers||0);
+  $("analyticsViews").textContent=fmt(currentChannel.views||0);
+  $("analyticsVideos").textContent=fmt(currentChannel.videos||0);
+
+  const recent=(videos||[]).slice().sort((a,b)=>new Date(b.publishedAt||0)-new Date(a.publishedAt||0)).slice(0,20);
+  const recentViews=recent.reduce((sum,v)=>sum+Number(v.views||0),0);
+  $("analyticsRecentViews").textContent=fmt(recentViews);
+
+  const body=$("analyticsTableBody");
+  if(!recent.length){
+    body.innerHTML='<tr><td colspan="6" class="yt-table-empty">No recent videos found.</td></tr>';
+    return;
+  }
+  body.innerHTML=recent.map(v=>`
+    <tr>
+      <td><div class="yt-table-content-cell"><img src="${esc(v.thumbnail||"")}" alt=""><div><b>${esc(v.title||"")}</b><small>${esc(v.id||"")}</small></div></div></td>
+      <td>${contentType(v)==="short"?"Short":contentType(v)==="live"?"Live":"Video"}</td>
+      <td>${esc(v.privacyStatus||"-")}</td>
+      <td>${fmt(v.views||0)}</td>
+      <td>${fmt(v.comments||0)}</td>
+      <td>${formatDate(v)}</td>
+    </tr>`).join("");
+}
+
+function renderCopyright(){
+  if(!$("copyrightChecked")) return;
+  const list=(videos||[]);
+  const restricted=list.filter(v=>v.restrictions?.regionBlocked);
+  const issues=list.filter(v=>v.status?.uploadStatus && v.status.uploadStatus!=="processed");
+
+  $("copyrightChecked").textContent=list.length;
+  $("copyrightRestricted").textContent=restricted.length;
+  $("copyrightIssues").textContent=issues.length;
+
+  const box=$("copyrightList");
+  if(!list.length){
+    box.innerHTML='<p class="yt-table-empty">No videos found.</p>';
+    return;
+  }
+
+  box.innerHTML=list.map(v=>{
+    const restriction=v.restrictions?.regionBlocked?"Region restriction":"No API-visible region restriction";
+    const uploadIssue=(v.status?.uploadStatus && v.status.uploadStatus!=="processed")?v.status.uploadStatus:"Processed";
+    return `<div class="yt-copyright-row">
+      <div class="yt-copyright-main">
+        <img src="${esc(v.thumbnail||"")}" alt="">
+        <div><b>${esc(v.title||"")}</b><small>${esc(v.id||"")}</small></div>
+      </div>
+      <span class="${v.restrictions?.regionBlocked?"bad":"ok"}">${restriction}</span>
+      <span class="${uploadIssue==="Processed"?"ok":"warn"}">${esc(uploadIssue)}</span>
+      <span class="studio-only">Exact claims: Studio</span>
+    </div>`;
+  }).join("");
+}
+
 function renderPlaylists(){
   if($("playlistsCount")) $("playlistsCount").textContent=(playlists||[]).length;
   if(activeContentTab==="playlist") renderContentTable();
@@ -246,6 +305,17 @@ document.querySelectorAll(".yt-content-tab").forEach(btn=>{
   };
 });
 if($("contentSearch")) $("contentSearch").oninput=renderContentTable;
+
+
+if($("refreshAnalytics")) $("refreshAnalytics").onclick=loadAll;
+if($("settingsRefreshAll")) $("settingsRefreshAll").onclick=loadAll;
+if($("openCopyrightStudio")) $("openCopyrightStudio").onclick=()=>window.open("https://studio.youtube.com/","_blank","noopener,noreferrer");
+if($("settingsOpenStudio")) $("settingsOpenStudio").onclick=()=>window.open("https://studio.youtube.com/","_blank","noopener,noreferrer");
+if($("sidebarLogout")) $("sidebarLogout").onclick=async()=>{await supabase.auth.signOut();location.href="login.html"};
+if($("ytSidebarToggle")) $("ytSidebarToggle").onclick=()=>document.body.classList.toggle("yt-sidebar-open");
+document.querySelectorAll(".yt-sidebar-nav a").forEach(a=>{
+  a.onclick=()=>{ if(innerWidth<980) document.body.classList.remove("yt-sidebar-open"); };
+});
 
 $("refreshAll").onclick=loadAll;$("refreshVideos").onclick=loadAll;
 const studioPermissions="https://studio.youtube.com/";
