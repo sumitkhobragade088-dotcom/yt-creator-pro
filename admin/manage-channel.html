@@ -4,31 +4,69 @@
 <link rel="stylesheet" href="../assets/css/style.css"></head>
 <body>
 <header><div class="wrap"><h1>YT Creator Pro ⭐ Admin</h1><a class="btn" href="index.html">← Dashboard</a></div></header>
-<main class="wrap">
-<div class="panel">
-<h2 id="channelTitle">Manage Channel</h2>
-<p id="manageMessage">Loading connected channel…</p>
-<button id="refreshVideos" class="btn primary">Refresh Videos</button>
-</div>
-<br>
-<div class="panel">
-<h2>Existing Videos</h2>
-<div id="videoList">Loading…</div>
-</div>
+<main class="wrap yt-manager">
+  <div class="panel">
+    <div class="yt-manager-head">
+      <div><h2 id="channelTitle">Manage Channel</h2><p id="manageMessage">Loading connected channel…</p></div>
+      <button id="refreshAll" class="btn primary">Refresh / Sync</button>
+    </div>
+    <div id="channelStats" class="yt-manager-stats"></div>
+  </div>
+
+  <div class="yt-manager-grid">
+    <section class="panel">
+      <h2>Channel Details</h2>
+      <p class="yt-note">Channel name YouTube API se read-only hai. Description aur keywords update kiye ja sakte hain.</p>
+      <label>Channel Name</label><input id="channelName" disabled>
+      <label>Description</label><textarea id="channelDescription" rows="6"></textarea>
+      <label>Keywords</label><input id="channelKeywords" placeholder="keyword1 keyword2">
+      <button id="saveChannel" class="btn primary">Update Channel</button>
+      <p id="channelMessage"></p>
+    </section>
+
+    <section class="panel">
+      <h2>Upload New Video</h2>
+      <label>Video File</label><input id="uploadFile" type="file" accept="video/*">
+      <label>Title</label><input id="uploadTitle" maxlength="100">
+      <label>Description</label><textarea id="uploadDescription" rows="4"></textarea>
+      <label>Tags</label><input id="uploadTags" placeholder="tag1, tag2">
+      <label>Category ID</label><input id="uploadCategory" value="22">
+      <label>Privacy</label><select id="uploadPrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select>
+      <button id="uploadVideo" class="btn primary">Upload Video</button>
+      <progress id="uploadProgress" value="0" max="100" hidden></progress>
+      <p id="uploadMessage"></p>
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="yt-manager-head"><div><h2>Existing Videos</h2><p class="yt-note">Copyright claim details YouTube Data API expose nahi karti. Restrictions/API status yahan dikhte hain; exact claims ke liye YouTube Studio Copyright tab use karein.</p></div><button id="refreshVideos" class="btn">Refresh Videos</button></div>
+    <div id="videoList">Loading…</div>
+  </section>
+
+  <section class="panel">
+    <div class="yt-manager-head"><h2>Playlists</h2><button id="newPlaylistBtn" class="btn primary">+ New Playlist</button></div>
+    <div id="playlistList">Loading…</div>
+  </section>
 </main>
 
-<div id="editModal" class="yt-modal" hidden>
-<div class="yt-modal-card">
-<button id="closeModal" class="yt-close">×</button>
-<h2>Edit YouTube Video</h2>
+<div id="editModal" class="yt-modal" hidden><div class="yt-modal-card">
+<button id="closeModal" class="yt-close">×</button><h2>Edit Video</h2>
 <input id="editVideoId" type="hidden">
 <label>Title</label><input id="editTitle" maxlength="100">
-<label>Description</label><textarea id="editDescription" rows="8"></textarea>
-<label>Tags (comma separated)</label><input id="editTags">
+<label>Description</label><textarea id="editDescription" rows="7"></textarea>
+<label>Tags</label><input id="editTags">
 <label>Category ID</label><input id="editCategory" value="22">
-<button id="saveVideo" class="btn primary">Update on YouTube</button>
-<p id="editMessage"></p>
-</div>
-</div>
+<label>Privacy</label><select id="editPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+<label>Thumbnail JPG/PNG</label><input id="thumbnailFile" type="file" accept="image/jpeg,image/png">
+<div class="yt-action-row"><button id="saveVideo" class="btn primary">Update Video</button><button id="setThumbnail" class="btn">Update Thumbnail</button><button id="deleteVideo" class="btn danger">Delete Video</button></div>
+<p id="editMessage"></p></div></div>
+
+<div id="playlistModal" class="yt-modal" hidden><div class="yt-modal-card">
+<button id="closePlaylistModal" class="yt-close">×</button><h2>Playlist</h2>
+<input id="playlistId" type="hidden"><label>Title</label><input id="playlistTitle">
+<label>Description</label><textarea id="playlistDescription" rows="4"></textarea>
+<label>Privacy</label><select id="playlistPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+<button id="savePlaylist" class="btn primary">Save Playlist</button><p id="playlistMessage"></p></div></div>
+
 <script type="module" src="../assets/js/manage-channel.js"></script>
 </body></html>
