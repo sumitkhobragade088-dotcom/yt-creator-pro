@@ -110,6 +110,10 @@ async function loadAdminDashboard(){
   renderAdsense(customerMap,access);
   renderServices(requests);
   renderHistory(customers,access,requests,customerMap);
+  renderAdminManage(customerMap,access);
+  renderAdminAnalytics(customerMap,access);
+  renderAdminCopyright(customerMap,access);
+  applyAdminCmsAndEditor();
 }
 
 function renderCustomers(rows){
@@ -234,11 +238,16 @@ const premiumViewTitles={
   dashboard:"Dashboard",
   customers:"Users / Customers",
   channels:"YouTube Channels",
+  manage:"Manage Channel",
   access:"Access Requests",
   monetization:"Monetization Cases",
   adsense:"AdSense",
+  analytics:"Analytics / Stats",
+  copyright:"Copyright / Restrictions",
   services:"Services",
   history:"History",
+  cms:"Admin Dashboard CMS",
+  editor:"Admin Editor",
   settings:"Settings"
 };
 function showPremiumAdminView(name){
@@ -282,3 +291,99 @@ if($("installAdminApp")){
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("admin-sw.js").catch(console.error));
 }
+
+
+function renderAdminManage(customerMap, rows){
+  const body=$("manageChannelsBody"); if(!body)return;
+  const connected=(rows||[]).filter(a=>a.google_connected);
+  setText("manageSectionCount",connected.length);
+  body.innerHTML=connected.length?connected.map(a=>{
+    const c=customerMap.get(a.customer_id)||{};
+    return `<tr>
+      <td>${esc(c.full_name||c.email||"-")}</td>
+      <td>${esc(a.channel_name||c.channel_name||"-")}</td>
+      <td>${a.manager_access?'<span class="yt-status-chip good">GRANTED ✅</span>':'<span class="yt-status-chip pending">PENDING 🟡</span>'}</td>
+      <td><a class="btn primary" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}">Manage Channel</a></td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="4">No connected channels.</td></tr>';
+}
+function renderAdminAnalytics(customerMap, rows){
+  const connected=(rows||[]).filter(a=>a.google_connected);
+  const subs=connected.reduce((n,a)=>n+Number(a.subscribers||0),0);
+  const views=connected.reduce((n,a)=>n+Number(a.views||0),0);
+  const videos=connected.reduce((n,a)=>n+Number(a.videos||0),0);
+  setText("adminTotalSubscribers",fmt(subs));
+  setText("adminTotalViews",fmt(views));
+  setText("adminTotalVideos",fmt(videos));
+  setText("adminConnectedChannels",connected.length);
+  const body=$("adminAnalyticsBody"); if(!body)return;
+  body.innerHTML=connected.length?connected.map(a=>{
+    const c=customerMap.get(a.customer_id)||{};
+    return `<tr>
+      <td>${esc(a.channel_name||c.channel_name||"-")}</td>
+      <td>${fmt(a.subscribers)}</td><td>${fmt(a.views)}</td><td>${fmt(a.videos)}</td>
+      <td><a class="btn" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}">Open</a></td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="5">No connected channels.</td></tr>';
+}
+function renderAdminCopyright(customerMap, rows){
+  const connected=(rows||[]).filter(a=>a.google_connected);
+  const body=$("adminCopyrightBody"); if(!body)return;
+  body.innerHTML=connected.length?connected.map(a=>{
+    const c=customerMap.get(a.customer_id)||{};
+    return `<tr>
+      <td>${esc(c.full_name||c.email||"-")}</td>
+      <td>${esc(a.channel_name||c.channel_name||"-")}</td>
+      <td>${a.google_connected?'<span class="yt-status-chip good">Connected</span>':'-'}</td>
+      <td><a class="btn primary" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}#copyrightStatus">Check Restrictions</a></td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="4">No connected channels.</td></tr>';
+}
+
+function applyAdminCmsAndEditor(){
+  const cms=JSON.parse(localStorage.getItem("yt_admin_dashboard_cms")||"{}");
+  const labels=JSON.parse(localStorage.getItem("yt_admin_dashboard_labels")||"{}");
+  const hero=document.querySelector("#view-dashboard .yt-premium-hero h2");
+  const sub=document.querySelector("#view-dashboard .yt-premium-hero p");
+  if(hero && cms.heading) hero.textContent=cms.heading;
+  if(sub && cms.subtitle) sub.textContent=cms.subtitle;
+  if($("cmsDashboardHeading") && cms.heading) $("cmsDashboardHeading").value=cms.heading;
+  if($("cmsDashboardSubtitle") && cms.subtitle) $("cmsDashboardSubtitle").value=cms.subtitle;
+
+  const cardLabels=document.querySelectorAll("#view-dashboard .stat-label");
+  const defaults=["Total Users / Customers","Total YouTube Channels","Access Requests","Pending Access","Monetization Cases","AdSense Linked","Service Requests","Completed Requests"];
+  const vals=[labels.customers,labels.channels,labels.access,null,labels.monetization];
+  if(cardLabels[0]) cardLabels[0].textContent=labels.customers||defaults[0];
+  if(cardLabels[1]) cardLabels[1].textContent=labels.channels||defaults[1];
+  if(cardLabels[2]) cardLabels[2].textContent=labels.access||defaults[2];
+  if(cardLabels[4]) cardLabels[4].textContent=labels.monetization||defaults[4];
+
+  if($("editLabelCustomers")) $("editLabelCustomers").value=labels.customers||defaults[0];
+  if($("editLabelChannels")) $("editLabelChannels").value=labels.channels||defaults[1];
+  if($("editLabelAccess")) $("editLabelAccess").value=labels.access||defaults[2];
+  if($("editLabelMonetization")) $("editLabelMonetization").value=labels.monetization||defaults[4];
+}
+
+
+if($("saveAdminCms")) $("saveAdminCms").onclick=()=>{
+  const data={heading:$("cmsDashboardHeading").value.trim(),subtitle:$("cmsDashboardSubtitle").value.trim()};
+  localStorage.setItem("yt_admin_dashboard_cms",JSON.stringify(data));
+  applyAdminCmsAndEditor();
+  $("adminCmsMessage").textContent="Dashboard CMS saved ✅";
+};
+if($("saveAdminEditor")) $("saveAdminEditor").onclick=()=>{
+  const data={
+    customers:$("editLabelCustomers").value.trim(),
+    channels:$("editLabelChannels").value.trim(),
+    access:$("editLabelAccess").value.trim(),
+    monetization:$("editLabelMonetization").value.trim()
+  };
+  localStorage.setItem("yt_admin_dashboard_labels",JSON.stringify(data));
+  applyAdminCmsAndEditor();
+  $("adminEditorMessage").textContent="Card labels saved ✅";
+};
+if($("resetAdminEditor")) $("resetAdminEditor").onclick=()=>{
+  localStorage.removeItem("yt_admin_dashboard_labels");
+  applyAdminCmsAndEditor();
+  $("adminEditorMessage").textContent="Labels reset ✅";
+};

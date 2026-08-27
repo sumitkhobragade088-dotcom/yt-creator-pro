@@ -24,11 +24,16 @@
       <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
       <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
       <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
+      <button class="yt-premium-nav-btn" data-view="manage">🎛️ <span>Manage Channel</span></button>
       <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="monetization">💰 <span>Monetization Cases</span></button>
       <button class="yt-premium-nav-btn" data-view="adsense">₹ <span>AdSense</span></button>
+      <button class="yt-premium-nav-btn" data-view="analytics">📊 <span>Analytics / Stats</span></button>
+      <button class="yt-premium-nav-btn" data-view="copyright">©️ <span>Copyright / Restrictions</span></button>
       <button class="yt-premium-nav-btn" data-view="services">🧰 <span>Services</span></button>
       <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
+      <button class="yt-premium-nav-btn" data-view="cms">🧩 <span>Admin Dashboard CMS</span></button>
+      <button class="yt-premium-nav-btn" data-view="editor">✏️ <span>Admin Editor</span></button>
       <button class="yt-premium-nav-btn" data-view="settings">⚙️ <span>Settings</span></button>
     </nav>
 
@@ -182,6 +187,62 @@
     <section class="yt-premium-view" id="view-history">
       <div class="yt-premium-section-head"><div><span>HISTORY</span><h2>History</h2><p>Recent admin/customer/channel activity.</p></div></div>
       <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">Loading...</div></div></div>
+    </section>
+
+
+    <section class="yt-premium-view" id="view-manage">
+      <div class="yt-premium-section-head"><div><span>CHANNEL CONTROL</span><h2>Manage Channel</h2><p>Select a connected customer channel and open full manager.</p></div><b id="manageSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Manager Access</th><th>Action</th></tr></thead>
+        <tbody id="manageChannelsBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-analytics">
+      <div class="yt-premium-section-head"><div><span>ANALYTICS</span><h2>Analytics / Stats</h2><p>Aggregate data from connected channels.</p></div></div>
+      <div class="yt-admin-mini-grid">
+        <div><small>Total Subscribers</small><b id="adminTotalSubscribers">0</b></div>
+        <div><small>Total Views</small><b id="adminTotalViews">0</b></div>
+        <div><small>Total Videos</small><b id="adminTotalVideos">0</b></div>
+        <div><small>Connected Channels</small><b id="adminConnectedChannels">0</b></div>
+      </div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Channel</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manage</th></tr></thead>
+        <tbody id="adminAnalyticsBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-copyright">
+      <div class="yt-premium-section-head"><div><span>COPYRIGHT</span><h2>Copyright / Restrictions</h2><p>Open each channel manager for API-visible restrictions and YouTube Studio copyright checks.</p></div></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Copyright / Restrictions</th></tr></thead>
+        <tbody id="adminCopyrightBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-cms">
+      <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Edit dashboard heading text saved on this admin browser.</p></div></div>
+      <div class="panel yt-premium-panel yt-admin-editor-form">
+        <label>Dashboard Heading</label>
+        <input id="cmsDashboardHeading" value="Admin Dashboard">
+        <label>Dashboard Subtitle</label>
+        <textarea id="cmsDashboardSubtitle" rows="3">Users, channels, access, monetization, AdSense aur service activity ka live summary.</textarea>
+        <button id="saveAdminCms" class="btn primary">Save Dashboard CMS</button>
+        <p id="adminCmsMessage"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-editor">
+      <div class="yt-premium-section-head"><div><span>EDITOR</span><h2>Admin Editor</h2><p>Edit overview card labels saved on this admin browser.</p></div></div>
+      <div class="panel yt-premium-panel yt-admin-editor-form">
+        <label>Customers Card Label</label><input id="editLabelCustomers" value="Total Users / Customers">
+        <label>Channels Card Label</label><input id="editLabelChannels" value="Total YouTube Channels">
+        <label>Access Card Label</label><input id="editLabelAccess" value="Access Requests">
+        <label>Monetization Card Label</label><input id="editLabelMonetization" value="Monetization Cases">
+        <button id="saveAdminEditor" class="btn primary">Save Card Labels</button>
+        <button id="resetAdminEditor" class="btn">Reset Labels</button>
+        <p id="adminEditorMessage"></p>
+      </div>
     </section>
 
     <section class="yt-premium-view" id="view-settings">

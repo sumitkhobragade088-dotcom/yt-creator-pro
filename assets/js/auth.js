@@ -205,6 +205,52 @@ async function loadDashboard() {
       });
       if (!reqs || reqs.length === 0) list.innerHTML = "<p>No service requests yet.</p>";
     }
+
+    const renderFilteredRequests = (targetId, matchText) => {
+      const target = document.getElementById(targetId);
+      if (!target) return;
+      const filtered = (reqs || []).filter(r => String(r.service_type || "").toLowerCase().includes(matchText));
+      target.innerHTML = filtered.length
+        ? filtered.map(r => `<div class="request-row"><b>${r.service_type || "Service"}</b><span>${r.status || "pending"}</span></div>`).join("")
+        : "<p>No matching requests yet.</p>";
+    };
+    renderFilteredRequests("userMonetizationRequests", "monetization");
+    renderFilteredRequests("userAdsenseRequests", "adsense");
+
+    const setDashText = (id, value) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = (value === null || value === undefined || value === "") ? "-" : String(value);
+    };
+    setDashText("userMonetizationStatus", access?.monetization_status || "Pending");
+    setDashText("userMonetizationSubscribers", Number(access?.subscribers || 0).toLocaleString("en-IN"));
+    setDashText("userMonetizationVideos", Number(access?.videos || 0).toLocaleString("en-IN"));
+    setDashText("userAdsenseStatus", access?.adsense_access ? "Linked / Access ✅" : "Not Linked");
+    setDashText("userAdsenseMonetizationStatus", access?.monetization_status || "Pending");
+
+    const submitServiceBtn = document.getElementById("submitUserServiceRequest");
+    if (submitServiceBtn && !submitServiceBtn.dataset.bound) {
+      submitServiceBtn.dataset.bound = "1";
+      submitServiceBtn.addEventListener("click", async () => {
+        const select = document.getElementById("userServiceType");
+        const message = document.getElementById("userServiceRequestMessage");
+        const service_type = select?.value || "";
+        if (!service_type) return;
+        submitServiceBtn.disabled = true;
+        if (message) message.textContent = "Submitting...";
+        const { error } = await supabase.from("service_requests").insert({
+          customer_id: customer.id,
+          service_type,
+          status: "pending"
+        });
+        if (error) {
+          if (message) message.textContent = error.message;
+        } else {
+          if (message) message.textContent = "Request submitted successfully ✅";
+          setTimeout(() => location.reload(), 700);
+        }
+        submitServiceBtn.disabled = false;
+      });
+    }
   }
 }
 

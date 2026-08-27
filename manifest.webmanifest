@@ -4,7 +4,18 @@
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
-  "background_color": "#0f0f0f",
+  "background_color": "#ffffff",
   "theme_color": "#ff0000",
-  "icons": []
+  "icons": [
+    {
+      "src": "admin/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "admin/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
 }
