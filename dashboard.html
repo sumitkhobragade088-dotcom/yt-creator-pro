@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ff0000">
 <title>Creator Dashboard | YT Creator Pro</title>
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 
@@ -45,6 +46,9 @@
       <div>
         <span class="yt-demo-user-eyebrow">USER PORTAL</span>
         <h1 id="userDashboardTitle">Dashboard</h1>
+      </div>
+      <div class="yt-demo-user-header-actions">
+        <button id="installUserDashboardApp" class="yt-user-install-btn" type="button">📱 Install App</button>
       </div>
       <div class="yt-demo-user-account">
         <div class="yt-demo-bell">🔔</div>
@@ -258,4 +262,21 @@ document.getElementById("userServiceSearchBtn")?.addEventListener("click",()=>{
 </script>
 <script type="module" src="assets/js/auth.js"></script>
 <script type="module" src="assets/js/google-youtube.js"></script>
+<script>
+let dashboardInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); dashboardInstallPrompt=e;
+  document.getElementById("installUserDashboardApp")?.classList.add("ready");
+});
+document.getElementById("installUserDashboardApp")?.addEventListener("click",async()=>{
+  if(dashboardInstallPrompt){
+    dashboardInstallPrompt.prompt();
+    await dashboardInstallPrompt.userChoice;
+    dashboardInstallPrompt=null;
+  }else{
+    alert("Chrome menu → Add to Home screen / Install app use karein.");
+  }
+});
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").catch(()=>{}); }
+</script>
 </body>
