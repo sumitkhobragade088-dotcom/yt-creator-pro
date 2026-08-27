@@ -1,0 +1,34 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Manage YouTube Channel | YT Creator Pro</title>
+<link rel="stylesheet" href="../assets/css/style.css"></head>
+<body>
+<header><div class="wrap"><h1>YT Creator Pro ⭐ Admin</h1><a class="btn" href="index.html">← Dashboard</a></div></header>
+<main class="wrap">
+<div class="panel">
+<h2 id="channelTitle">Manage Channel</h2>
+<p id="manageMessage">Loading connected channel…</p>
+<button id="refreshVideos" class="btn primary">Refresh Videos</button>
+</div>
+<br>
+<div class="panel">
+<h2>Existing Videos</h2>
+<div id="videoList">Loading…</div>
+</div>
+</main>
+
+<div id="editModal" class="yt-modal" hidden>
+<div class="yt-modal-card">
+<button id="closeModal" class="yt-close">×</button>
+<h2>Edit YouTube Video</h2>
+<input id="editVideoId" type="hidden">
+<label>Title</label><input id="editTitle" maxlength="100">
+<label>Description</label><textarea id="editDescription" rows="8"></textarea>
+<label>Tags (comma separated)</label><input id="editTags">
+<label>Category ID</label><input id="editCategory" value="22">
+<button id="saveVideo" class="btn primary">Update on YouTube</button>
+<p id="editMessage"></p>
+</div>
+</div>
+<script type="module" src="../assets/js/manage-channel.js"></script>
+</body></html>

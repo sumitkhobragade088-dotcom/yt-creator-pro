@@ -32,3 +32,12 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 .yt-stats div{background:#f8fafc;border:1px solid #e5eaf3;border-radius:14px;padding:16px;overflow:hidden}
 .yt-stats small{display:block;color:#667085;margin-bottom:7px}.yt-stats b{word-break:break-all}
 @media(max-width:720px){.yt-stats{grid-template-columns:1fr 1fr}}
+
+.yt-video-row{display:flex;align-items:center;gap:14px;padding:12px 0;border-bottom:1px solid #e5e7eb}
+.yt-video-row img{width:120px;aspect-ratio:16/9;object-fit:cover;border-radius:10px}
+.yt-video-info{flex:1;display:flex;flex-direction:column;gap:5px}.yt-video-info small{color:#667085}
+.yt-modal{position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;padding:20px;overflow:auto}
+.yt-modal-card{max-width:680px;margin:5vh auto;background:white;border-radius:18px;padding:24px;position:relative}
+.yt-modal-card input,.yt-modal-card textarea{width:100%;margin:6px 0 14px;padding:11px;border:1px solid #d0d5dd;border-radius:9px}
+.yt-close{position:absolute;right:15px;top:10px;border:0;background:none;font-size:28px;cursor:pointer}
+@media(max-width:650px){.yt-video-row{align-items:flex-start;flex-wrap:wrap}.yt-video-row img{width:100px}}
