@@ -226,7 +226,11 @@ document.querySelectorAll(".yt-sidebar-nav a").forEach(a=>a.onclick=()=>{if(inne
 loadAdminDashboard();
 
 
-const viewTitles={
+
+if($("adminSidebarLogout")) $("adminSidebarLogout").onclick=window.adminLogout;
+
+
+const premiumViewTitles={
   dashboard:"Dashboard",
   customers:"Users / Customers",
   channels:"YouTube Channels",
@@ -237,19 +241,44 @@ const viewTitles={
   history:"History",
   settings:"Settings"
 };
-
-function showAdminView(name){
-  document.querySelectorAll(".yt-ref-view").forEach(v=>v.classList.remove("active"));
-  document.querySelectorAll(".yt-ref-nav-btn").forEach(b=>b.classList.remove("active"));
+function showPremiumAdminView(name){
+  document.querySelectorAll(".yt-premium-view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll(".yt-premium-nav-btn").forEach(b=>b.classList.remove("active"));
   const view=document.getElementById(`view-${name}`);
-  const btn=document.querySelector(`.yt-ref-nav-btn[data-view="${name}"]`);
+  const btn=document.querySelector(`.yt-premium-nav-btn[data-view="${name}"]`);
   if(view)view.classList.add("active");
   if(btn)btn.classList.add("active");
-  if($("adminPageTitle")) $("adminPageTitle").textContent=viewTitles[name]||"Dashboard";
+  if($("adminPageTitle")) $("adminPageTitle").textContent=premiumViewTitles[name]||"Dashboard";
+  if(innerWidth<900) document.body.classList.remove("yt-premium-sidebar-open");
   window.scrollTo({top:0,behavior:"smooth"});
 }
-document.querySelectorAll(".yt-ref-nav-btn").forEach(btn=>{
-  btn.addEventListener("click",()=>showAdminView(btn.dataset.view));
+document.querySelectorAll(".yt-premium-nav-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>showPremiumAdminView(btn.dataset.view));
 });
 
+if($("ytPremiumSidebarToggle")){
+  $("ytPremiumSidebarToggle").onclick=()=>document.body.classList.toggle("yt-premium-sidebar-open");
+}
 if($("adminSidebarLogout")) $("adminSidebarLogout").onclick=window.adminLogout;
+
+let deferredAdminInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",(event)=>{
+  event.preventDefault();
+  deferredAdminInstallPrompt=event;
+  const btn=$("installAdminApp");
+  if(btn){btn.disabled=false;btn.textContent="📱 Install Admin App";}
+});
+if($("installAdminApp")){
+  $("installAdminApp").onclick=async()=>{
+    if(deferredAdminInstallPrompt){
+      deferredAdminInstallPrompt.prompt();
+      await deferredAdminInstallPrompt.userChoice;
+      deferredAdminInstallPrompt=null;
+      return;
+    }
+    alert("Install option browser menu me available ho sakta hai: Chrome menu → Add to Home screen / Install app.");
+  };
+}
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>navigator.serviceWorker.register("admin-sw.js").catch(console.error));
+}

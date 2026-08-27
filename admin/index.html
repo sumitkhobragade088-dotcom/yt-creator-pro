@@ -3,128 +3,188 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b63ce">
 <title>Admin Dashboard | YT Creator Pro</title>
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="../assets/css/style.css">
 </head>
-<body data-admin-protected="true" class="yt-ref-admin-page">
+<body data-admin-protected="true" class="yt-premium-admin-page">
 
-<div class="yt-ref-admin-shell">
-  <aside class="yt-ref-sidebar" id="ytRefSidebar">
-    <div class="yt-ref-brand">
-      <div class="yt-ref-brand-title">YT Creator Pro</div>
-      <div class="yt-ref-brand-sub">Admin Panel</div>
+<div class="yt-premium-admin-shell">
+  <aside class="yt-premium-sidebar" id="ytPremiumSidebar">
+    <div class="yt-premium-brand">
+      <div class="yt-premium-brand-badge">YT</div>
+      <div>
+        <div class="yt-premium-brand-title">YT Creator Pro</div>
+        <div class="yt-premium-brand-sub">Admin Panel</div>
+      </div>
     </div>
 
-    <nav class="yt-ref-nav">
-      <button class="yt-ref-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
-      <button class="yt-ref-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
-      <button class="yt-ref-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
-      <button class="yt-ref-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
-      <button class="yt-ref-nav-btn" data-view="monetization">💰 <span>Monetization Cases</span></button>
-      <button class="yt-ref-nav-btn" data-view="adsense">₹ <span>AdSense</span></button>
-      <button class="yt-ref-nav-btn" data-view="services">🧰 <span>Services</span></button>
-      <button class="yt-ref-nav-btn" data-view="history">🕘 <span>History</span></button>
-      <button class="yt-ref-nav-btn" data-view="settings">⚙️ <span>Settings</span></button>
+    <nav class="yt-premium-nav">
+      <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
+      <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
+      <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
+      <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
+      <button class="yt-premium-nav-btn" data-view="monetization">💰 <span>Monetization Cases</span></button>
+      <button class="yt-premium-nav-btn" data-view="adsense">₹ <span>AdSense</span></button>
+      <button class="yt-premium-nav-btn" data-view="services">🧰 <span>Services</span></button>
+      <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
+      <button class="yt-premium-nav-btn" data-view="settings">⚙️ <span>Settings</span></button>
     </nav>
 
-    <div class="yt-ref-sidebar-bottom">
-      <button id="adminSidebarLogout" class="yt-ref-logout">↪ Logout</button>
+    <div class="yt-premium-sidebar-bottom">
+      <button id="adminSidebarLogout" class="yt-premium-logout">↪ Logout</button>
     </div>
   </aside>
 
-  <main class="yt-ref-main">
-    <div class="yt-ref-topbar">
-      <div>
-        <div class="yt-ref-eyebrow">YT CREATOR PRO</div>
+  <button id="ytPremiumSidebarToggle" class="yt-premium-sidebar-toggle" aria-label="Open menu">☰</button>
+
+  <main class="yt-premium-main">
+    <header class="yt-premium-header">
+      <div class="yt-premium-header-copy">
+        <div class="yt-premium-kicker">YT CREATOR PRO • ADMIN CONTROL</div>
         <h1 id="adminPageTitle">Dashboard</h1>
         <p id="adminEmailView"></p>
       </div>
-      <div class="yt-ref-top-actions">
-        <button id="refreshAdminDashboard" class="btn">↻ Refresh</button>
+      <div class="yt-premium-header-actions">
+        <a class="yt-premium-top-btn website" href="../index.html" target="_blank" rel="noopener noreferrer">🌐 Website</a>
+        <button id="installAdminApp" class="yt-premium-top-btn install">📱 Install Admin App</button>
+        <button id="refreshAdminDashboard" class="yt-premium-top-btn refresh">↻ Refresh</button>
       </div>
-    </div>
+    </header>
 
-    <section class="yt-ref-view active" id="view-dashboard">
-      <div class="yt-ref-overview-head">
-        <div><h2>Overview</h2><p>Live admin data summary</p></div>
-      </div>
-
-      <div class="yt-ref-card-grid">
-        <div class="yt-ref-card c-green"><span>👥</span><small>Total Users / Customers</small><b id="totalCustomers">0</b></div>
-        <div class="yt-ref-card c-yellow"><span>📺</span><small>Total YouTube Channels</small><b id="totalChannels">0</b></div>
-        <div class="yt-ref-card c-pink"><span>🔐</span><small>Total Access Requests</small><b id="totalAccessRequests">0</b></div>
-        <div class="yt-ref-card c-red"><span>⏳</span><small>Pending Access</small><b id="pendingAccess">0</b></div>
-
-        <div class="yt-ref-card c-blue"><span>💰</span><small>Monetization Cases</small><b id="totalMonetizationCases">0</b></div>
-        <div class="yt-ref-card c-black"><span>₹</span><small>AdSense Linked</small><b id="totalAdsenseLinked">0</b></div>
-        <div class="yt-ref-card c-white"><span>🧰</span><small>Service Requests</small><b id="totalRequests">0</b></div>
-        <div class="yt-ref-card c-green2"><span>✅</span><small>Completed Requests</small><b id="completedRequests">0</b></div>
+    <section class="yt-premium-view active" id="view-dashboard">
+      <div class="yt-premium-hero">
+        <div>
+          <span class="yt-premium-eyebrow">OVERVIEW</span>
+          <h2>Admin Dashboard</h2>
+          <p>Users, channels, access, monetization, AdSense aur service activity ka live summary.</p>
+        </div>
+        <div class="yt-premium-live-pill">● LIVE DATA</div>
       </div>
 
-      <div class="yt-ref-bottom-strip">
-        <div><small>Pending Services</small><b id="pendingRequests">0</b></div>
-        <div><small>Manager Access Granted</small><b id="grantedAccess">0</b></div>
-        <div><small>Approved / Monetized</small><b id="approvedMonetization">0</b></div>
-        <div><small>Total Channel Views</small><b id="allChannelViews">0</b></div>
+      <div class="yt-premium-card-grid">
+        <div class="yt-premium-stat-card green">
+          <div class="stat-icon">👥</div>
+          <div class="stat-label">Total Users / Customers</div>
+          <div class="stat-value" id="totalCustomers">0</div>
+          <div class="stat-foot">Registered users</div>
+        </div>
+
+        <div class="yt-premium-stat-card yellow">
+          <div class="stat-icon">📺</div>
+          <div class="stat-label">Total YouTube Channels</div>
+          <div class="stat-value" id="totalChannels">0</div>
+          <div class="stat-foot">Connected channels</div>
+        </div>
+
+        <div class="yt-premium-stat-card pink">
+          <div class="stat-icon">🔐</div>
+          <div class="stat-label">Access Requests</div>
+          <div class="stat-value" id="totalAccessRequests">0</div>
+          <div class="stat-foot">Total access records</div>
+        </div>
+
+        <div class="yt-premium-stat-card red">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-label">Pending Access</div>
+          <div class="stat-value" id="pendingAccess">0</div>
+          <div class="stat-foot">Waiting for access</div>
+        </div>
+
+        <div class="yt-premium-stat-card blue">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">Monetization Cases</div>
+          <div class="stat-value" id="totalMonetizationCases">0</div>
+          <div class="stat-foot">Tracked cases</div>
+        </div>
+
+        <div class="yt-premium-stat-card black">
+          <div class="stat-icon">₹</div>
+          <div class="stat-label">AdSense Linked</div>
+          <div class="stat-value" id="totalAdsenseLinked">0</div>
+          <div class="stat-foot">Linked / available</div>
+        </div>
+
+        <div class="yt-premium-stat-card white">
+          <div class="stat-icon">🧰</div>
+          <div class="stat-label">Service Requests</div>
+          <div class="stat-value" id="totalRequests">0</div>
+          <div class="stat-foot">All service cases</div>
+        </div>
+
+        <div class="yt-premium-stat-card green2">
+          <div class="stat-icon">✅</div>
+          <div class="stat-label">Completed Requests</div>
+          <div class="stat-value" id="completedRequests">0</div>
+          <div class="stat-foot">Completed work</div>
+        </div>
+      </div>
+
+      <div class="yt-premium-summary-strip">
+        <div><span>Pending Services</span><b id="pendingRequests">0</b></div>
+        <div><span>Manager Access Granted</span><b id="grantedAccess">0</b></div>
+        <div><span>Approved / Monetized</span><b id="approvedMonetization">0</b></div>
+        <div><span>Total Channel Views</span><b id="allChannelViews">0</b></div>
       </div>
     </section>
 
-    <section class="yt-ref-view" id="view-customers">
-      <div class="yt-ref-section-head"><div><h2>Users / Customers</h2><p>Only customer data</p></div><b id="customersSectionCount">0</b></div>
-      <div class="panel yt-ref-panel"><div class="yt-table-scroll">
+    <section class="yt-premium-view" id="view-customers">
+      <div class="yt-premium-section-head"><div><span>CUSTOMERS</span><h2>Users / Customers</h2><p>Sirf customer data.</p></div><b id="customersSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th></tr></thead>
         <tbody id="customersBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
-    <section class="yt-ref-view" id="view-channels">
-      <div class="yt-ref-section-head"><div><h2>YouTube Channels</h2><p>Only connected channel data</p></div><b id="channelsSectionCount">0</b></div>
-      <div class="panel yt-ref-panel"><div class="yt-table-scroll">
+    <section class="yt-premium-view" id="view-channels">
+      <div class="yt-premium-section-head"><div><span>CHANNELS</span><h2>YouTube Channels</h2><p>Sirf connected channel data.</p></div><b id="channelsSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Email</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manager</th><th>Action</th></tr></thead>
         <tbody id="youtubeChannelsBody"><tr><td colspan="9">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
-    <section class="yt-ref-view" id="view-access">
-      <div class="yt-ref-section-head"><div><h2>Access Requests</h2><p>Only access/permission data</p></div><b id="accessSectionCount">0</b></div>
-      <div class="panel yt-ref-panel"><div class="yt-table-scroll">
+    <section class="yt-premium-view" id="view-access">
+      <div class="yt-premium-section-head"><div><span>ACCESS</span><h2>Access Requests</h2><p>Sirf permission/access data.</p></div><b id="accessSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Google Connected</th><th>Manager Access</th><th>Updated</th><th>Action</th></tr></thead>
         <tbody id="accessRequestsBody"><tr><td colspan="6">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
-    <section class="yt-ref-view" id="view-monetization">
-      <div class="yt-ref-section-head"><div><h2>Monetization Cases</h2><p>Only monetization case data</p></div><b id="monetizationSectionCount">0</b></div>
-      <div class="panel yt-ref-panel"><div class="yt-table-scroll">
+    <section class="yt-premium-view" id="view-monetization">
+      <div class="yt-premium-section-head"><div><span>MONETIZATION</span><h2>Monetization Cases</h2><p>Sirf monetization case data.</p></div><b id="monetizationSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manage</th></tr></thead>
         <tbody id="monetizationBody"><tr><td colspan="7">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
-    <section class="yt-ref-view" id="view-adsense">
-      <div class="yt-ref-section-head"><div><h2>AdSense</h2><p>Only AdSense access data</p></div><b id="adsenseSectionCount">0</b></div>
-      <div class="panel yt-ref-panel"><div class="yt-table-scroll">
+    <section class="yt-premium-view" id="view-adsense">
+      <div class="yt-premium-section-head"><div><span>ADSENSE</span><h2>AdSense</h2><p>Sirf AdSense access data.</p></div><b id="adsenseSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>AdSense Access</th><th>Monetization</th><th>Updated</th></tr></thead>
         <tbody id="adsenseBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
-    <section class="yt-ref-view" id="view-services">
-      <div class="yt-ref-section-head"><div><h2>Services</h2><p>Only service request data</p></div><b id="servicesSectionCount">0</b></div>
-      <div class="panel yt-ref-panel"><div class="yt-table-scroll">
+    <section class="yt-premium-view" id="view-services">
+      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Sirf service request data.</p></div><b id="servicesSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Service</th><th>Status</th><th>Date</th></tr></thead>
         <tbody id="serviceRequestsBody"><tr><td colspan="3">Loading...</td></tr></tbody></table>
       </div></div>
     </section>
 
-    <section class="yt-ref-view" id="view-history">
-      <div class="yt-ref-section-head"><div><h2>History</h2><p>Recent admin/customer/channel activity</p></div></div>
-      <div class="panel yt-ref-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">Loading...</div></div></div>
+    <section class="yt-premium-view" id="view-history">
+      <div class="yt-premium-section-head"><div><span>HISTORY</span><h2>History</h2><p>Recent admin/customer/channel activity.</p></div></div>
+      <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">Loading...</div></div></div>
     </section>
 
-    <section class="yt-ref-view" id="view-settings">
-      <div class="yt-ref-section-head"><div><h2>Settings</h2><p>Admin dashboard settings only</p></div></div>
-      <div class="panel yt-ref-panel">
+    <section class="yt-premium-view" id="view-settings">
+      <div class="yt-premium-section-head"><div><span>SETTINGS</span><h2>Settings</h2><p>Admin dashboard settings only.</p></div></div>
+      <div class="panel yt-premium-panel">
         <button id="settingsRefreshAdmin" class="btn primary">Refresh Dashboard Data</button>
       </div>
     </section>
