@@ -71,7 +71,19 @@ function renderVideos(){
 }
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
 function renderPlaylists(){const box=$("playlistList");if(!playlists.length){box.innerHTML="<p>No playlists found.</p>";return}box.innerHTML=playlists.map((p,i)=>`<div class="yt-playlist-row"><div><b>${esc(p.title)}</b><small>${p.itemCount||0} videos · ${esc(p.privacyStatus||"-")}</small></div><button class="btn" data-pl="${i}">Edit</button></div>`).join("");document.querySelectorAll("[data-pl]").forEach(b=>b.onclick=()=>openPlaylist(+b.dataset.pl))}
-function openPlaylist(i){const p=playlists[i];$("playlistId").value=p.id;$("playlistTitle").value=p.title||"";$("playlistDescription").value=p.description||"";$("playlistPrivacy").value=p.privacyStatus||"private";$("playlistMessage").textContent="";$("playlistModal").hidden=false}
+function openPlaylist(i){
+ const p=playlists[i];
+ $("playlistId").value=p.id;
+ $("playlistTitle").value=p.title||"";
+ $("playlistDescription").value=p.description||"";
+ $("playlistPrivacy").value=p.privacyStatus||"private";
+ $("playlistMessage").textContent="";
+ const box=$("playlistThumbBox"),img=$("playlistThumbPreview");
+ if(p.thumbnail){img.src=p.thumbnail;box.hidden=false}else{img.removeAttribute("src");box.hidden=true}
+ $("deletePlaylist").hidden=false;
+ $("openPlaylistStudio").hidden=false;
+ $("playlistModal").hidden=false
+}
 
 $("markManagerGranted").onclick=async()=>{
   try{
@@ -233,7 +245,25 @@ async function confirmUploadedVideo(title,tries=6){
 
 function fileData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file)})}
 $("setThumbnail").onclick=async()=>{const f=$("thumbnailFile").files[0];if(!f)return $("editMessage").textContent="Thumbnail file choose karo.";if(f.size>2*1024*1024)return $("editMessage").textContent="Thumbnail max 2 MB rakho.";try{$("editMessage").textContent="Uploading thumbnail…";await api("set_thumbnail",{video_id:$("editVideoId").value,mime_type:f.type,data_base64:await fileData(f)});$("editMessage").textContent="Thumbnail updated ✅";await loadAll()}catch(e){$("editMessage").textContent=e.message}};
-$("newPlaylistBtn").onclick=()=>{$("playlistId").value="";$("playlistTitle").value="";$("playlistDescription").value="";$("playlistPrivacy").value="private";$("playlistModal").hidden=false};
+$("newPlaylistBtn").onclick=()=>{$("playlistId").value="";$("playlistTitle").value="";$("playlistDescription").value="";$("playlistPrivacy").value="private";$("playlistThumbBox").hidden=true;$("deletePlaylist").hidden=true;$("openPlaylistStudio").hidden=true;$("playlistMessage").textContent="";$("playlistModal").hidden=false};
+
+$("deletePlaylist").onclick=async()=>{
+ const id=$("playlistId").value;
+ if(!id)return;
+ if(!confirm("Is playlist ko permanently delete karna hai?"))return;
+ try{
+   $("playlistMessage").textContent="Deleting playlist…";
+   await api("delete_playlist",{playlist_id:id});
+   $("playlistModal").hidden=true;
+   await loadAll();
+ }catch(e){$("playlistMessage").textContent=e.message}
+};
+$("openPlaylistStudio").onclick=()=>{
+ const id=$("playlistId").value;
+ if(!id)return;
+ window.open(`https://www.youtube.com/playlist?list=${encodeURIComponent(id)}`,"_blank","noopener,noreferrer");
+};
+
 $("savePlaylist").onclick=async()=>{try{const id=$("playlistId").value;await api(id?"update_playlist":"create_playlist",{playlist_id:id,title:$("playlistTitle").value.trim(),description:$("playlistDescription").value,privacy_status:$("playlistPrivacy").value});$("playlistModal").hidden=true;await loadAll()}catch(e){$("playlistMessage").textContent=e.message}};
 
 $("uploadType").onchange=async()=>{

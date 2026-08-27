@@ -123,3 +123,7 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 .yt-upload-result{margin-top:10px;padding:12px 14px;border-radius:12px;border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;display:grid;gap:4px}
 .yt-upload-result small{display:block;color:#475569}
 #uploadType{font-weight:800}
+
+.yt-playlist-thumb-box{display:grid;grid-template-columns:160px 1fr;gap:14px;align-items:center;padding:12px;border:1px solid #e5e7eb;border-radius:14px;background:#f8fafc;margin-bottom:14px}
+.yt-playlist-thumb-preview{width:160px;aspect-ratio:16/9;object-fit:cover;border-radius:10px;background:#e5e7eb}
+@media(max-width:600px){.yt-playlist-thumb-box{grid-template-columns:1fr}.yt-playlist-thumb-preview{width:100%}}

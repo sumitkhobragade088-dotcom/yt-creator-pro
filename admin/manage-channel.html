@@ -182,11 +182,21 @@
 <p id="editMessage"></p></div></div>
 
 <div id="playlistModal" class="yt-modal" hidden><div class="yt-modal-card">
-<button id="closePlaylistModal" class="yt-close">×</button><h2>Playlist</h2>
-<input id="playlistId" type="hidden"><label>Title</label><input id="playlistTitle">
-<label>Description</label><textarea id="playlistDescription" rows="4"></textarea>
+<button id="closePlaylistModal" class="yt-close">×</button><h2>Playlist Manager</h2>
+<input id="playlistId" type="hidden">
+<div id="playlistThumbBox" class="yt-playlist-thumb-box" hidden>
+  <img id="playlistThumbPreview" class="yt-playlist-thumb-preview" alt="Playlist thumbnail">
+  <div><b>Playlist Thumbnail Preview</b><p class="yt-note">YouTube playlist ka thumbnail playlist videos se automatically manage karta hai; custom playlist-thumbnail upload API available nahi hai.</p></div>
+</div>
+<label>Title</label><input id="playlistTitle">
+<label>Description</label><textarea id="playlistDescription" rows="6" placeholder="Playlist description"></textarea>
 <label>Privacy</label><select id="playlistPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
-<button id="savePlaylist" class="btn primary">Save Playlist</button><p id="playlistMessage"></p></div></div>
+<div class="yt-action-row">
+  <button id="savePlaylist" class="btn primary">Save / Update Playlist</button>
+  <button id="openPlaylistStudio" class="btn">Open in YouTube Studio</button>
+  <button id="deletePlaylist" class="btn danger">Delete Playlist</button>
+</div>
+<p id="playlistMessage"></p></div></div>
 
 <script type="module" src="../assets/js/manage-channel.js"></script>
 </body></html>
