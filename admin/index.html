@@ -190,13 +190,216 @@
     </section>
 
 
+    
     <section class="yt-premium-view" id="view-manage">
-      <div class="yt-premium-section-head"><div><span>CHANNEL CONTROL</span><h2>Manage Channel</h2><p>Only channels with Manager Access Granted are available for full edit / update / delete management.</p></div><b id="manageSectionCount">0</b></div>
-      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Manager Access</th><th>Action</th></tr></thead>
-        <tbody id="manageChannelsBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
-      </div></div>
+      <div class="yt-premium-section-head">
+        <div>
+          <span>CHANNEL CONTROL</span>
+          <h2>Manage Channel</h2>
+          <p>Sirf Manager Access Granted channels yahan full management ke liye available hain.</p>
+        </div>
+        <b id="manageSectionCount">0</b>
+      </div>
+
+      <div id="manageChannelListPanel" class="panel yt-premium-panel">
+        <div class="yt-table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Customer</th><th>Channel</th><th>Manager Access</th><th>Action</th></tr></thead>
+            <tbody id="manageChannelsBody"><tr><td colspan="4">Loading...</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <div id="manageWorkspace" class="yt-manage-inline-workspace" hidden>
+        <div class="yt-manage-inline-titlebar">
+          <div>
+            <span>FULL CHANNEL MANAGEMENT</span>
+            <h2>Channel Editor</h2>
+            <p>Manager Access Granted channel ka edit / update / delete / upload yahin Admin Dashboard me hoga.</p>
+          </div>
+          <button id="closeManageWorkspace" class="btn" type="button">Close Editor</button>
+        </div>
+        <div class="panel">
+    <div class="yt-manager-head">
+      <div><h2 id="channelTitle">Manage Channel</h2><p id="manageMessage">Loading connected channel…</p></div>
+      <button id="refreshAll" class="btn primary">Refresh / Sync</button>
+    </div>
+    <div id="channelStats" class="yt-manager-stats"></div>
+  </div>
+<div id="managerUnlockedArea" class="yt-manager-unlocked">
+  <section class="panel yt-banner-panel" id="channelBanner">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Channel Banner</h2>
+        <p class="yt-note">Banner ko yahin se Upload / Replace karein. Remove ke liye official YouTube Studio Branding khulega.</p>
+      </div>
+      <button id="openBannerStudio" class="btn">Open Banner in Studio</button>
+    </div>
+    <div class="yt-banner-grid">
+      <div class="yt-banner-preview-wrap">
+        <img id="channelBannerPreview" class="yt-banner-preview" alt="Channel banner preview">
+        <div id="noBannerPreview" class="yt-banner-empty">Current banner preview API me available na ho to yahan placeholder dikhega.</div>
+      </div>
+      <div>
+        <label>New Banner JPG / PNG</label>
+        <input id="channelBannerFile" type="file" accept="image/*">
+        <p class="yt-note">Koi bhi photo size select karo — system automatically 2560×1440 YouTube banner me fit karega. Preview upload se pehle dikhega.</p>
+        <div class="yt-action-row">
+          <button id="uploadChannelBanner" class="btn primary">Upload / Replace Banner</button>
+          <button id="removeChannelBanner" class="btn">Remove Banner in Studio</button>
+        </div>
+        <p id="bannerMessage"></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="yt-manager-grid" id="channelDetails">
+    <section class="panel">
+      <h2>Channel Details</h2>
+      <p class="yt-note">Channel name YouTube API se read-only hai. Description aur keywords update kiye ja sakte hain.</p>
+      <label>Channel Name</label><div class="yt-inline-edit"><input id="channelName" disabled><button id="editChannelNameStudio" class="btn youtube-main-studio-btn">Edit Channel Name in Studio</button></div>
+      <label>Description</label><textarea id="channelDescription" rows="6"></textarea>
+      <label>Keywords</label><input id="channelKeywords" placeholder="keyword1 keyword2">
+      <button id="saveChannel" class="btn primary">Update Channel</button>
+      <p id="channelMessage"></p>
     </section>
+
+    <section class="panel">
+      <h2>Upload New Video</h2>
+      <label>Upload Type</label>
+<select id="uploadType">
+  <option value="video" selected>Normal Video</option>
+  <option value="short">YouTube Short</option>
+</select>
+<p id="uploadTypeHelp" class="yt-note">Normal Video selected. YouTube may still classify a short vertical clip as a Short based on its format/duration.</p>
+<label>Video File</label><input id="uploadFile" type="file" accept="video/*">
+      <label>Title</label><input id="uploadTitle" maxlength="100">
+      <label>Description</label><textarea id="uploadDescription" rows="4"></textarea>
+      <label>Tags</label><input id="uploadTags" placeholder="tag1, tag2">
+      <label>Video Category</label><select id="uploadCategory"><option value="1">Film & Animation</option>
+<option value="2">Autos & Vehicles</option>
+<option value="10">Music</option>
+<option value="15">Pets & Animals</option>
+<option value="17">Sports</option>
+<option value="19">Travel & Events</option>
+<option value="20">Gaming</option>
+<option value="22" selected>People & Blogs</option>
+<option value="23">Comedy</option>
+<option value="24">Entertainment</option>
+<option value="25">News & Politics</option>
+<option value="26">Howto & Style</option>
+<option value="27">Education</option>
+<option value="28">Science & Technology</option>
+<option value="29">Nonprofits & Activism</option></select>
+      <label>Privacy</label><select id="uploadPrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select>
+      <button id="uploadVideo" class="btn primary">Upload Video</button>
+      <progress id="uploadProgress" value="0" max="100" hidden></progress>
+      <div id="uploadResult" class="yt-upload-result" hidden></div>
+      <p id="uploadMessage"></p>
+    </section>
+  </div>
+
+  
+  <section class="panel yt-content-panel" id="channelContent">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Channel Content</h2>
+        <p class="yt-note">YouTube Studio style content manager.</p>
+      </div>
+      <button id="refreshVideos" class="btn">Refresh Content</button>
+    </div>
+
+    <div class="yt-content-tabs" role="tablist">
+      <button class="yt-content-tab active" data-content-tab="video">Videos <span id="videosCount">0</span></button>
+      <button class="yt-content-tab" data-content-tab="short">Shorts <span id="shortsCount">0</span></button>
+      <button class="yt-content-tab" data-content-tab="live">Live <span id="liveCount">0</span></button>
+      <button class="yt-content-tab" id="playlistsSection" data-content-tab="playlist">Playlists <span id="playlistsCount">0</span></button>
+    </div>
+
+    <div class="yt-content-toolbar">
+      <input id="contentSearch" type="search" placeholder="Filter content...">
+      <button id="newPlaylistBtn" class="btn primary" hidden>+ New Playlist</button>
+    </div>
+
+    <div class="yt-content-table-wrap">
+      <table class="yt-studio-table">
+        <thead>
+          <tr>
+            <th>Content</th>
+            <th>Visibility</th>
+            <th>Date</th>
+            <th>Views</th>
+            <th>Comments</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="contentTableBody">
+          <tr><td colspan="6">Loading…</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p class="yt-note">Shorts ka direct API flag available nahi hai; system duration/live metadata ke basis par separate karta hai. Exact Copyright claims YouTube Studio me check karein.</p>
+  </section>
+
+
+  <section class="panel" id="analyticsOverview">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Overview Analytics</h2>
+        <p class="yt-note">Connected channel ka live overview aur recent content performance.</p>
+      </div>
+      <button id="refreshAnalytics" class="btn">Refresh Analytics</button>
+    </div>
+    <div class="yt-analytics-cards">
+      <div class="yt-analytics-card"><small>Subscribers</small><b id="analyticsSubscribers">0</b><span>Current total</span></div>
+      <div class="yt-analytics-card"><small>Total Views</small><b id="analyticsViews">0</b><span>Channel lifetime</span></div>
+      <div class="yt-analytics-card"><small>Videos</small><b id="analyticsVideos">0</b><span>Published content</span></div>
+      <div class="yt-analytics-card"><small>Recent Views</small><b id="analyticsRecentViews">0</b><span>Loaded recent items</span></div>
+    </div>
+
+    <div class="yt-analytics-table-wrap">
+      <table class="yt-studio-table">
+        <thead>
+          <tr><th>Video</th><th>Type</th><th>Visibility</th><th>Views</th><th>Comments</th><th>Date</th></tr>
+        </thead>
+        <tbody id="analyticsTableBody"><tr><td colspan="6">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="panel" id="copyrightStatus">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Copyright / Restrictions</h2>
+        <p class="yt-note">YouTube Data API se available restriction/status information. Exact copyright claims/strikes ke liye YouTube Studio use karein.</p>
+      </div>
+      <button id="openCopyrightStudio" class="btn youtube-main-studio-btn">Open Copyright in Studio</button>
+    </div>
+    <div class="yt-copyright-summary">
+      <div><small>Videos Checked</small><b id="copyrightChecked">0</b></div>
+      <div><small>Restrictions Found</small><b id="copyrightRestricted">0</b></div>
+      <div><small>Live/Processing Issues</small><b id="copyrightIssues">0</b></div>
+    </div>
+    <div id="copyrightList" class="yt-copyright-list">Loading…</div>
+  </section>
+
+  <section class="panel" id="settingsSection">
+    <h2>Admin Settings</h2>
+    <p class="yt-note">Selected customer/channel ke management controls. Sidebar shortcuts isi page ke modules par le jaate hain.</p>
+    <div class="yt-action-row">
+      <button id="settingsRefreshAll" class="btn primary">Refresh All Data</button>
+      <button id="settingsOpenStudio" class="btn youtube-main-studio-btn">Open YouTube Studio</button>
+    </div>
+  </section>
+
+  </div>
+
+      </div>
+
+    </section>
+
 
     <section class="yt-premium-view" id="view-analytics">
       <div class="yt-premium-section-head"><div><span>ANALYTICS</span><h2>Analytics / Stats</h2><p>Aggregate data from connected channels.</p></div></div>
@@ -255,6 +458,51 @@
 </div>
 
 
+<div id="editModal" class="yt-modal" hidden><div class="yt-modal-card">
+<button id="closeModal" class="yt-close">×</button><h2>Edit Video</h2>
+<input id="editVideoId" type="hidden">
+<label>Title</label><input id="editTitle" maxlength="100">
+<label>Description</label><textarea id="editDescription" rows="7"></textarea>
+<label>Tags</label><input id="editTags">
+<label>Video Category</label><select id="editCategory"><option value="1">Film & Animation</option>
+<option value="2">Autos & Vehicles</option>
+<option value="10">Music</option>
+<option value="15">Pets & Animals</option>
+<option value="17">Sports</option>
+<option value="19">Travel & Events</option>
+<option value="20">Gaming</option>
+<option value="22" selected>People & Blogs</option>
+<option value="23">Comedy</option>
+<option value="24">Entertainment</option>
+<option value="25">News & Politics</option>
+<option value="26">Howto & Style</option>
+<option value="27">Education</option>
+<option value="28">Science & Technology</option>
+<option value="29">Nonprofits & Activism</option></select>
+<label>Privacy</label><select id="editPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+<label>Thumbnail JPG/PNG</label><input id="thumbnailFile" type="file" accept="image/jpeg,image/png">
+<div class="yt-action-row"><button id="saveVideo" class="btn primary">Update Video</button><button id="setThumbnail" class="btn">Update Thumbnail</button><button id="deleteVideo" class="btn danger">Delete Video</button></div>
+<p id="editMessage"></p></div></div>
+
+<div id="playlistModal" class="yt-modal" hidden><div class="yt-modal-card">
+<button id="closePlaylistModal" class="yt-close">×</button><h2>Playlist Manager</h2>
+<input id="playlistId" type="hidden">
+<div id="playlistThumbBox" class="yt-playlist-thumb-box" hidden>
+  <img id="playlistThumbPreview" class="yt-playlist-thumb-preview" alt="Playlist thumbnail">
+  <div><b>Playlist Thumbnail Preview</b><p class="yt-note">YouTube playlist ka thumbnail playlist videos se automatically manage karta hai; custom playlist-thumbnail upload API available nahi hai.</p></div>
+</div>
+<label>Title</label><input id="playlistTitle">
+<label>Description</label><textarea id="playlistDescription" rows="6" placeholder="Playlist description"></textarea>
+<label>Privacy</label><select id="playlistPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+<div class="yt-action-row">
+  <button id="savePlaylist" class="btn primary">Save / Update Playlist</button>
+  <button id="openPlaylistStudio" class="btn">Open in YouTube Studio</button>
+  <button id="deletePlaylist" class="btn danger">Delete Playlist</button>
+</div>
+<p id="playlistMessage"></p></div></div>
+
+
+
 <script>
 document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
   const appUrl=new URL("../index.html?install=1",location.href).href;
@@ -274,5 +522,6 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 </script>
 
 <script type="module" src="../assets/js/admin-auth.js"></script>
+<script type="module" src="../assets/js/manage-channel.js"></script>
 </body>
 </html>

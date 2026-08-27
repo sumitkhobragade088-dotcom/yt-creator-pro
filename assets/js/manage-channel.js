@@ -1,13 +1,13 @@
 import { supabase } from "./supabase.js";
 const FUNCTION_URL="https://ncxexmekzlrliicaqfcl.supabase.co/functions/v1/youtube-manage";
-const customerId=new URLSearchParams(location.search).get("customer");
+let customerId=null;
 let videos=[],playlists=[];
 let currentChannel={};
 let activeContentTab="video";
 let uploadBusy=false;
 const $=id=>document.getElementById(id);
 async function session(){const {data:{session}}=await supabase.auth.getSession();if(!session){location.href="login.html";throw new Error("Login required")}return session}
-async function api(action,payload={}){const s=await session();const r=await fetch(FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},body:JSON.stringify({action,customer_id:customerId,...payload})});const d=await r.json();if(!r.ok)throw new Error(d.details||d.error||"Request failed");return d}
+async function api(action,payload={}){if(!customerId)throw new Error("Select a Manager Access Granted channel first.");const s=await session();const r=await fetch(FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},body:JSON.stringify({action,customer_id:customerId,...payload})});const d=await r.json();if(!r.ok)throw new Error(d.details||d.error||"Request failed");return d}
 const esc=(x="")=>String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const fmt=n=>Number(n||0).toLocaleString("en-IN");
 
@@ -252,11 +252,6 @@ if($("refreshAnalytics")) $("refreshAnalytics").onclick=loadAll;
 if($("settingsRefreshAll")) $("settingsRefreshAll").onclick=loadAll;
 if($("openCopyrightStudio")) $("openCopyrightStudio").onclick=()=>window.open("https://studio.youtube.com/","_blank","noopener,noreferrer");
 if($("settingsOpenStudio")) $("settingsOpenStudio").onclick=()=>window.open("https://studio.youtube.com/","_blank","noopener,noreferrer");
-if($("sidebarLogout")) $("sidebarLogout").onclick=async()=>{await supabase.auth.signOut();location.href="login.html"};
-if($("ytSidebarToggle")) $("ytSidebarToggle").onclick=()=>document.body.classList.toggle("yt-sidebar-open");
-document.querySelectorAll(".yt-sidebar-nav a").forEach(a=>{
-  a.onclick=()=>{ if(innerWidth<980) document.body.classList.remove("yt-sidebar-open"); };
-});
 
 $("refreshAll").onclick=loadAll;$("refreshVideos").onclick=loadAll;
 const studioPermissions="https://studio.youtube.com/";
@@ -502,7 +497,26 @@ $("uploadChannelBanner").onclick=async()=>{
 };
 
 
-async function startManagePage(){
-  await loadAll();
+function scrollManageTarget(target){
+  const map={
+    channel:"channelDetails",
+    content:"channelContent",
+    analytics:"analyticsOverview",
+    copyright:"copyrightStatus",
+    playlists:"playlistsSection",
+    settings:"settingsSection"
+  };
+  const id=map[target]||"channelDetails";
+  setTimeout(()=>document.getElementById(id)?.scrollIntoView({behavior:"smooth",block:"start"}),120);
 }
-startManagePage();
+window.ytManageSelectCustomer=async(id,target="channel")=>{
+  customerId=String(id||"").trim();
+  if(!customerId){
+    if($("manageMessage")) $("manageMessage").textContent="Customer/channel select karo.";
+    return;
+  }
+  if($("manageWorkspace")) $("manageWorkspace").hidden=false;
+  if($("manageMessage")) $("manageMessage").textContent="Loading selected channel…";
+  await loadAll();
+  scrollManageTarget(target);
+};

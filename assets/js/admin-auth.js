@@ -152,8 +152,8 @@ function renderAccess(customerMap,rows){
     return `<tr>
       <td>${esc(c.full_name||c.email||"-")}</td>
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
-      <td>${a.google_connected?'<span class="yt-status-chip good">Connected</span>':'<span class="yt-status-chip bad">Not Connected</span>'}</td>
-      <td>${a.manager_access?'<span class="yt-status-chip good">Granted</span>':'<span class="yt-status-chip pending">Pending</span>'}</td>
+      <td>${a.google_connected?'<span class="yt-status-chip good">Connected ✅</span>':'<span class="yt-status-chip bad">Not Connected</span>'}</td>
+      <td>${a.manager_access?'<span class="yt-status-chip good">Granted ✅</span>':'<span class="yt-status-chip pending">Pending 🟡</span>'}</td>
       <td>${dateText(a.updated_at)}</td>
     </tr>`;
   }).join(""):'<tr><td colspan="5">No access records.</td></tr>';
@@ -300,7 +300,7 @@ function renderAdminManage(customerMap, rows){
       <td>${esc(c.full_name||c.email||"-")}</td>
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
       <td><span class="yt-status-chip good">GRANTED ✅</span></td>
-      <td><a class="btn primary" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}">Manage Channel</a></td>
+      <td><button class="btn primary" type="button" data-manage-customer="${esc(a.customer_id)}" data-manage-target="channel">Manage Channel</button></td>
     </tr>`;
   }).join(""):'<tr><td colspan="4">No channel has Manager Access Granted yet.</td></tr>';
 }
@@ -319,22 +319,22 @@ function renderAdminAnalytics(customerMap, rows){
     return `<tr>
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
       <td>${fmt(a.subscribers)}</td><td>${fmt(a.views)}</td><td>${fmt(a.videos)}</td>
-      <td><a class="btn" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}">Open</a></td>
+      <td><button class="btn" type="button" data-manage-customer="${esc(a.customer_id)}" data-manage-target="analytics">Open</button></td>
     </tr>`;
   }).join(""):'<tr><td colspan="5">No connected channels.</td></tr>';
 }
 function renderAdminCopyright(customerMap, rows){
-  const connected=(rows||[]).filter(a=>a.google_connected);
+  const connected=(rows||[]).filter(a=>a.google_connected && a.manager_access);
   const body=$("adminCopyrightBody"); if(!body)return;
   body.innerHTML=connected.length?connected.map(a=>{
     const c=customerMap.get(a.customer_id)||{};
     return `<tr>
       <td>${esc(c.full_name||c.email||"-")}</td>
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
-      <td>${a.google_connected?'<span class="yt-status-chip good">Connected</span>':'-'}</td>
-      <td><a class="btn primary" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}#copyrightStatus">Check Restrictions</a></td>
+      <td><span class="yt-status-chip good">Manager Access Granted ✅</span></td>
+      <td><button class="btn primary" type="button" data-manage-customer="${esc(a.customer_id)}" data-manage-target="copyright">Check Restrictions</button></td>
     </tr>`;
-  }).join(""):'<tr><td colspan="4">No connected channels.</td></tr>';
+  }).join(""):'<tr><td colspan="4">No Manager Access Granted channel.</td></tr>';
 }
 
 function applyAdminCmsAndEditor(){
@@ -383,4 +383,30 @@ if($("resetAdminEditor")) $("resetAdminEditor").onclick=()=>{
   localStorage.removeItem("yt_admin_dashboard_labels");
   applyAdminCmsAndEditor();
   $("adminEditorMessage").textContent="Labels reset ✅";
+};
+
+
+function openInlineChannelManager(customerId,target="channel"){
+  showPremiumAdminView("manage");
+  const listPanel=$("manageChannelListPanel");
+  const workspace=$("manageWorkspace");
+  if(workspace) workspace.hidden=false;
+  if(listPanel) listPanel.classList.add("yt-manage-list-compact");
+  if(typeof window.ytManageSelectCustomer==="function"){
+    window.ytManageSelectCustomer(customerId,target);
+  }else{
+    alert("Channel manager loading. Please click again.");
+  }
+}
+document.addEventListener("click",(event)=>{
+  const btn=event.target.closest("[data-manage-customer]");
+  if(!btn)return;
+  event.preventDefault();
+  openInlineChannelManager(btn.dataset.manageCustomer,btn.dataset.manageTarget||"channel");
+});
+if($("closeManageWorkspace")) $("closeManageWorkspace").onclick=()=>{
+  const workspace=$("manageWorkspace");
+  const listPanel=$("manageChannelListPanel");
+  if(workspace)workspace.hidden=true;
+  if(listPanel)listPanel.classList.remove("yt-manage-list-compact");
 };
