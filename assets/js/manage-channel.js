@@ -31,19 +31,17 @@ function applyManagerGate(granted){
 }
 async function loadManagerGate(){
   try{
-    const {data:{session}}=await supabase.auth.getSession();
-    if(!session) return;
-    const {data:customer}=await supabase.from("customers").select("id").eq("id",customerId).maybeSingle();
-    if(!customer) return applyManagerGate(false);
-    const {data:access,error}=await supabase.from("channel_access").select("manager_access").eq("customer_id",customerId).maybeSingle();
-    if(error) console.error(error);
-    applyManagerGate(!!access?.manager_access);
-  }catch(e){console.error(e);applyManagerGate(false)}
+    const d=await api("get_manager_access");
+    applyManagerGate(!!d.manager_access);
+  }catch(e){
+    console.error(e);
+    applyManagerGate(false);
+    $("managerGateText").textContent="Manager access status load failed: "+e.message;
+  }
 }
 async function setManagerGate(granted){
-  const {data,error}=await supabase.from("channel_access").update({manager_access:granted,updated_at:new Date().toISOString()}).eq("customer_id",customerId).select("manager_access").maybeSingle();
-  if(error) throw error;
-  applyManagerGate(!!data?.manager_access);
+  const d=await api("set_manager_access",{manager_access:!!granted});
+  applyManagerGate(!!d.manager_access);
 }
 
 async function loadAll(){

@@ -15,6 +15,34 @@ Deno.serve(async req=>{
   const tr=await fetch(`${url}/rest/v1/youtube_oauth_tokens?customer_id=eq.${b.customer_id}&select=refresh_token&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});const ts=await tr.json();if(!ts?.length)return J({error:"YouTube token not found. Customer must reconnect."},404);
   const rr=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:cid,client_secret:secret,refresh_token:ts[0].refresh_token,grant_type:"refresh_token"})});const rt=await rr.json();if(!rr.ok)return J({error:"Google refresh failed",details:(rt.error_description||rt.error)+" — Check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in Supabase Edge Function secrets; they must belong to the same Google OAuth Web Client used by the website."},400);const token=rt.access_token;
 
+
+  if(b.action==="get_manager_access"){
+    const ar=await fetch(`${url}/rest/v1/channel_access?customer_id=eq.${encodeURIComponent(b.customer_id)}&select=manager_access&limit=1`,{
+      headers:{apikey:service,Authorization:`Bearer ${service}`}
+    });
+    const rows=await ar.json();
+    if(!ar.ok)return J({error:"Manager access status read failed",details:rows},400);
+    return J({success:true,manager_access:!!rows?.[0]?.manager_access});
+  }
+
+  if(b.action==="set_manager_access"){
+    const value=!!b.manager_access;
+    const ur=await fetch(`${url}/rest/v1/channel_access?customer_id=eq.${encodeURIComponent(b.customer_id)}`,{
+      method:"PATCH",
+      headers:{
+        apikey:service,
+        Authorization:`Bearer ${service}`,
+        "Content-Type":"application/json",
+        Prefer:"return=representation"
+      },
+      body:JSON.stringify({manager_access:value,updated_at:new Date().toISOString()})
+    });
+    const rows=await ur.json();
+    if(!ur.ok)return J({error:"Manager access save failed",details:rows},400);
+    if(!rows?.length)return J({error:"Channel access row not found"},404);
+    return J({success:true,manager_access:!!rows[0].manager_access});
+  }
+
   if(b.action==="dashboard"){
    const cd=await gj("https://www.googleapis.com/youtube/v3/channels?part=snippet,brandingSettings,statistics,contentDetails&mine=true",token);const ch=cd.items?.[0];if(!ch)return J({error:"Channel not found"},404);
    const uploads=ch.contentDetails?.relatedPlaylists?.uploads;
