@@ -1,0 +1,7 @@
+Added to Admin Manage Channel:
+- Channel Access button
+- Manager Access button
+- YouTube Studio Branding button for name/profile logo
+- Official permission instructions; no password sharing
+
+YouTube channel permissions are granted inside YouTube Studio. Manager can manage permissions, channel details, uploads and content subject to YouTube role limitations. Delegated channel permissions do NOT grant YouTube API access to the delegate account; this website continues using the channel owner OAuth connection for API actions.
