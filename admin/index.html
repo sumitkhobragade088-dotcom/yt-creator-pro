@@ -7,6 +7,12 @@
 <title>Admin Dashboard | YT Creator Pro</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="../assets/css/style.css">
+<script>
+try{
+  const v=sessionStorage.getItem("yt_admin_view");
+  if(v && v!=="dashboard") document.documentElement.classList.add("yt-admin-view-restoring");
+}catch(e){}
+</script>
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -212,14 +218,6 @@
 
 
       <div id="manageWorkspace" class="yt-manage-inline-workspace" hidden>
-        <div class="yt-manage-tabs" id="ytManageTabs">
-          <button type="button" class="active" data-manage-tab="channel">Channel</button>
-          <button type="button" data-manage-tab="content">Content</button>
-          <button type="button" data-manage-tab="analytics">Analytics</button>
-          <button type="button" data-manage-tab="copyright">Copyright</button>
-          <button type="button" data-manage-tab="playlists">Playlists</button>
-          <button type="button" data-manage-tab="settings">Settings</button>
-        </div>
         <div class="yt-manage-inline-titlebar">
           <div>
             <span>FULL CHANNEL MANAGEMENT</span>

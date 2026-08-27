@@ -73,6 +73,7 @@ if (registerForm) {
       try {
         await ensureCustomerProfile(data.user);
         msg("Account created successfully. Redirecting...", true);
+        sessionStorage.setItem("yt_user_view","dashboard");
         setTimeout(() => location.href = "dashboard.html", 700);
       } catch (err) {
         msg(err.message);
@@ -97,6 +98,7 @@ if (loginForm) {
     try {
       await ensureCustomerProfile(data.user);
       msg("Login successful.", true);
+      sessionStorage.setItem("yt_user_view","dashboard");
       setTimeout(() => location.href = "dashboard.html", 500);
     } catch (err) {
       msg(err.message);
