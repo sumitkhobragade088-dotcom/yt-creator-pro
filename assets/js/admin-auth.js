@@ -335,7 +335,7 @@ function renderAdminCopyright(customerMap, rows){
       <td>${esc(c.full_name||c.email||"-")}</td>
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
       <td>${a.google_connected?'<span class="yt-status-chip good">Connected</span>':'-'}</td>
-      <td><a class="btn primary" href="manage-channel.html?customer=${encodeURIComponent(a.customer_id)}#copyrightStatus">Check Restrictions</a></td>
+      <td><a class="btn primary" target="_blank" rel="noopener noreferrer" href="https://studio.youtube.com/">Open Copyright in Studio</a></td>
     </tr>`;
   }).join(""):'<tr><td colspan="4">No connected channels.</td></tr>';
 }
