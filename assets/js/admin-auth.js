@@ -91,3 +91,23 @@ window.adminLogout = async () => {
 };
 
 protectAdminPage();
+async function loadYouTubeAdminData() {
+  const body = document.getElementById("youtubeChannelsBody");
+  if (!body) return;
+  const { data: customers, error: ce } = await supabase.from("customers").select("id,full_name,email,channel_name");
+  const { data: rows, error: ae } = await supabase.from("channel_access").select("*");
+  if (ce || ae) {
+    body.innerHTML = `<tr><td colspan="8">${(ce || ae).message}</td></tr>`;
+    return;
+  }
+  const map = new Map((rows || []).map(a => [a.customer_id,a]));
+  body.innerHTML = "";
+  (customers || []).forEach(c => {
+    const a=map.get(c.id);
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${c.full_name||"-"}</td><td>${c.email||"-"}</td><td>${a?.channel_name||c.channel_name||"-"}</td><td>${a?.google_connected?"Connected ✅":"Not Connected"}</td><td>${Number(a?.subscribers||0).toLocaleString("en-IN")}</td><td>${Number(a?.views||0).toLocaleString("en-IN")}</td><td>${Number(a?.videos||0).toLocaleString("en-IN")}</td><td>${a?.monetization_status||"pending"}</td>`;
+    body.appendChild(tr);
+  });
+  if (!(customers||[]).length) body.innerHTML='<tr><td colspan="8">No customers yet.</td></tr>';
+}
+loadYouTubeAdminData();
