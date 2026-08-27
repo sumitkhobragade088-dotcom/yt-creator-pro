@@ -224,3 +224,32 @@ if($("ytSidebarToggle")) $("ytSidebarToggle").onclick=()=>document.body.classLis
 document.querySelectorAll(".yt-sidebar-nav a").forEach(a=>a.onclick=()=>{if(innerWidth<980)document.body.classList.remove("yt-sidebar-open")});
 
 loadAdminDashboard();
+
+
+const viewTitles={
+  dashboard:"Dashboard",
+  customers:"Users / Customers",
+  channels:"YouTube Channels",
+  access:"Access Requests",
+  monetization:"Monetization Cases",
+  adsense:"AdSense",
+  services:"Services",
+  history:"History",
+  settings:"Settings"
+};
+
+function showAdminView(name){
+  document.querySelectorAll(".yt-ref-view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll(".yt-ref-nav-btn").forEach(b=>b.classList.remove("active"));
+  const view=document.getElementById(`view-${name}`);
+  const btn=document.querySelector(`.yt-ref-nav-btn[data-view="${name}"]`);
+  if(view)view.classList.add("active");
+  if(btn)btn.classList.add("active");
+  if($("adminPageTitle")) $("adminPageTitle").textContent=viewTitles[name]||"Dashboard";
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+document.querySelectorAll(".yt-ref-nav-btn").forEach(btn=>{
+  btn.addEventListener("click",()=>showAdminView(btn.dataset.view));
+});
+
+if($("adminSidebarLogout")) $("adminSidebarLogout").onclick=window.adminLogout;
