@@ -63,3 +63,37 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 @media(max-width:800px){.yt-banner-grid{grid-template-columns:1fr}.yt-inline-edit{align-items:stretch;flex-direction:column}}
 
 .yt-banner-preview{background:#111}.yt-banner-preview-wrap{position:relative}
+
+
+/* YouTube Studio buttons */
+.youtube-studio-btn{
+  background:#ff0000 !important;
+  color:#ffffff !important;
+  border:1px solid #ff0000 !important;
+  font-weight:800 !important;
+  box-shadow:0 5px 14px rgba(0,0,0,.14);
+}
+.youtube-studio-btn:hover{
+  background:#cc0000 !important;
+  border-color:#cc0000 !important;
+  color:#ffffff !important;
+}
+
+
+/* HARD FIX: YouTube Studio red buttons */
+#openStudioBranding,
+#editNameLogoStudio,
+#openBannerStudio,
+#removeChannelBanner{
+  background:#ff0000 !important;
+  color:#fff !important;
+  border-color:#ff0000 !important;
+}
+#openStudioBranding:hover,
+#editNameLogoStudio:hover,
+#openBannerStudio:hover,
+#removeChannelBanner:hover{
+  background:#cc0000 !important;
+  color:#fff !important;
+  border-color:#cc0000 !important;
+}
