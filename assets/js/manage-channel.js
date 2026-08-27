@@ -2,6 +2,7 @@ import { supabase } from "./supabase.js";
 const FUNCTION_URL="https://ncxexmekzlrliicaqfcl.supabase.co/functions/v1/youtube-manage";
 const customerId=new URLSearchParams(location.search).get("customer");
 let videos=[],playlists=[];
+let uploadBusy=false;
 let managerAccessGranted=false;
 const $=id=>document.getElementById(id);
 async function session(){const {data:{session}}=await supabase.auth.getSession();if(!session){location.href="login.html";throw new Error("Login required")}return session}
@@ -193,29 +194,157 @@ async function makeYoutubeBanner(file){
   return blob;
 }
 
+
+function getVideoMeta(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const v=document.createElement("video");
+    v.preload="metadata";
+    v.onloadedmetadata=()=>{
+      const meta={duration:Number(v.duration||0),width:Number(v.videoWidth||0),height:Number(v.videoHeight||0)};
+      URL.revokeObjectURL(url);
+      resolve(meta);
+    };
+    v.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Video metadata read failed"))};
+    v.src=url;
+  });
+}
+function uploadTypeMessage(type,meta){
+  if(type==="short"){
+    if(meta && meta.width>meta.height) return "⚠️ Short selected, lekin video horizontal hai. YouTube ise normal video classify kar sakta hai.";
+    return "Short selected ✅ YouTube final Shorts classification apne rules se karta hai.";
+  }
+  if(meta && meta.height>=meta.width && meta.duration && meta.duration<=180){
+    return "⚠️ Normal Video selected, lekin ye vertical/square aur 3 min ya kam hai. YouTube ise Short classify kar sakta hai.";
+  }
+  return "Normal Video selected ✅";
+}
+async function confirmUploadedVideo(title,tries=6){
+  for(let i=0;i<tries;i++){
+    try{
+      await new Promise(r=>setTimeout(r,1800));
+      const d=await api("dashboard");
+      const found=(d.videos||[]).find(v=>String(v.title||"").trim()===String(title||"").trim());
+      if(found) return found;
+    }catch(_){}
+  }
+  return null;
+}
+
 function fileData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file)})}
 $("setThumbnail").onclick=async()=>{const f=$("thumbnailFile").files[0];if(!f)return $("editMessage").textContent="Thumbnail file choose karo.";if(f.size>2*1024*1024)return $("editMessage").textContent="Thumbnail max 2 MB rakho.";try{$("editMessage").textContent="Uploading thumbnail…";await api("set_thumbnail",{video_id:$("editVideoId").value,mime_type:f.type,data_base64:await fileData(f)});$("editMessage").textContent="Thumbnail updated ✅";await loadAll()}catch(e){$("editMessage").textContent=e.message}};
 $("newPlaylistBtn").onclick=()=>{$("playlistId").value="";$("playlistTitle").value="";$("playlistDescription").value="";$("playlistPrivacy").value="private";$("playlistModal").hidden=false};
 $("savePlaylist").onclick=async()=>{try{const id=$("playlistId").value;await api(id?"update_playlist":"create_playlist",{playlist_id:id,title:$("playlistTitle").value.trim(),description:$("playlistDescription").value,privacy_status:$("playlistPrivacy").value});$("playlistModal").hidden=true;await loadAll()}catch(e){$("playlistMessage").textContent=e.message}};
-$("uploadVideo").onclick=async()=>{const f=$("uploadFile").files[0];if(!f)return $("uploadMessage").textContent="Video file choose karo.";try{$("uploadVideo").disabled=true;$("uploadMessage").textContent="Preparing secure upload…";const d=await api("start_upload",{title:$("uploadTitle").value.trim()||f.name,description:$("uploadDescription").value,tags:$("uploadTags").value.split(",").map(x=>x.trim()).filter(Boolean),category_id:$("uploadCategory").value||"22",privacy_status:$("uploadPrivacy").value,mime_type:f.type||"video/*",file_size:f.size});const x=new XMLHttpRequest();x.open("PUT",d.upload_url);x.setRequestHeader("Content-Type",f.type||"application/octet-stream");x.upload.onprogress=e=>{if(e.lengthComputable){$("uploadProgress").hidden=false;$("uploadProgress").value=e.loaded/e.total*100;$("uploadMessage").textContent=`Uploading ${Math.round(e.loaded/e.total*100)}%…`}};x.onload=async()=>{if(x.status>=200&&x.status<300){$("uploadMessage").textContent="Video uploaded ✅";$("uploadProgress").value=100;await loadAll()}else $("uploadMessage").textContent="Upload failed: "+x.status;$("uploadVideo").disabled=false};x.onerror=()=>{$("uploadMessage").textContent="Upload network error";$("uploadVideo").disabled=false};x.send(f)}catch(e){$("uploadMessage").textContent=e.message;$("uploadVideo").disabled=false}};
 
-
-$("channelBannerFile").onchange=async()=>{
-  const f=$("channelBannerFile").files[0];
+$("uploadType").onchange=async()=>{
+  const type=$("uploadType").value;
+  const f=$("uploadFile").files[0];
+  let meta=null;
+  if(f){try{meta=await getVideoMeta(f)}catch(_){}}
+  $("uploadTypeHelp").textContent=uploadTypeMessage(type,meta);
+};
+$("uploadFile").onchange=async()=>{
+  const f=$("uploadFile").files[0];
   if(!f)return;
   try{
-    $("bannerMessage").textContent="Preview bana raha hai…";
-    const blob=await makeYoutubeBanner(f);
-    const bp=$("channelBannerPreview"),be=$("noBannerPreview");
-    if(bp.dataset.previewUrl) URL.revokeObjectURL(bp.dataset.previewUrl);
-    const u=URL.createObjectURL(blob);
-    bp.dataset.previewUrl=u;
-    bp.src=u;
-    bp.style.display="block";
-    be.style.display="none";
-    $("bannerMessage").textContent=`Auto-fit preview ready ✅ 2560×1440 · ${(blob.size/1024/1024).toFixed(2)} MB`;
+    const meta=await getVideoMeta(f);
+    $("uploadTypeHelp").textContent=uploadTypeMessage($("uploadType").value,meta);
+  }catch(_){}
+};
+
+$("uploadVideo").onclick=async()=>{
+  if(uploadBusy) return;
+  const f=$("uploadFile").files[0];
+  if(!f)return $("uploadMessage").textContent="Video file choose karo.";
+
+  const type=$("uploadType").value;
+  let meta=null;
+  try{meta=await getVideoMeta(f)}catch(_){}
+  $("uploadTypeHelp").textContent=uploadTypeMessage(type,meta);
+
+  try{
+    uploadBusy=true;
+    $("uploadVideo").disabled=true;
+    $("uploadResult").hidden=true;
+    $("uploadProgress").hidden=false;
+    $("uploadProgress").value=0;
+    $("uploadMessage").textContent="Secure upload session bana raha hai…";
+
+    const title=$("uploadTitle").value.trim()||f.name;
+    const d=await api("start_upload",{
+      title,
+      description:$("uploadDescription").value,
+      tags:$("uploadTags").value.split(",").map(x=>x.trim()).filter(Boolean),
+      category_id:$("uploadCategory").value||"22",
+      privacy_status:$("uploadPrivacy").value,
+      mime_type:f.type||"video/*",
+      file_size:f.size,
+      requested_type:type
+    });
+
+    const x=new XMLHttpRequest();
+    x.open("PUT",d.upload_url);
+    x.setRequestHeader("Content-Type",f.type||"application/octet-stream");
+
+    x.upload.onprogress=e=>{
+      if(e.lengthComputable){
+        const pct=Math.round(e.loaded/e.total*100);
+        $("uploadProgress").value=pct;
+        $("uploadMessage").textContent=`Uploading ${pct}%…`;
+      }
+    };
+
+    const finishSuccess=async(videoData=null)=>{
+      $("uploadProgress").value=100;
+      $("uploadMessage").textContent="Video uploaded successfully ✅";
+      $("uploadResult").hidden=false;
+      $("uploadResult").innerHTML=`<b>${type==="short"?"Short":"Video"} upload complete ✅</b>${videoData?.id?`<small>Video ID: ${videoData.id}</small>`:""}<small>YouTube final Short/Video classification content format ke hisab se karta hai.</small>`;
+      await loadAll();
+    };
+
+    x.onload=async()=>{
+      if(x.status>=200&&x.status<300){
+        let videoData=null;
+        try{videoData=JSON.parse(x.responseText||"{}")}catch(_){}
+        await finishSuccess(videoData);
+      }else{
+        // Google may complete the upload even if the browser cannot read the final response.
+        $("uploadMessage").textContent="Upload response verify ho raha hai…";
+        const found=await confirmUploadedVideo(title);
+        if(found){
+          await finishSuccess(found);
+        }else{
+          $("uploadMessage").textContent=`Upload failed (HTTP ${x.status}).`;
+        }
+      }
+      uploadBusy=false;
+      $("uploadVideo").disabled=false;
+    };
+
+    x.onerror=async()=>{
+      // Important: do NOT instantly say "network error"; verify on YouTube first.
+      $("uploadMessage").textContent="Upload verify ho raha hai…";
+      const found=await confirmUploadedVideo(title);
+      if(found){
+        await finishSuccess(found);
+      }else{
+        $("uploadMessage").textContent="Upload connection failed. YouTube par video nahi mila; retry kar sakte ho.";
+      }
+      uploadBusy=false;
+      $("uploadVideo").disabled=false;
+    };
+
+    x.onabort=()=>{
+      $("uploadMessage").textContent="Upload cancelled.";
+      uploadBusy=false;
+      $("uploadVideo").disabled=false;
+    };
+
+    x.send(f);
   }catch(e){
-    $("bannerMessage").textContent=e.message;
+    $("uploadMessage").textContent=e.message;
+    uploadBusy=false;
+    $("uploadVideo").disabled=false;
   }
 };
 

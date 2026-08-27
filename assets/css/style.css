@@ -119,3 +119,7 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
   font-weight:900 !important;
 }
 #editChannelNameStudio:hover{background:#cc0000 !important;border-color:#cc0000 !important;color:#fff !important}
+
+.yt-upload-result{margin-top:10px;padding:12px 14px;border-radius:12px;border:1px solid #bbf7d0;background:#f0fdf4;color:#166534;display:grid;gap:4px}
+.yt-upload-result small{display:block;color:#475569}
+#uploadType{font-weight:800}

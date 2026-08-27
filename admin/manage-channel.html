@@ -83,7 +83,13 @@
 
     <section class="panel">
       <h2>Upload New Video</h2>
-      <label>Video File</label><input id="uploadFile" type="file" accept="video/*">
+      <label>Upload Type</label>
+<select id="uploadType">
+  <option value="video" selected>Normal Video</option>
+  <option value="short">YouTube Short</option>
+</select>
+<p id="uploadTypeHelp" class="yt-note">Normal Video selected. YouTube may still classify a short vertical clip as a Short based on its format/duration.</p>
+<label>Video File</label><input id="uploadFile" type="file" accept="video/*">
       <label>Title</label><input id="uploadTitle" maxlength="100">
       <label>Description</label><textarea id="uploadDescription" rows="4"></textarea>
       <label>Tags</label><input id="uploadTags" placeholder="tag1, tag2">
@@ -105,6 +111,7 @@
       <label>Privacy</label><select id="uploadPrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select>
       <button id="uploadVideo" class="btn primary">Upload Video</button>
       <progress id="uploadProgress" value="0" max="100" hidden></progress>
+      <div id="uploadResult" class="yt-upload-result" hidden></div>
       <p id="uploadMessage"></p>
     </section>
   </div>
