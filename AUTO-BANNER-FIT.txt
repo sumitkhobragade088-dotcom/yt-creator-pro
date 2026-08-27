@@ -1,0 +1,7 @@
+AUTO BANNER FIT FIX
+- Any image size/aspect ratio accepted in browser.
+- Automatic center-crop to 2560x1440.
+- Automatic JPEG compression before upload.
+- Preview shown immediately before upload.
+- Existing Banner/Studio/Access/Manager/Videos/Playlists features preserved.
+After GitHub upload, no Edge Function change is needed for this auto-fit behavior if your current set_channel_banner backend already works.

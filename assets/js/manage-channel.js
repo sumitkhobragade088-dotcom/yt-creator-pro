@@ -44,11 +44,67 @@ $("closeModal").onclick=()=>$("editModal").hidden=true;$("closePlaylistModal").o
 $("saveChannel").onclick=async()=>{try{$("channelMessage").textContent="Updating…";await api("update_channel",{description:$("channelDescription").value,keywords:$("channelKeywords").value});$("channelMessage").textContent="Channel updated ✅";await loadAll()}catch(e){$("channelMessage").textContent=e.message}};
 $("saveVideo").onclick=async()=>{try{$("editMessage").textContent="Updating…";await api("update_video",{video_id:$("editVideoId").value,title:$("editTitle").value.trim(),description:$("editDescription").value,tags:$("editTags").value.split(",").map(x=>x.trim()).filter(Boolean),category_id:$("editCategory").value.trim()||"22",privacy_status:$("editPrivacy").value});$("editMessage").textContent="Updated on YouTube ✅";await loadAll()}catch(e){$("editMessage").textContent=e.message}};
 $("deleteVideo").onclick=async()=>{if(!confirm("Is video ko permanently delete karna hai?"))return;try{await api("delete_video",{video_id:$("editVideoId").value});$("editModal").hidden=true;await loadAll()}catch(e){$("editMessage").textContent=e.message}};
+
+function loadImageFile(file){
+  return new Promise((resolve,reject)=>{
+    const url=URL.createObjectURL(file);
+    const img=new Image();
+    img.onload=()=>{URL.revokeObjectURL(url);resolve(img)};
+    img.onerror=()=>{URL.revokeObjectURL(url);reject(new Error("Image read failed"))};
+    img.src=url;
+  });
+}
+async function makeYoutubeBanner(file){
+  const img=await loadImageFile(file);
+  const W=2560,H=1440;
+  const canvas=document.createElement("canvas");
+  canvas.width=W; canvas.height=H;
+  const ctx=canvas.getContext("2d");
+  ctx.fillStyle="#000"; ctx.fillRect(0,0,W,H);
+
+  // COVER mode: koi bhi aspect ratio automatically crop karke 16:9 banner banega.
+  const scale=Math.max(W/img.width,H/img.height);
+  const sw=W/scale, sh=H/scale;
+  const sx=(img.width-sw)/2, sy=(img.height-sh)/2;
+  ctx.drawImage(img,sx,sy,sw,sh,0,0,W,H);
+
+  let blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",0.92));
+  if(!blob) throw new Error("Banner conversion failed");
+
+  // Keep safely below YouTube's file-size limit by reducing quality if needed.
+  let q=0.88;
+  while(blob.size>5.5*1024*1024 && q>=0.55){
+    blob=await new Promise(r=>canvas.toBlob(r,"image/jpeg",q));
+    q-=0.08;
+  }
+  return blob;
+}
+
 function fileData(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(String(r.result).split(",")[1]);r.onerror=rej;r.readAsDataURL(file)})}
 $("setThumbnail").onclick=async()=>{const f=$("thumbnailFile").files[0];if(!f)return $("editMessage").textContent="Thumbnail file choose karo.";if(f.size>2*1024*1024)return $("editMessage").textContent="Thumbnail max 2 MB rakho.";try{$("editMessage").textContent="Uploading thumbnail…";await api("set_thumbnail",{video_id:$("editVideoId").value,mime_type:f.type,data_base64:await fileData(f)});$("editMessage").textContent="Thumbnail updated ✅";await loadAll()}catch(e){$("editMessage").textContent=e.message}};
 $("newPlaylistBtn").onclick=()=>{$("playlistId").value="";$("playlistTitle").value="";$("playlistDescription").value="";$("playlistPrivacy").value="private";$("playlistModal").hidden=false};
 $("savePlaylist").onclick=async()=>{try{const id=$("playlistId").value;await api(id?"update_playlist":"create_playlist",{playlist_id:id,title:$("playlistTitle").value.trim(),description:$("playlistDescription").value,privacy_status:$("playlistPrivacy").value});$("playlistModal").hidden=true;await loadAll()}catch(e){$("playlistMessage").textContent=e.message}};
 $("uploadVideo").onclick=async()=>{const f=$("uploadFile").files[0];if(!f)return $("uploadMessage").textContent="Video file choose karo.";try{$("uploadVideo").disabled=true;$("uploadMessage").textContent="Preparing secure upload…";const d=await api("start_upload",{title:$("uploadTitle").value.trim()||f.name,description:$("uploadDescription").value,tags:$("uploadTags").value.split(",").map(x=>x.trim()).filter(Boolean),category_id:$("uploadCategory").value||"22",privacy_status:$("uploadPrivacy").value,mime_type:f.type||"video/*",file_size:f.size});const x=new XMLHttpRequest();x.open("PUT",d.upload_url);x.setRequestHeader("Content-Type",f.type||"application/octet-stream");x.upload.onprogress=e=>{if(e.lengthComputable){$("uploadProgress").hidden=false;$("uploadProgress").value=e.loaded/e.total*100;$("uploadMessage").textContent=`Uploading ${Math.round(e.loaded/e.total*100)}%…`}};x.onload=async()=>{if(x.status>=200&&x.status<300){$("uploadMessage").textContent="Video uploaded ✅";$("uploadProgress").value=100;await loadAll()}else $("uploadMessage").textContent="Upload failed: "+x.status;$("uploadVideo").disabled=false};x.onerror=()=>{$("uploadMessage").textContent="Upload network error";$("uploadVideo").disabled=false};x.send(f)}catch(e){$("uploadMessage").textContent=e.message;$("uploadVideo").disabled=false}};
+
+
+$("channelBannerFile").onchange=async()=>{
+  const f=$("channelBannerFile").files[0];
+  if(!f)return;
+  try{
+    $("bannerMessage").textContent="Preview bana raha hai…";
+    const blob=await makeYoutubeBanner(f);
+    const bp=$("channelBannerPreview"),be=$("noBannerPreview");
+    if(bp.dataset.previewUrl) URL.revokeObjectURL(bp.dataset.previewUrl);
+    const u=URL.createObjectURL(blob);
+    bp.dataset.previewUrl=u;
+    bp.src=u;
+    bp.style.display="block";
+    be.style.display="none";
+    $("bannerMessage").textContent=`Auto-fit preview ready ✅ 2560×1440 · ${(blob.size/1024/1024).toFixed(2)} MB`;
+  }catch(e){
+    $("bannerMessage").textContent=e.message;
+  }
+};
 
 $("openBannerStudio").onclick=()=>openStudio(studioCustomization,"YouTube Studio Branding khul raha hai. Banner ko yahan manage/remove kar sakte hain.");
 $("removeChannelBanner").onclick=()=>openStudio(studioCustomization,"Banner remove karne ke liye YouTube Studio → Customization → Branding use karein.");
@@ -57,12 +113,12 @@ $("editNameLogoStudio").onclick=()=>openStudio(studioCustomization,"Channel name
 $("uploadChannelBanner").onclick=async()=>{
  const f=$("channelBannerFile").files[0];
  if(!f)return $("bannerMessage").textContent="Banner image choose karo.";
- if(!["image/jpeg","image/png"].includes(f.type))return $("bannerMessage").textContent="Sirf JPG/PNG banner use karo.";
- if(f.size>6*1024*1024)return $("bannerMessage").textContent="Banner file 6 MB se kam rakho.";
  try{
   $("uploadChannelBanner").disabled=true;
-  $("bannerMessage").textContent="Banner upload ho raha hai…";
-  await api("set_channel_banner",{mime_type:f.type,data_base64:await fileData(f)});
+  $("bannerMessage").textContent="Image auto-fit + upload ho raha hai…";
+  const blob=await makeYoutubeBanner(f);
+  const base64=await fileData(blob);
+  await api("set_channel_banner",{mime_type:"image/jpeg",data_base64:base64});
   $("bannerMessage").textContent="Channel banner updated ✅";
   await loadAll();
  }catch(e){

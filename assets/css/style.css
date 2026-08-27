@@ -61,3 +61,5 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
 .yt-banner-empty{min-height:210px;padding:20px;text-align:center;color:#667085;display:grid;place-items:center}
 .yt-inline-edit{display:flex;gap:8px;align-items:center}.yt-inline-edit input{flex:1}
 @media(max-width:800px){.yt-banner-grid{grid-template-columns:1fr}.yt-inline-edit{align-items:stretch;flex-direction:column}}
+
+.yt-banner-preview{background:#111}.yt-banner-preview-wrap{position:relative}
