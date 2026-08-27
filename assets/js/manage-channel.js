@@ -118,6 +118,8 @@ function showAccessFlow(mode){
 $("openPermissions").onclick=()=>showAccessFlow("permissions");
 $("openManagerAccess").onclick=()=>showAccessFlow("manager");
 $("openCustomization").onclick=()=>openStudio(studioCustomization,"YouTube Studio khul raha hai. Manager access granted account se login rahna chahiye.");
+$("editChannelNameStudio").onclick=()=>openStudio(studioCustomization,"YouTube Studio khul raha hai. Channel name change karke wapas Refresh / Sync dabao.");
+
 
 $("closeAccessFlow").onclick=()=>$("accessFlowModal").hidden=true;
 $("cancelAccessFlow").onclick=()=>$("accessFlowModal").hidden=true;
@@ -219,7 +221,6 @@ $("channelBannerFile").onchange=async()=>{
 
 $("openBannerStudio").onclick=()=>openStudio(studioCustomization,"YouTube Studio Branding khul raha hai. Banner ko yahan manage/remove kar sakte hain.");
 $("removeChannelBanner").onclick=()=>openStudio(studioCustomization,"Banner remove karne ke liye YouTube Studio → Customization → Branding use karein.");
-$("editNameLogoStudio").onclick=()=>openStudio(studioCustomization,"Channel name aur profile logo YouTube Studio me edit karein.");
 
 $("uploadChannelBanner").onclick=async()=>{
  const f=$("channelBannerFile").files[0];

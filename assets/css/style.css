@@ -110,3 +110,12 @@ footer{background:#07152f;color:#aebbd0;text-align:center;padding:28px}.center{m
   color:#fff !important;
   border-color:#cc0000 !important;
 }
+
+/* Channel-name Studio action */
+#editChannelNameStudio{
+  background:#ff0000 !important;
+  color:#fff !important;
+  border-color:#ff0000 !important;
+  font-weight:900 !important;
+}
+#editChannelNameStudio:hover{background:#cc0000 !important;border-color:#cc0000 !important;color:#fff !important}
