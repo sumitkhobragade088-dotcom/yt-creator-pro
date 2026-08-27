@@ -12,8 +12,7 @@
   <nav class="yt-sidebar-nav">
     <a href="index.html" data-side="dashboard">🏠 <span>Dashboard</span></a>
     <a href="index.html#customers" data-side="customers">👥 <span>Customers / Users</span></a>
-    <a href="#channelAccess" data-side="access">🔐 <span>Channel Access</span></a>
-    <a href="#channelDetails" data-side="channel">📺 <span>Manage Channel</span></a>
+<a href="#channelDetails" data-side="channel">📺 <span>Manage Channel</span></a>
     <a href="#channelContent" data-side="content">🎬 <span>Content Manager</span></a>
     <a href="#analyticsOverview" data-side="analytics">📊 <span>Analytics</span></a>
     <a href="#copyrightStatus" data-side="copyright">©️ <span>Copyright / Restrictions</span></a>
@@ -28,6 +27,17 @@
 
 <header><div class="wrap"><h1>YT Creator Pro ⭐ Admin</h1><a class="btn" href="index.html">← Dashboard</a></div></header>
 <main class="wrap yt-manager">
+
+  <div class="panel">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Full Channel Management</h2>
+        <p class="yt-note">Manager Access is handled in Admin Dashboard → Access Requests. This page is only for channels with access already granted.</p>
+      </div>
+      <span class="yt-gate-badge granted">ACCESS GRANTED ✅</span>
+    </div>
+  </div>
+
   <div class="panel">
     <div class="yt-manager-head">
       <div><h2 id="channelTitle">Manage Channel</h2><p id="manageMessage">Loading connected channel…</p></div>
@@ -35,38 +45,7 @@
     </div>
     <div id="channelStats" class="yt-manager-stats"></div>
   </div>
-
-  <section class="panel yt-access-panel">
-    <div class="yt-manager-head">
-      <div><h2>Channel Access & Manager Permission</h2><p class="yt-note">YouTube official permission flow. Owner/Manager Studio me invite aur role approve karega.</p></div>
-      <span class="yt-official-badge">Official YouTube Studio</span>
-    </div>
-    <div class="yt-access-grid">
-      <div class="yt-access-card"><h3>🔐 Channel Access</h3><p>Settings → Permissions kholkar kisi Google account ko channel access dein.</p><button id="openPermissions" class="btn primary">Open Channel Permissions</button></div>
-      <div class="yt-access-card"><h3>👤 Manager Access</h3><p>Permissions me INVITE dabayein, email dalein aur <b>Manager</b> role select karein.</p><button id="openManagerAccess" class="btn primary">Give Manager Access</button></div>
-      <div class="yt-access-card"><h3>🎨 Channel Name & Logo</h3><p>Name, profile picture/logo aur Studio-only branding settings manage karein.</p><button id="openCustomization" class="btn youtube-main-studio-btn">Open YouTube Studio</button></div>
-    </div>
-    <p id="accessMessage" class="yt-note">Security: password share nahi hota. Permission YouTube Studio ke official invite se di jati hai.</p>
-  </section>
-
-
-
-  <section class="panel yt-access-gate-panel" id="channelAccess">
-    <div class="yt-manager-head">
-      <div>
-        <h2>Manager Access Status</h2>
-        <p id="managerGateText" class="yt-note">Checking manager access…</p>
-      </div>
-      <span id="managerGateBadge" class="yt-gate-badge pending">PENDING 🟡</span>
-    </div>
-    <div class="yt-action-row">
-      <button id="markManagerGranted" class="btn primary">Mark Access Granted</button>
-      <button id="markManagerPending" class="btn">Mark Pending</button>
-    </div>
-    <p class="yt-note">Channel owner invite bhejega aur admin invite accept karega. Uske baad admin yahan Granted mark karega.</p>
-  </section>
-
-  <div id="managerUnlockedArea" class="yt-manager-locked">
+<div id="managerUnlockedArea" class="yt-manager-unlocked">
   <section class="panel yt-banner-panel" id="channelBanner">
     <div class="yt-manager-head">
       <div>
@@ -235,32 +214,6 @@
 
   </div>
 </main>
-
-
-<div id="accessFlowModal" class="yt-modal" hidden>
-  <div class="yt-modal-card yt-access-flow-card">
-    <button id="closeAccessFlow" class="yt-close">×</button>
-    <div id="accessFlowIcon" class="yt-access-flow-icon">🔐</div>
-    <h2 id="accessFlowTitle">Channel Permissions</h2>
-    <p id="accessFlowIntro" class="yt-note"></p>
-
-    <div id="permissionSteps" class="yt-flow-steps"></div>
-
-    <div id="managerEmailBox" class="yt-manager-email-box" hidden>
-      <label>Manager Google Email</label>
-      <div class="yt-copy-row">
-        <input id="managerEmail" type="email" placeholder="manager@gmail.com">
-        <button id="copyManagerEmail" class="btn">Copy Email</button>
-      </div>
-      <p id="managerEmailMessage" class="yt-note"></p>
-    </div>
-
-    <div class="yt-action-row">
-      <button id="continueAccessFlow" class="btn primary">Open YouTube Studio</button>
-      <button id="cancelAccessFlow" class="btn">Cancel</button>
-    </div>
-  </div>
-</div>
 
 <div id="editModal" class="yt-modal" hidden><div class="yt-modal-card">
 <button id="closeModal" class="yt-close">×</button><h2>Edit Video</h2>
