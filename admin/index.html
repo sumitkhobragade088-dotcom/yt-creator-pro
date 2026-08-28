@@ -533,7 +533,12 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 
 <script>
 (function(){
-  const saved=sessionStorage.getItem("yt_admin_view")||"dashboard";
+  const freshLogin=sessionStorage.getItem("yt_admin_fresh_login")==="1";
+  if(freshLogin){
+    sessionStorage.removeItem("yt_admin_fresh_login");
+    sessionStorage.setItem("yt_admin_view","dashboard");
+  }
+  const saved=freshLogin?"dashboard":(sessionStorage.getItem("yt_admin_view")||"dashboard");
   if(typeof showPremiumAdminView==="function" && document.getElementById(`view-${saved}`)){
     showPremiumAdminView(saved);
   }else{
