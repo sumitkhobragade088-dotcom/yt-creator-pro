@@ -51,7 +51,7 @@ if (form) {
   });
 }
 
-let dashboardCache={customers:[],access:[],requests:[]};
+let dashboardCache={customers:[],access:[],requests:[],payments:[],serviceCharges:[]};
 
 async function loadAdminDashboard(){
   if (!document.body.dataset.adminProtected) return;
@@ -63,22 +63,22 @@ async function loadAdminDashboard(){
   }
   setText("adminEmailView", user.email || "");
 
-  const [cRes,aRes,rRes,pRes,sRes] = await Promise.all([
+  const [cRes,aRes,rRes,pRes,scRes] = await Promise.all([
     supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at").order("created_at",{ascending:false}),
     supabase.from("channel_access").select("*").order("updated_at",{ascending:false}),
     supabase.from("service_requests").select("*").order("created_at",{ascending:false}),
     supabase.from("payments").select("*").order("created_at",{ascending:false}),
-    supabase.from("service_catalog").select("*").order("sort_order",{ascending:true}).order("name",{ascending:true})
+    supabase.from("service_charges").select("*").order("sort_order",{ascending:true}).order("service_name",{ascending:true})
   ]);
 
   const customers=cRes.data||[];
   const access=aRes.data||[];
   const requests=rRes.data||[];
   const payments=pRes.data||[];
-  const services=sRes.data||[];
+  const serviceCharges=scRes.data||[];
   if(pRes.error) console.error("Payments:",pRes.error);
-  if(sRes.error) console.error("Service catalog:",sRes.error);
-  dashboardCache={customers,access,requests,payments,services};
+  if(scRes.error) console.error("Service charges:",scRes.error);
+  dashboardCache={customers,access,requests,payments,serviceCharges};
 
   const customerMap=new Map(customers.map(c=>[c.id,c]));
   const connected=access.filter(a=>a.google_connected);
@@ -109,16 +109,16 @@ async function loadAdminDashboard(){
   setText("accessSectionCount",access.length);
   setText("monetizationSectionCount",monetizationCases.length);
   setText("adsenseSectionCount",adsenseLinked.length);
-  setText("servicesSectionCount",services.length);
+  setText("servicesSectionCount",requests.length);
 
   renderCustomers(customers);
   renderChannels(customers,access);
   renderAccess(customerMap,access);
   renderMonetization(customerMap,access);
   renderAdsense(customerMap,access);
-  renderServiceCatalog(services);
-  setupDirectPayment(customers,services);
-  renderServices(requests,payments,customerMap);
+  renderServices(requests,customerMap);
+  renderPayments(payments,customerMap);
+  renderServiceCharges(serviceCharges);
   renderHistory(customers,access,requests,customerMap);
   renderAdminManage(customerMap,access);
   renderAdminAnalytics(customerMap,access);
@@ -197,212 +197,137 @@ function renderAdsense(customerMap,rows){
   }).join(""):'<tr><td colspan="5">No AdSense records.</td></tr>';
 }
 
+function renderServices(rows,customerMap=new Map()){
+  const body=$("serviceRequestsBody"); if(!body) return;
+  body.innerHTML=rows.length?rows.map(r=>{
+    const c=customerMap.get(r.customer_id)||{};
+    return `<tr>
+      <td>${esc(c.full_name||c.email||"-")}</td>
+      <td><b>${esc(r.service_type||"Service")}</b></td>
+      <td>${esc(r.status||"pending")}</td>
+      <td>${dateText(r.created_at)}</td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="4">No service requests.</td></tr>';
+}
 
 function moneyINR(n){
   return `₹${Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 }
 
-function resetServiceEditor(){
-  if($("adminServiceId")) $("adminServiceId").value="";
-  if($("adminServiceName")) $("adminServiceName").value="";
-  if($("adminServiceDescription")) $("adminServiceDescription").value="";
-  if($("adminServicePrice")) $("adminServicePrice").value="";
-  if($("adminServiceActive")) $("adminServiceActive").checked=true;
-  if($("adminServiceMessage")) $("adminServiceMessage").textContent="";
+function renderPayments(payments=[],customerMap=new Map()){
+  const body=$("paymentsBody");
+  setText("paymentsSectionCount",payments.length);
+
+  const paid=payments.filter(p=>String(p.status||"").toLowerCase()==="paid");
+  const failed=payments.filter(p=>["failed","failure"].includes(String(p.status||"").toLowerCase()));
+  const pending=payments.filter(p=>!["paid","failed","failure"].includes(String(p.status||"").toLowerCase()));
+  const total=paid.reduce((sum,p)=>sum+Number(p.amount||0),0);
+
+  setText("payTotalCollection",moneyINR(total));
+  setText("paySuccessCount",paid.length);
+  setText("payPendingCount",pending.length);
+  setText("payFailedCount",failed.length);
+
+  if(!body)return;
+  body.innerHTML=payments.length?payments.map(p=>{
+    const c=customerMap.get(p.customer_id)||{};
+    const status=String(p.status||"pending").toLowerCase();
+    const chip=status==="paid"?"good":(["failed","failure"].includes(status)?"bad":"pending");
+    return `<tr>
+      <td>${esc(p.mihpayid||p.txnid||p.id||"-")}</td>
+      <td>${esc(c.full_name||c.email||"-")}</td>
+      <td>${esc(p.service_name||"Service")}</td>
+      <td><b>${moneyINR(p.amount)}</b></td>
+      <td><span class="yt-status-chip ${chip}">${esc(p.status||"pending")}</span></td>
+      <td>${esc(p.payment_mode||"-")}</td>
+      <td>${dateText(p.created_at)}</td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="7">No payment transactions.</td></tr>';
 }
 
-function renderServiceCatalog(rows=[]){
-  setText("serviceCatalogCount",rows.length);
-  const body=$("serviceCatalogBody"); if(!body) return;
+function resetServiceChargeForm(){
+  if($("chargeServiceId")) $("chargeServiceId").value="";
+  if($("chargeServiceName")) $("chargeServiceName").value="";
+  if($("chargeServiceDescription")) $("chargeServiceDescription").value="";
+  if($("chargeServiceAmount")) $("chargeServiceAmount").value="";
+  if($("chargeServiceActive")) $("chargeServiceActive").checked=true;
+  setText("chargeFormTitle","New Service");
+  if($("saveServiceCharge")) $("saveServiceCharge").textContent="Add New Service";
+  if($("serviceChargeMessage")) $("serviceChargeMessage").textContent="";
+}
+
+function renderServiceCharges(rows=[]){
+  const body=$("serviceChargeBody");
+  setText("serviceChargeCount",rows.length);
+  setText("chargeTotalServices",rows.length);
+  setText("chargeActiveServices",rows.filter(x=>x.is_active).length);
+  setText("chargeInactiveServices",rows.filter(x=>!x.is_active).length);
+
+  if(!body)return;
   body.innerHTML=rows.length?rows.map(s=>`
     <tr>
-      <td><b>${esc(s.name||"Service")}</b></td>
+      <td><b>${esc(s.service_name||"Service")}</b></td>
       <td>${esc(s.description||"-")}</td>
-      <td>${moneyINR(s.price||0)}</td>
+      <td><b>${moneyINR(s.charge)}</b></td>
       <td>${s.is_active?'<span class="yt-status-chip good">Active</span>':'<span class="yt-status-chip pending">Inactive</span>'}</td>
-      <td class="yt-service-action-cell">
-        <button class="btn yt-edit-service" type="button" data-id="${esc(s.id)}">Edit</button>
-        <button class="btn yt-delete-service" type="button" data-id="${esc(s.id)}">Delete</button>
+      <td class="yt-charge-table-actions">
+        <button class="btn yt-charge-edit" type="button" data-id="${esc(s.id)}">Edit</button>
+        <button class="btn yt-charge-delete" type="button" data-id="${esc(s.id)}">Delete</button>
       </td>
-    </tr>
-  `).join(""):'<tr><td colspan="5">No services yet.</td></tr>';
+    </tr>`).join(""):'<tr><td colspan="5">No services added.</td></tr>';
 
-  body.querySelectorAll(".yt-edit-service").forEach(btn=>btn.addEventListener("click",()=>{
+  body.querySelectorAll(".yt-charge-edit").forEach(btn=>btn.addEventListener("click",()=>{
     const s=rows.find(x=>String(x.id)===String(btn.dataset.id)); if(!s)return;
-    $("adminServiceId").value=s.id;
-    $("adminServiceName").value=s.name||"";
-    $("adminServiceDescription").value=s.description||"";
-    $("adminServicePrice").value=Number(s.price||0);
-    $("adminServiceActive").checked=!!s.is_active;
-    $("adminServiceName").focus();
+    $("chargeServiceId").value=s.id;
+    $("chargeServiceName").value=s.service_name||"";
+    $("chargeServiceDescription").value=s.description||"";
+    $("chargeServiceAmount").value=Number(s.charge||0).toFixed(2);
+    $("chargeServiceActive").checked=!!s.is_active;
+    setText("chargeFormTitle","Edit Service");
+    $("saveServiceCharge").textContent="Update Existing";
+    $("chargeServiceName").focus();
   }));
 
-  body.querySelectorAll(".yt-delete-service").forEach(btn=>btn.addEventListener("click",async()=>{
+  body.querySelectorAll(".yt-charge-delete").forEach(btn=>btn.addEventListener("click",async()=>{
     const s=rows.find(x=>String(x.id)===String(btn.dataset.id)); if(!s)return;
-    if(!confirm(`Delete service "${s.name}"?`))return;
-    const {error}=await supabase.from("service_catalog").delete().eq("id",s.id);
+    if(!confirm(`Delete "${s.service_name}"?`))return;
+    const {error}=await supabase.from("service_charges").delete().eq("id",s.id);
     if(error){alert(error.message);return;}
+    resetServiceChargeForm();
     await loadAdminDashboard();
   }));
 }
 
-function setupDirectPayment(customers=[],services=[]){
-  const customerSelect=$("directPaymentCustomer");
-  const serviceSelect=$("directPaymentService");
-  if(customerSelect){
-    const current=customerSelect.value;
-    customerSelect.innerHTML='<option value="">Select Customer</option>'+customers.map(c=>
-      `<option value="${esc(c.id)}">${esc(c.full_name||c.email||"Customer")} ${c.email?`(${esc(c.email)})`:""}</option>`
-    ).join("");
-    if(current) customerSelect.value=current;
-  }
-  if(serviceSelect){
-    const current=serviceSelect.value;
-    serviceSelect.innerHTML='<option value="">Select Service</option>'+services.filter(s=>s.is_active).map(s=>
-      `<option value="${esc(s.id)}" data-price="${Number(s.price||0)}">${esc(s.name||"Service")}${Number(s.price)>0?` — ${moneyINR(s.price)}`:""}</option>`
-    ).join("");
-    if(current) serviceSelect.value=current;
+if($("saveServiceCharge")) $("saveServiceCharge").addEventListener("click",async()=>{
+  const id=$("chargeServiceId")?.value||"";
+  const service_name=$("chargeServiceName")?.value.trim()||"";
+  const description=$("chargeServiceDescription")?.value.trim()||"";
+  const charge=Number($("chargeServiceAmount")?.value||0);
+  const is_active=!!$("chargeServiceActive")?.checked;
+  const msg=$("serviceChargeMessage");
 
-    if(!serviceSelect.dataset.priceBound){
-      serviceSelect.dataset.priceBound="1";
-      serviceSelect.addEventListener("change",()=>{
-        const opt=serviceSelect.options[serviceSelect.selectedIndex];
-        const price=Number(opt?.dataset?.price||0);
-        if(price>0 && $("directPaymentAmount")) $("directPaymentAmount").value=price.toFixed(2);
-      });
-    }
-  }
-}
+  if(!service_name){if(msg)msg.textContent="Service name enter karo.";return;}
+  if(!Number.isFinite(charge)||charge<0){if(msg)msg.textContent="Valid charge enter karo.";return;}
 
-if($("saveAdminService")) $("saveAdminService").onclick=async()=>{
-  const id=$("adminServiceId")?.value||"";
-  const name=$("adminServiceName")?.value.trim()||"";
-  const description=$("adminServiceDescription")?.value.trim()||"";
-  const price=Number($("adminServicePrice")?.value||0);
-  const is_active=!!$("adminServiceActive")?.checked;
-  const msg=$("adminServiceMessage");
-  if(!name){if(msg)msg.textContent="Service name required.";return;}
-  if(!Number.isFinite(price)||price<0){if(msg)msg.textContent="Valid price enter karo.";return;}
-  const payload={name,description,price:Number(price.toFixed(2)),is_active,updated_at:new Date().toISOString()};
+  const payload={
+    service_name,
+    description,
+    charge:Number(charge.toFixed(2)),
+    is_active,
+    updated_at:new Date().toISOString()
+  };
+
   const result=id
-    ? await supabase.from("service_catalog").update(payload).eq("id",id)
-    : await supabase.from("service_catalog").insert(payload);
+    ? await supabase.from("service_charges").update(payload).eq("id",id)
+    : await supabase.from("service_charges").insert(payload);
+
   if(result.error){if(msg)msg.textContent=result.error.message;return;}
-  if(msg)msg.textContent=id?"Service updated ✅":"Service added ✅";
-  resetServiceEditor();
+  if(msg)msg.textContent=id?"Service updated ✅":"New service added ✅";
+  resetServiceChargeForm();
   await loadAdminDashboard();
-};
+});
 
-if($("cancelAdminServiceEdit")) $("cancelAdminServiceEdit").onclick=resetServiceEditor;
-
-if($("createDirectPayment")) $("createDirectPayment").onclick=async()=>{
-  const btn=$("createDirectPayment");
-  const msg=$("directPaymentMessage");
-  const customer_id=$("directPaymentCustomer")?.value||"";
-  const service_id=$("directPaymentService")?.value||"";
-  const amount=Number($("directPaymentAmount")?.value||0);
-  const services=dashboardCache.services||[];
-  const service=services.find(s=>String(s.id)===String(service_id));
-  if(!customer_id){if(msg)msg.textContent="Customer select karo.";return;}
-  if(!service){if(msg)msg.textContent="Service select karo.";return;}
-  if(!Number.isFinite(amount)||amount<=0){if(msg)msg.textContent="Valid amount enter karo.";return;}
-
-  btn.disabled=true;
-  if(msg)msg.textContent="Creating...";
-
-  const {data:req,error:reqErr}=await supabase.from("service_requests").insert({
-    customer_id,
-    service_type:service.name,
-    status:"payment_pending"
-  }).select("id").single();
-
-  if(reqErr){
-    btn.disabled=false;
-    if(msg)msg.textContent=reqErr.message;
-    return;
-  }
-
-  const {error:payErr}=await supabase.from("payments").insert({
-    customer_id,
-    request_id:req.id,
-    service_name:service.name,
-    amount:Number(amount.toFixed(2)),
-    currency:"INR",
-    status:"pending"
-  });
-
-  if(payErr){
-    await supabase.from("service_requests").delete().eq("id",req.id);
-    btn.disabled=false;
-    if(msg)msg.textContent=payErr.message;
-    return;
-  }
-
-  btn.disabled=false;
-  if(msg)msg.textContent="Direct payment created ✅ User ke My Requests me Pay Now aayega.";
-  if($("directPaymentAmount")) $("directPaymentAmount").value="";
-  await loadAdminDashboard();
-};
-
-function renderServices(rows,payments=[],customerMap=new Map()){
-  const body=$("serviceRequestsBody"); if(!body) return;
-  const paymentByRequest=new Map((payments||[]).map(p=>[p.request_id,p]));
-  const money=n=>`₹${Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-
-  body.innerHTML=rows.length?rows.map(r=>{
-    const c=customerMap.get(r.customer_id)||{};
-    const pay=paymentByRequest.get(r.id);
-    const paid=String(pay?.status||"").toLowerCase()==="paid";
-    return `<tr>
-      <td>${esc(c.full_name||c.email||"-")}</td>
-      <td><b>${esc(r.service_type||"Service")}</b></td>
-      <td>${esc(r.status||"pending")}</td>
-      <td>${pay ? (paid?'<span class="yt-status-chip good">Paid ✅</span>':`<span class="yt-status-chip pending">${esc(pay.status||"pending")}</span>`) : '<span class="yt-status-chip">Not Assigned</span>'}</td>
-      <td>${pay ? money(pay.amount) : `<input class="yt-admin-payment-amount" type="number" min="1" step="0.01" placeholder="₹ Amount" data-amount-for="${esc(r.id)}">`}</td>
-      <td>${paid ? '<span class="yt-status-chip good">Complete</span>' : `<button type="button" class="btn primary yt-create-payment-btn" data-request-id="${esc(r.id)}" data-payment-id="${esc(pay?.id||"")}">${pay?"Update Amount":"Create Payment"}</button>`}</td>
-      <td>${dateText(r.created_at)}</td>
-    </tr>`;
-  }).join(""):'<tr><td colspan="7">No service requests.</td></tr>';
-
-  body.querySelectorAll(".yt-create-payment-btn").forEach(btn=>{
-    btn.addEventListener("click",async()=>{
-      const requestId=btn.dataset.requestId;
-      const existingId=btn.dataset.paymentId;
-      const req=rows.find(r=>String(r.id)===String(requestId));
-      const existing=paymentByRequest.get(req?.id);
-      let amount=existing?.amount;
-      if(!existingId){
-        const input=body.querySelector(`[data-amount-for="${CSS.escape(requestId)}"]`);
-        amount=Number(input?.value||0);
-      }else{
-        const raw=prompt("New payment amount (₹)",String(existing?.amount||""));
-        if(raw===null)return;
-        amount=Number(raw);
-      }
-      if(!Number.isFinite(amount)||amount<=0){ alert("Valid amount enter karo."); return; }
-
-      btn.disabled=true;
-      const payload={
-        customer_id:req.customer_id,
-        request_id:req.id,
-        amount:Number(amount.toFixed(2)),
-        currency:"INR",
-        status:"pending",
-        service_name:req.service_type||"Service"
-      };
-      let result;
-      if(existingId){
-        result=await supabase.from("payments").update({amount:payload.amount,service_name:payload.service_name,status:"pending"}).eq("id",existingId);
-      }else{
-        result=await supabase.from("payments").insert(payload);
-      }
-      btn.disabled=false;
-      if(result.error){ alert(result.error.message); return; }
-      alert(existingId?"Payment amount updated ✅":"Payment created ✅");
-      await loadAdminDashboard();
-    });
-  });
-}
+if($("cancelServiceChargeEdit")) $("cancelServiceChargeEdit").addEventListener("click",resetServiceChargeForm);
 
 function renderHistory(customers,access,requests,customerMap){
   const box=$("adminHistoryList"); if(!box) return;

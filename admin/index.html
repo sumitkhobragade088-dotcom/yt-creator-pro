@@ -38,6 +38,8 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <button class="yt-premium-nav-btn" data-view="analytics">📊 <span>Analytics / Stats</span></button>
       <button class="yt-premium-nav-btn" data-view="copyright">©️ <span>Copyright / Restrictions</span></button>
       <button class="yt-premium-nav-btn" data-view="services">🧰 <span>Services</span></button>
+      <button class="yt-premium-nav-btn" data-view="payments">💳 <span>Payments / PayU</span></button>
+      <button class="yt-premium-nav-btn" data-view="service-charge">₹ <span>Service Charge</span></button>
       <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
       <button class="yt-premium-nav-btn" data-view="cms">🧩 <span>Admin Dashboard CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="editor">✏️ <span>Admin Editor</span></button>
@@ -184,52 +186,87 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
     </section>
 
     <section class="yt-premium-view" id="view-services">
-      <div class="yt-premium-section-head"><div><span>SERVICES + PAYMENT</span><h2>Services</h2><p>Service add/edit/delete aur customer ko direct PayU payment assign karein.</p></div><b id="servicesSectionCount">0</b></div>
+      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Customer service requests only.</p></div><b id="servicesSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="serviceRequestsBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
+      </div></div>
+    </section>
 
-      <div class="yt-service-admin-grid">
-        <div class="panel yt-premium-panel yt-admin-service-form">
-          <div class="yt-manager-head"><div><h3>Add / Edit Service</h3><p>Active services user dashboard me automatically dikhenge.</p></div></div>
-          <input id="adminServiceId" type="hidden">
-          <label>Service Name</label>
-          <input id="adminServiceName" type="text" placeholder="Example: Channel Audit">
-          <label>Description</label>
-          <textarea id="adminServiceDescription" rows="3" placeholder="Short service description"></textarea>
-          <label>Default Price (₹)</label>
-          <input id="adminServicePrice" type="number" min="0" step="0.01" placeholder="0">
-          <label class="yt-inline-check"><input id="adminServiceActive" type="checkbox" checked> Active</label>
-          <div class="yt-form-actions">
-            <button id="saveAdminService" class="btn primary" type="button">Save Service</button>
-            <button id="cancelAdminServiceEdit" class="btn" type="button">Clear</button>
-          </div>
-          <p id="adminServiceMessage"></p>
+    <section class="yt-premium-view" id="view-payments">
+      <div class="yt-premium-section-head">
+        <div><span>PAYMENTS / PAYU</span><h2>Payments / PayU</h2><p>Transactions read-only audit + secure PayU backend status.</p></div>
+        <b id="paymentsSectionCount">0</b>
+      </div>
+
+      <div class="yt-pay-summary-grid">
+        <div class="yt-pay-summary-card"><span>₹</span><div><small>Total Collection</small><b id="payTotalCollection">₹0.00</b></div></div>
+        <div class="yt-pay-summary-card"><span>✅</span><div><small>Success</small><b id="paySuccessCount">0</b></div></div>
+        <div class="yt-pay-summary-card"><span>⌛</span><div><small>Pending</small><b id="payPendingCount">0</b></div></div>
+        <div class="yt-pay-summary-card"><span>❌</span><div><small>Failed</small><b id="payFailedCount">0</b></div></div>
+      </div>
+
+      <div class="yt-pay-layout">
+        <div class="panel yt-premium-panel">
+          <div class="yt-manager-head"><div><h3>🔐 PayU Integration</h3><p>Merchant Key/Salt secure Supabase Edge Function Secrets me stored hain.</p></div></div>
+          <div class="yt-payu-status-row"><span>Environment</span><b>Production</b></div>
+          <div class="yt-payu-status-row"><span>Secure Hash</span><b class="good-text">Server-side ✅</b></div>
+          <div class="yt-payu-status-row"><span>Callback Verification</span><b class="good-text">Enabled ✅</b></div>
+          <div class="yt-payment-admin-note">PayU Key/Salt browser me show ya save nahi hota.</div>
         </div>
 
-        <div class="panel yt-premium-panel yt-direct-payment-form">
-          <div class="yt-manager-head"><div><h3>Direct Payment</h3><p>Customer request ke bina direct service + amount assign karein.</p></div></div>
-          <label>Customer</label>
-          <select id="directPaymentCustomer"><option value="">Select Customer</option></select>
-          <label>Service</label>
-          <select id="directPaymentService"><option value="">Select Service</option></select>
-          <label>Amount (₹)</label>
-          <input id="directPaymentAmount" type="number" min="1" step="0.01" placeholder="Amount">
-          <button id="createDirectPayment" class="btn primary" type="button">Create Direct Payment</button>
-          <p id="directPaymentMessage"></p>
+        <div class="panel yt-premium-panel">
+          <div class="yt-manager-head"><div><h3>Transaction Records</h3><p>PayU payment transaction history.</p></div></div>
+          <div class="yt-table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Payment ID</th><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th><th>Mode</th><th>Date</th></tr></thead>
+              <tbody id="paymentsBody"><tr><td colspan="7">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-service-charge">
+      <div class="yt-premium-section-head">
+        <div><span>SERVICE CHARGE</span><h2>Service Charge</h2><p>Ek baar charge set karein; sab customers ke liye wahi current charge use hoga.</p></div>
+        <b id="serviceChargeCount">0</b>
+      </div>
+
+      <div class="yt-service-charge-top">
+        <div class="panel yt-premium-panel yt-charge-form">
+          <div class="yt-manager-head"><div><h3 id="chargeFormTitle">New Service</h3><p>New service add ya existing service update karein.</p></div></div>
+          <input id="chargeServiceId" type="hidden">
+          <label>Service Name</label>
+          <input id="chargeServiceName" type="text" placeholder="Service name">
+          <label>Description</label>
+          <textarea id="chargeServiceDescription" rows="3" placeholder="Short description"></textarea>
+          <label>Current Charge (₹)</label>
+          <input id="chargeServiceAmount" type="number" min="0" step="0.01" placeholder="0">
+          <label class="yt-inline-check"><input id="chargeServiceActive" type="checkbox" checked> Active Service</label>
+          <div class="yt-charge-actions">
+            <button id="saveServiceCharge" class="btn primary" type="button">Add New Service</button>
+            <button id="cancelServiceChargeEdit" class="btn" type="button">Clear</button>
+          </div>
+          <p id="serviceChargeMessage"></p>
+        </div>
+
+        <div class="yt-charge-stats">
+          <div class="yt-charge-stat-card"><small>Total Services</small><b id="chargeTotalServices">0</b></div>
+          <div class="yt-charge-stat-card"><small>Active Services</small><b id="chargeActiveServices">0</b></div>
+          <div class="yt-charge-stat-card"><small>Inactive Services</small><b id="chargeInactiveServices">0</b></div>
         </div>
       </div>
 
       <div class="panel yt-premium-panel">
-        <div class="yt-manager-head"><div><h3>Service Catalog</h3><p>Existing services manage karein.</p></div><b id="serviceCatalogCount">0</b></div>
+        <div class="yt-manager-head"><div><h3>All Services & Current Charge</h3><p>Edit, update, delete ya new service add karein.</p></div></div>
         <div class="yt-table-scroll">
-          <table class="data-table"><thead><tr><th>Service</th><th>Description</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
-          <tbody id="serviceCatalogBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+          <table class="data-table">
+            <thead><tr><th>Service</th><th>Description</th><th>Current Charge</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="serviceChargeBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+          </table>
         </div>
       </div>
-
-      <div class="panel yt-premium-panel"><div class="yt-manager-head"><div><h3>Requests & Payments</h3><p>User requests aur direct assigned payments.</p></div></div><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Status</th><th>Payment</th><th>Amount</th><th>Action</th><th>Date</th></tr></thead>
-        <tbody id="serviceRequestsBody"><tr><td colspan="7">Loading...</td></tr></tbody></table>
-      </div></div>
-      <div class="yt-payment-admin-note">PayU Key/Salt browser me save nahi hota. Secret sirf Supabase Edge Function Secrets me rahega.</div>
     </section>
 
     <section class="yt-premium-view" id="view-history">
@@ -590,7 +627,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
     const titles={
       dashboard:"Dashboard",customers:"Users / Customers",channels:"YouTube Channels",manage:"Manage Channel",
       access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",
-      copyright:"Copyright / Restrictions",services:"Services",history:"History",cms:"Admin Dashboard CMS",
+      copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS",
       editor:"Admin Editor",settings:"Settings"
     };
     const title=document.getElementById("adminPageTitle");

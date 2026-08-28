@@ -196,34 +196,37 @@ async function loadDashboard() {
       .eq("customer_id", customer.id)
       .order("created_at", { ascending: false });
 
-    const { data: serviceCatalog, error: serviceCatalogError } = await supabase
-      .from("service_catalog")
-      .select("id,name,description,price,is_active,sort_order")
+    const { data: activeServices, error: activeServicesError } = await supabase
+      .from("service_charges")
+      .select("id,service_name,description,charge,is_active,sort_order")
       .eq("is_active", true)
       .order("sort_order", { ascending: true })
-      .order("name", { ascending: true });
-    if (serviceCatalogError) console.error("Service catalog:", serviceCatalogError);
+      .order("service_name", { ascending: true });
 
-    const serviceCards = document.getElementById("userServiceCatalog");
+    if (activeServicesError) console.error("Services:", activeServicesError);
+
+    const catalog = document.getElementById("userServiceCatalog");
     const serviceSelect = document.getElementById("userServiceType");
-    const moneyService = (n) => `₹${Number(n || 0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-    if (serviceCards && serviceSelect) {
-      const services = serviceCatalog || [];
-      serviceSelect.innerHTML = '<option value="">Select Service</option>' + services.map(s =>
-        `<option value="${String(s.name || "").replaceAll('"','&quot;')}">${s.name}${Number(s.price)>0 ? ` — ${moneyService(s.price)}` : ""}</option>`
+    const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+    if (catalog && serviceSelect) {
+      const rows = activeServices || [];
+      serviceSelect.innerHTML = '<option value="">Select Service</option>' + rows.map(s =>
+        `<option value="${String(s.service_name||"").replaceAll('"',"&quot;")}">${s.service_name} — ${money(s.charge)}</option>`
       ).join("");
-      serviceCards.innerHTML = services.length ? services.map(s => `
-        <button type="button" data-service-pick="${String(s.name || "").replaceAll('"','&quot;')}">
+
+      catalog.innerHTML = rows.length ? rows.map(s => `
+        <button type="button" data-service-pick="${String(s.service_name||"").replaceAll('"',"&quot;")}">
           <span>▶️</span>
-          <b>${s.name || "Service"}</b>
-          <small>${s.description || "Creator service"}${Number(s.price)>0 ? ` · ${moneyService(s.price)}` : ""}</small>
+          <b>${s.service_name || "Service"}</b>
+          <small>${s.description || "Creator service"} · <strong>${money(s.charge)}</strong></small>
         </button>
       `).join("") : '<div class="yt-service-loading">No active services available.</div>';
 
-      serviceCards.querySelectorAll("[data-service-pick]").forEach(btn => {
+      catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
         btn.addEventListener("click", () => {
           serviceSelect.value = btn.dataset.servicePick || "";
-          serviceCards.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
+          catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
           btn.classList.add("selected");
         });
       });

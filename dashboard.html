@@ -253,14 +253,6 @@ document.getElementById("copyUserManagerEmail")?.addEventListener("click",async(
   alert("Manager email copied");
 });
 
-document.querySelectorAll("[data-service-pick]").forEach(btn=>{
-  btn.addEventListener("click",()=>{
-    const select=document.getElementById("userServiceType");
-    if(select) select.value=btn.dataset.servicePick;
-    openUserView("services");
-  });
-});
-
 document.getElementById("userServiceSearchBtn")?.addEventListener("click",()=>{
   openUserView("requests");
 });

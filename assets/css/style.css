@@ -803,18 +803,32 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
 @media(max-width:650px){.yt-request-payment-row{align-items:flex-start!important;flex-direction:column!important}.yt-payment-actions{justify-content:flex-start!important}}
 
 
-/* ===== SERVICE CMS + DIRECT PAYMENT ===== */
-.yt-service-admin-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:16px!important;margin-bottom:16px!important}
-.yt-admin-service-form,.yt-direct-payment-form{display:flex!important;flex-direction:column!important;gap:9px!important}
-.yt-admin-service-form input,.yt-admin-service-form textarea,.yt-direct-payment-form input,.yt-direct-payment-form select{
-  width:100%!important;border:1px solid #dbe1e8!important;border-radius:11px!important;padding:11px 12px!important;background:#fff!important
-}
-.yt-admin-service-form label,.yt-direct-payment-form label{font-size:12px!important;font-weight:800!important;color:#374151!important}
-.yt-inline-check{display:flex!important;align-items:center!important;gap:8px!important}
+/* ===== Payments / PayU + Service Charge ===== */
+.yt-pay-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:0 0 16px}
+.yt-pay-summary-card{background:#fff;border:1px solid #e7ebf0;border-radius:16px;padding:18px;display:flex;align-items:center;gap:14px;box-shadow:0 7px 24px rgba(15,23,42,.05)}
+.yt-pay-summary-card>span{width:42px;height:42px;border-radius:12px;background:#f5f7fb;display:grid;place-items:center;font-size:20px}
+.yt-pay-summary-card small{display:block;color:#667085;font-weight:700;margin-bottom:4px}
+.yt-pay-summary-card b{font-size:22px;color:#172033}
+.yt-pay-layout{display:grid;grid-template-columns:minmax(260px,.72fr) minmax(0,1.6fr);gap:16px}
+.yt-payu-status-row{display:flex;justify-content:space-between;gap:12px;padding:13px 0;border-bottom:1px solid #edf0f4}
+.good-text{color:#079455}
+.yt-service-charge-top{display:grid;grid-template-columns:minmax(320px,1.2fr) minmax(240px,.8fr);gap:16px;margin-bottom:16px}
+.yt-charge-form{display:flex;flex-direction:column;gap:9px}
+.yt-charge-form label{font-size:12px;font-weight:800;color:#344054}
+.yt-charge-form input,.yt-charge-form textarea{width:100%;border:1px solid #d0d5dd;border-radius:11px;padding:11px 12px;background:#fff}
+.yt-inline-check{display:flex!important;align-items:center;gap:8px}
 .yt-inline-check input{width:auto!important}
-.yt-form-actions{display:flex!important;gap:9px!important;flex-wrap:wrap!important}
-.yt-service-action-cell{display:flex!important;gap:7px!important;flex-wrap:wrap!important}
-.yt-service-action-cell .yt-delete-service{border-color:#fecaca!important;color:#b91c1c!important}
-.yt-demo-service-cards button.selected{outline:2px solid #ef4444!important;transform:translateY(-1px)!important}
-.yt-service-loading{padding:18px!important;color:#6b7280!important}
-@media(max-width:850px){.yt-service-admin-grid{grid-template-columns:1fr!important}}
+.yt-charge-actions,.yt-charge-table-actions{display:flex;gap:8px;flex-wrap:wrap}
+.yt-charge-table-actions .yt-charge-delete{color:#b42318;border-color:#fecdca}
+.yt-charge-stats{display:grid;grid-template-columns:1fr;gap:12px}
+.yt-charge-stat-card{background:#fff;border:1px solid #e7ebf0;border-radius:16px;padding:20px;box-shadow:0 7px 24px rgba(15,23,42,.05)}
+.yt-charge-stat-card small{display:block;color:#667085;font-weight:700;margin-bottom:6px}
+.yt-charge-stat-card b{font-size:28px;color:#172033}
+.yt-demo-service-cards button.selected{outline:2px solid #ef4444;transform:translateY(-1px)}
+.yt-service-loading{padding:18px;color:#667085}
+.yt-status-chip.bad{background:#fee4e2!important;color:#b42318!important}
+@media(max-width:980px){
+  .yt-pay-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .yt-pay-layout,.yt-service-charge-top{grid-template-columns:1fr}
+}
+@media(max-width:560px){.yt-pay-summary-grid{grid-template-columns:1fr}}
