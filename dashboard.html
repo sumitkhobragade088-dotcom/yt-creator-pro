@@ -14,32 +14,6 @@ html.yt-user-boot body{visibility:hidden!important}
 document.documentElement.classList.add("yt-user-boot");
 window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),1500);
 </script>
-
-<style id="yt-user-logout-bottom-fix">
-.yt-demo-user-sidebar{
-  height:100vh;
-  position:sticky;
-  top:0;
-  overflow-y:auto;
-  display:flex;
-  flex-direction:column;
-}
-.yt-demo-user-nav{
-  flex:1 0 auto;
-}
-.yt-user-bottom-logout{
-  width:calc(100% - 8px) !important;
-  margin:12px 4px 8px !important;
-  flex:0 0 auto;
-  border:0 !important;
-  border-radius:11px !important;
-  padding:11px !important;
-  background:#172033 !important;
-  color:#fff !important;
-  font-weight:900 !important;
-  cursor:pointer !important;
-}
-</style>
 </head>
 
 <body id="creatorDashboard" class="yt-user-dashboard-page">
@@ -68,7 +42,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
     </nav>
 
     <div class="yt-demo-user-sidebar-bottom">
-      <button class="yt-premium-logout yt-user-bottom-logout" onclick="logoutCreator()">↪ Logout</button>
+      <button class="yt-premium-logout" style="width:calc(100% - 8px);margin:10px 4px 12px;border:0;border-radius:11px;padding:11px;background:#172033;color:#fff;font-weight:900;cursor:pointer" onclick="logoutCreator()">↪ Logout</button>
       <div class="yt-demo-secure-note">🛡 Secure Account<br><span>Protected creator portal</span></div>
     </div>
   </aside>
