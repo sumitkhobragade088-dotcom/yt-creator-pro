@@ -109,11 +109,7 @@ if (loginForm) {
     try {
       const email = $("email").value.trim();
       const password = $("password").value;
-      const { data, error } = await timeout(
-        supabase.auth.signInWithPassword({ email, password }),
-        10000,
-        "Login"
-      );
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       if (!data?.user) throw new Error("Login response invalid.");
 

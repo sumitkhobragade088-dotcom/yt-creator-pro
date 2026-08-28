@@ -52,10 +52,7 @@ if (form) {
     try{
       const email = $("adminEmail").value.trim();
       const password = $("adminPassword").value;
-      const { data, error } = await withTimeout(
-        supabase.auth.signInWithPassword({ email, password }),
-        10000,"Admin login"
-      );
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
       if (!(await isAdmin(data?.user))) {
         try{await withTimeout(supabase.auth.signOut(),4000,"Sign out");}catch(_){}
