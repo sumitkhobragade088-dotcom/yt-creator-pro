@@ -65,7 +65,8 @@ async function run() {
     },
     body: JSON.stringify({
       code,
-      code_verifier: verifier
+      code_verifier: verifier,
+      redirect_uri: `${location.origin}/google-callback.html`
     })
   });
 

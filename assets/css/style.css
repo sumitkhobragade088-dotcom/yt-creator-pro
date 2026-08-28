@@ -832,3 +832,6 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
   .yt-pay-layout,.yt-service-charge-top{grid-template-columns:1fr}
 }
 @media(max-width:560px){.yt-pay-summary-grid{grid-template-columns:1fr}}
+
+.yt-danger-outline{border-color:#f04438!important;color:#b42318!important;background:#fff!important}
+.yt-danger-outline:hover{background:#fff1f0!important}

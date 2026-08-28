@@ -158,7 +158,10 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
         <div class="yt-user-access-action-card">
           <span>1</span>
           <div><b>Connect YouTube Channel</b><p>Use secure Google permission to connect your channel.</p></div>
-          <button id="connectYouTubeBtn" class="yt-user-red-btn" onclick="connectYouTube()">Connect YouTube Channel</button>
+          <div class="yt-user-access-buttons">
+            <button id="connectYouTubeBtn" class="yt-user-red-btn" onclick="connectYouTube()">Connect YouTube Channel</button>
+            <button id="deleteChannelAccessBtn" class="yt-user-outline-btn yt-danger-outline" type="button" onclick="deleteExistingChannelAccess()" style="display:none">Delete Existing Channel Access</button>
+          </div>
         </div>
 
         <div class="yt-user-access-action-card manager">

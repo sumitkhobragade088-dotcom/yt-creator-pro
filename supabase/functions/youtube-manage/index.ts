@@ -1,8 +1,12 @@
-const cors={"Access-Control-Allow-Origin":"https://sumitkhobragade088-dotcom.github.io","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info","Access-Control-Allow-Methods":"POST, OPTIONS"};
+const allowedOrigins=new Set(["https://khobragade.online","https://www.khobragade.online","https://sumitkhobragade088-dotcom.github.io"]);
+const corsFor=(req:Request)=>{const o=req.headers.get("origin")||"";return {"Access-Control-Allow-Origin":allowedOrigins.has(o)?o:"https://khobragade.online","Vary":"Origin","Access-Control-Allow-Headers":"authorization, apikey, content-type, x-client-info","Access-Control-Allow-Methods":"POST, OPTIONS"}};
+let cors:Record<string,string>={};
+
 const J=(d:unknown,s=200)=>new Response(JSON.stringify(d),{status:s,headers:{...cors,"Content-Type":"application/json"}});
 const H=(token:string)=>({Authorization:`Bearer ${token}`});
 async function gj(url:string,token:string,init:any={}){const r=await fetch(url,{...init,headers:{...(init.headers||{}),...H(token)}});const d=r.status===204?{}:await r.json();if(!r.ok)throw new Error(d?.error?.message||`YouTube HTTP ${r.status}`);return d}
 Deno.serve(async req=>{
+ cors=corsFor(req);
  if(req.method==="OPTIONS")return new Response(null,{status:204,headers:cors});
  try{
   const url=Deno.env.get("SUPABASE_URL")!,anon=Deno.env.get("SUPABASE_ANON_KEY")!,service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,cid="699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com",secret=Deno.env.get("GOOGLE_CLIENT_SECRET")!;
