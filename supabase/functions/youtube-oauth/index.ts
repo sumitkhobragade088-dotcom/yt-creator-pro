@@ -153,7 +153,7 @@ Deno.serve(async (req) => {
       {
         method: "POST",
         headers: { Prefer: "return=minimal" },
-        body: JSON.stringify({ customer_id: customer.id, refresh_token: refreshToken })
+        body: JSON.stringify({ user_id: user.id, customer_id: customer.id, refresh_token: refreshToken })
       }
     );
     if (!saveToken.ok) return J(req, { error: "YouTube token save failed", details: await saveToken.text() }, 400);
