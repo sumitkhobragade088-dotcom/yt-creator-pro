@@ -19,6 +19,10 @@ async function run() {
   const state = params.get("state");
   const expectedState = sessionStorage.getItem("yt_oauth_state");
   const verifier = sessionStorage.getItem("yt_pkce_verifier");
+  const redirectUri = sessionStorage.getItem("yt_oauth_redirect_uri")
+    || ((location.hostname === "khobragade.online" || location.hostname === "www.khobragade.online")
+      ? "https://khobragade.online/google-callback.html"
+      : "https://sumitkhobragade088-dotcom.github.io/yt-creator-pro/google-callback.html");
 
   if (error) {
     title.textContent = "Google Connect Failed";
@@ -73,7 +77,7 @@ async function run() {
       body: JSON.stringify({
         code,
         code_verifier: verifier,
-        redirect_uri: `${location.origin}/google-callback.html`
+        redirect_uri: redirectUri
       })
     });
 
@@ -98,6 +102,7 @@ async function run() {
 
   sessionStorage.removeItem("yt_pkce_verifier");
   sessionStorage.removeItem("yt_oauth_state");
+  sessionStorage.removeItem("yt_oauth_redirect_uri");
 
   const c = result.channel || {};
   title.textContent = "YouTube Connected ✅";

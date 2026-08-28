@@ -392,6 +392,7 @@ window.deleteExistingChannelAccess = async () => {
 
     sessionStorage.removeItem("yt_pkce_verifier");
     sessionStorage.removeItem("yt_oauth_state");
+    sessionStorage.removeItem("yt_oauth_redirect_uri");
     alert("Existing Channel Access deleted ✅ Ab Reconnect YouTube karo.");
     location.reload();
   } catch (e) {
@@ -410,6 +411,7 @@ window.logoutCreator = async () => {
     sessionStorage.removeItem("yt_user_view");
     sessionStorage.removeItem("yt_pkce_verifier");
     sessionStorage.removeItem("yt_oauth_state");
+    sessionStorage.removeItem("yt_oauth_redirect_uri");
     location.replace(new URL("login.html", location.href).href);
   }
 };

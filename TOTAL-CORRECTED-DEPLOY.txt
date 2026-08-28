@@ -1,0 +1,36 @@
+YT CREATOR PRO - TOTAL CORRECTED BUILD
+
+This full ZIP is rebuilt from the last known-good no-old-flow project and includes:
+- Payments / PayU
+- Service Charge
+- User login syntax fix
+- Custom domain khobragade.online
+- Google / YouTube new connect + reconnect
+- Delete Existing Channel Access
+- Working user Logout
+- Latest YouTube OAuth reconnect token-save fix
+- Existing Admin/User zero-flash refresh behavior
+- Existing inline Admin Manage Channel flow (no old standalone manage-channel.html)
+
+IMPORTANT DEPLOY STEPS
+1. Upload the FULL project contents to the same GitHub Pages repo.
+2. Supabase Edge Functions: redeploy:
+   - youtube-oauth
+   - youtube-manage
+   - payu-initiate (only if not already deployed)
+   - payu-callback (only if not already deployed)
+3. Keep existing Supabase secrets. SITE_URL must be:
+   https://khobragade.online
+4. Google OAuth Authorized redirect URI must include:
+   https://khobragade.online/google-callback.html
+5. Google OAuth Authorized JavaScript origin must include:
+   https://khobragade.online
+
+CHANNEL ACCESS BEHAVIOR
+- Existing connected user sees Reconnect YouTube.
+- Existing Channel Access can be deleted explicitly.
+- Delete removes channel_access + stored YouTube refresh token.
+- User can then connect fresh.
+- New users use the same custom-domain OAuth callback.
+
+NO PASSWORD / PAYU SALT / GOOGLE CLIENT SECRET is stored in frontend files.

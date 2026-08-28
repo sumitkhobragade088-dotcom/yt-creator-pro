@@ -1,5 +1,11 @@
 const CLIENT_ID = "699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com";
-const REDIRECT_URI = `${location.origin}/google-callback.html`;
+function getYouTubeRedirectUri() {
+  if (location.hostname === "khobragade.online" || location.hostname === "www.khobragade.online") {
+    return "https://khobragade.online/google-callback.html";
+  }
+  return "https://sumitkhobragade088-dotcom.github.io/yt-creator-pro/google-callback.html";
+}
+const REDIRECT_URI = getYouTubeRedirectUri();
 const SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl";
 
 function randomString(length = 64) {
@@ -29,6 +35,7 @@ window.connectYouTube = async function () {
 
   sessionStorage.setItem("yt_pkce_verifier", verifier);
   sessionStorage.setItem("yt_oauth_state", state);
+  sessionStorage.setItem("yt_oauth_redirect_uri", REDIRECT_URI);
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,
