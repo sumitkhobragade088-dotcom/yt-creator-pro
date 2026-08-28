@@ -51,7 +51,7 @@ if (form) {
   });
 }
 
-let dashboardCache={customers:[],access:[],requests:[],payments:[],serviceCharges:[]};
+let dashboardCache={customers:[],access:[],requests:[]};
 
 async function loadAdminDashboard(){
   if (!document.body.dataset.adminProtected) return;
@@ -63,22 +63,16 @@ async function loadAdminDashboard(){
   }
   setText("adminEmailView", user.email || "");
 
-  const [cRes,aRes,rRes,pRes,scRes] = await Promise.all([
+  const [cRes,aRes,rRes] = await Promise.all([
     supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at").order("created_at",{ascending:false}),
     supabase.from("channel_access").select("*").order("updated_at",{ascending:false}),
-    supabase.from("service_requests").select("*").order("created_at",{ascending:false}),
-    supabase.from("payments").select("*").order("created_at",{ascending:false}),
-    supabase.from("service_charges").select("*").order("sort_order",{ascending:true}).order("service_name",{ascending:true})
+    supabase.from("service_requests").select("*").order("created_at",{ascending:false})
   ]);
 
   const customers=cRes.data||[];
   const access=aRes.data||[];
   const requests=rRes.data||[];
-  const payments=pRes.data||[];
-  const serviceCharges=scRes.data||[];
-  if(pRes.error) console.error("Payments:",pRes.error);
-  if(scRes.error) console.error("Service charges:",scRes.error);
-  dashboardCache={customers,access,requests,payments,serviceCharges};
+  dashboardCache={customers,access,requests};
 
   const customerMap=new Map(customers.map(c=>[c.id,c]));
   const connected=access.filter(a=>a.google_connected);
@@ -116,9 +110,7 @@ async function loadAdminDashboard(){
   renderAccess(customerMap,access);
   renderMonetization(customerMap,access);
   renderAdsense(customerMap,access);
-  renderServices(requests,customerMap);
-  renderPayments(payments,customerMap);
-  renderServiceCharges(serviceCharges);
+  renderServices(requests);
   renderHistory(customers,access,requests,customerMap);
   renderAdminManage(customerMap,access);
   renderAdminAnalytics(customerMap,access);
@@ -197,137 +189,12 @@ function renderAdsense(customerMap,rows){
   }).join(""):'<tr><td colspan="5">No AdSense records.</td></tr>';
 }
 
-function renderServices(rows,customerMap=new Map()){
+function renderServices(rows){
   const body=$("serviceRequestsBody"); if(!body) return;
-  body.innerHTML=rows.length?rows.map(r=>{
-    const c=customerMap.get(r.customer_id)||{};
-    return `<tr>
-      <td>${esc(c.full_name||c.email||"-")}</td>
-      <td><b>${esc(r.service_type||"Service")}</b></td>
-      <td>${esc(r.status||"pending")}</td>
-      <td>${dateText(r.created_at)}</td>
-    </tr>`;
-  }).join(""):'<tr><td colspan="4">No service requests.</td></tr>';
+  body.innerHTML=rows.length?rows.map(r=>`
+    <tr><td>${esc(r.service_type||"Service")}</td><td>${esc(r.status||"pending")}</td><td>${dateText(r.created_at)}</td></tr>
+  `).join(""):'<tr><td colspan="3">No service requests.</td></tr>';
 }
-
-function moneyINR(n){
-  return `₹${Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
-}
-
-function renderPayments(payments=[],customerMap=new Map()){
-  const body=$("paymentsBody");
-  setText("paymentsSectionCount",payments.length);
-
-  const paid=payments.filter(p=>String(p.status||"").toLowerCase()==="paid");
-  const failed=payments.filter(p=>["failed","failure"].includes(String(p.status||"").toLowerCase()));
-  const pending=payments.filter(p=>!["paid","failed","failure"].includes(String(p.status||"").toLowerCase()));
-  const total=paid.reduce((sum,p)=>sum+Number(p.amount||0),0);
-
-  setText("payTotalCollection",moneyINR(total));
-  setText("paySuccessCount",paid.length);
-  setText("payPendingCount",pending.length);
-  setText("payFailedCount",failed.length);
-
-  if(!body)return;
-  body.innerHTML=payments.length?payments.map(p=>{
-    const c=customerMap.get(p.customer_id)||{};
-    const status=String(p.status||"pending").toLowerCase();
-    const chip=status==="paid"?"good":(["failed","failure"].includes(status)?"bad":"pending");
-    return `<tr>
-      <td>${esc(p.mihpayid||p.txnid||p.id||"-")}</td>
-      <td>${esc(c.full_name||c.email||"-")}</td>
-      <td>${esc(p.service_name||"Service")}</td>
-      <td><b>${moneyINR(p.amount)}</b></td>
-      <td><span class="yt-status-chip ${chip}">${esc(p.status||"pending")}</span></td>
-      <td>${esc(p.payment_mode||"-")}</td>
-      <td>${dateText(p.created_at)}</td>
-    </tr>`;
-  }).join(""):'<tr><td colspan="7">No payment transactions.</td></tr>';
-}
-
-function resetServiceChargeForm(){
-  if($("chargeServiceId")) $("chargeServiceId").value="";
-  if($("chargeServiceName")) $("chargeServiceName").value="";
-  if($("chargeServiceDescription")) $("chargeServiceDescription").value="";
-  if($("chargeServiceAmount")) $("chargeServiceAmount").value="";
-  if($("chargeServiceActive")) $("chargeServiceActive").checked=true;
-  setText("chargeFormTitle","New Service");
-  if($("saveServiceCharge")) $("saveServiceCharge").textContent="Add New Service";
-  if($("serviceChargeMessage")) $("serviceChargeMessage").textContent="";
-}
-
-function renderServiceCharges(rows=[]){
-  const body=$("serviceChargeBody");
-  setText("serviceChargeCount",rows.length);
-  setText("chargeTotalServices",rows.length);
-  setText("chargeActiveServices",rows.filter(x=>x.is_active).length);
-  setText("chargeInactiveServices",rows.filter(x=>!x.is_active).length);
-
-  if(!body)return;
-  body.innerHTML=rows.length?rows.map(s=>`
-    <tr>
-      <td><b>${esc(s.service_name||"Service")}</b></td>
-      <td>${esc(s.description||"-")}</td>
-      <td><b>${moneyINR(s.charge)}</b></td>
-      <td>${s.is_active?'<span class="yt-status-chip good">Active</span>':'<span class="yt-status-chip pending">Inactive</span>'}</td>
-      <td class="yt-charge-table-actions">
-        <button class="btn yt-charge-edit" type="button" data-id="${esc(s.id)}">Edit</button>
-        <button class="btn yt-charge-delete" type="button" data-id="${esc(s.id)}">Delete</button>
-      </td>
-    </tr>`).join(""):'<tr><td colspan="5">No services added.</td></tr>';
-
-  body.querySelectorAll(".yt-charge-edit").forEach(btn=>btn.addEventListener("click",()=>{
-    const s=rows.find(x=>String(x.id)===String(btn.dataset.id)); if(!s)return;
-    $("chargeServiceId").value=s.id;
-    $("chargeServiceName").value=s.service_name||"";
-    $("chargeServiceDescription").value=s.description||"";
-    $("chargeServiceAmount").value=Number(s.charge||0).toFixed(2);
-    $("chargeServiceActive").checked=!!s.is_active;
-    setText("chargeFormTitle","Edit Service");
-    $("saveServiceCharge").textContent="Update Existing";
-    $("chargeServiceName").focus();
-  }));
-
-  body.querySelectorAll(".yt-charge-delete").forEach(btn=>btn.addEventListener("click",async()=>{
-    const s=rows.find(x=>String(x.id)===String(btn.dataset.id)); if(!s)return;
-    if(!confirm(`Delete "${s.service_name}"?`))return;
-    const {error}=await supabase.from("service_charges").delete().eq("id",s.id);
-    if(error){alert(error.message);return;}
-    resetServiceChargeForm();
-    await loadAdminDashboard();
-  }));
-}
-
-if($("saveServiceCharge")) $("saveServiceCharge").addEventListener("click",async()=>{
-  const id=$("chargeServiceId")?.value||"";
-  const service_name=$("chargeServiceName")?.value.trim()||"";
-  const description=$("chargeServiceDescription")?.value.trim()||"";
-  const charge=Number($("chargeServiceAmount")?.value||0);
-  const is_active=!!$("chargeServiceActive")?.checked;
-  const msg=$("serviceChargeMessage");
-
-  if(!service_name){if(msg)msg.textContent="Service name enter karo.";return;}
-  if(!Number.isFinite(charge)||charge<0){if(msg)msg.textContent="Valid charge enter karo.";return;}
-
-  const payload={
-    service_name,
-    description,
-    charge:Number(charge.toFixed(2)),
-    is_active,
-    updated_at:new Date().toISOString()
-  };
-
-  const result=id
-    ? await supabase.from("service_charges").update(payload).eq("id",id)
-    : await supabase.from("service_charges").insert(payload);
-
-  if(result.error){if(msg)msg.textContent=result.error.message;return;}
-  if(msg)msg.textContent=id?"Service updated ✅":"New service added ✅";
-  resetServiceChargeForm();
-  await loadAdminDashboard();
-});
-
-if($("cancelServiceChargeEdit")) $("cancelServiceChargeEdit").addEventListener("click",resetServiceChargeForm);
 
 function renderHistory(customers,access,requests,customerMap){
   const box=$("adminHistoryList"); if(!box) return;
