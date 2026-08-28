@@ -196,6 +196,39 @@ async function loadDashboard() {
       .eq("customer_id", customer.id)
       .order("created_at", { ascending: false });
 
+    const { data: serviceCatalog, error: serviceCatalogError } = await supabase
+      .from("service_catalog")
+      .select("id,name,description,price,is_active,sort_order")
+      .eq("is_active", true)
+      .order("sort_order", { ascending: true })
+      .order("name", { ascending: true });
+    if (serviceCatalogError) console.error("Service catalog:", serviceCatalogError);
+
+    const serviceCards = document.getElementById("userServiceCatalog");
+    const serviceSelect = document.getElementById("userServiceType");
+    const moneyService = (n) => `₹${Number(n || 0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    if (serviceCards && serviceSelect) {
+      const services = serviceCatalog || [];
+      serviceSelect.innerHTML = '<option value="">Select Service</option>' + services.map(s =>
+        `<option value="${String(s.name || "").replaceAll('"','&quot;')}">${s.name}${Number(s.price)>0 ? ` — ${moneyService(s.price)}` : ""}</option>`
+      ).join("");
+      serviceCards.innerHTML = services.length ? services.map(s => `
+        <button type="button" data-service-pick="${String(s.name || "").replaceAll('"','&quot;')}">
+          <span>▶️</span>
+          <b>${s.name || "Service"}</b>
+          <small>${s.description || "Creator service"}${Number(s.price)>0 ? ` · ${moneyService(s.price)}` : ""}</small>
+        </button>
+      `).join("") : '<div class="yt-service-loading">No active services available.</div>';
+
+      serviceCards.querySelectorAll("[data-service-pick]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          serviceSelect.value = btn.dataset.servicePick || "";
+          serviceCards.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
+          btn.classList.add("selected");
+        });
+      });
+    }
+
     const { data: payments, error: paymentsError } = await supabase
       .from("payments")
       .select("id,request_id,amount,currency,status,txnid,mihpayid,created_at,updated_at")

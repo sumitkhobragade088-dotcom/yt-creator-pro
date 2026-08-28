@@ -801,3 +801,20 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
 .yt-admin-payment-amount{width:120px!important;min-width:110px!important;padding:9px 10px!important;border:1px solid #dbe1e8!important;border-radius:10px!important;background:#fff!important}
 .yt-payment-admin-note{margin-top:12px!important;padding:12px 14px!important;border-radius:12px!important;background:#eff6ff!important;color:#1e40af!important;font-size:12px!important;font-weight:750!important}
 @media(max-width:650px){.yt-request-payment-row{align-items:flex-start!important;flex-direction:column!important}.yt-payment-actions{justify-content:flex-start!important}}
+
+
+/* ===== SERVICE CMS + DIRECT PAYMENT ===== */
+.yt-service-admin-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:16px!important;margin-bottom:16px!important}
+.yt-admin-service-form,.yt-direct-payment-form{display:flex!important;flex-direction:column!important;gap:9px!important}
+.yt-admin-service-form input,.yt-admin-service-form textarea,.yt-direct-payment-form input,.yt-direct-payment-form select{
+  width:100%!important;border:1px solid #dbe1e8!important;border-radius:11px!important;padding:11px 12px!important;background:#fff!important
+}
+.yt-admin-service-form label,.yt-direct-payment-form label{font-size:12px!important;font-weight:800!important;color:#374151!important}
+.yt-inline-check{display:flex!important;align-items:center!important;gap:8px!important}
+.yt-inline-check input{width:auto!important}
+.yt-form-actions{display:flex!important;gap:9px!important;flex-wrap:wrap!important}
+.yt-service-action-cell{display:flex!important;gap:7px!important;flex-wrap:wrap!important}
+.yt-service-action-cell .yt-delete-service{border-color:#fecaca!important;color:#b91c1c!important}
+.yt-demo-service-cards button.selected{outline:2px solid #ef4444!important;transform:translateY(-1px)!important}
+.yt-service-loading{padding:18px!important;color:#6b7280!important}
+@media(max-width:850px){.yt-service-admin-grid{grid-template-columns:1fr!important}}

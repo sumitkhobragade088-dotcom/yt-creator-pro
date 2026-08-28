@@ -104,17 +104,13 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       <div class="yt-demo-section-head">
         <div><span>SERVICES</span><h2>Creator Services</h2><p>Select a service and submit a new request.</p></div>
       </div>
-      <div class="yt-demo-service-cards">
-        <button type="button" data-service-pick="Channel Management"><span>📺</span><b>Channel Management</b><small>Channel setup and management support</small></button>
-        <button type="button" data-service-pick="Monetization Help"><span>💰</span><b>Monetization Help</b><small>Eligibility and monetization assistance</small></button>
-        <button type="button" data-service-pick="AdSense Assistance"><span>💳</span><b>AdSense Assistance</b><small>AdSense setup and support</small></button>
+      <div class="yt-demo-service-cards" id="userServiceCatalog">
+        <div class="yt-service-loading">Loading services...</div>
       </div>
       <div class="yt-demo-content-card yt-demo-service-submit">
         <label>Selected Service</label>
         <select id="userServiceType">
-          <option>Channel Management</option>
-          <option>Monetization Help</option>
-          <option>AdSense Assistance</option>
+          <option value="">Select Service</option>
         </select>
         <button id="submitUserServiceRequest" class="yt-user-red-btn" type="button">Submit Request</button>
         <p id="userServiceRequestMessage"></p>

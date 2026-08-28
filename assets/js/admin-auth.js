@@ -63,19 +63,22 @@ async function loadAdminDashboard(){
   }
   setText("adminEmailView", user.email || "");
 
-  const [cRes,aRes,rRes,pRes] = await Promise.all([
+  const [cRes,aRes,rRes,pRes,sRes] = await Promise.all([
     supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at").order("created_at",{ascending:false}),
     supabase.from("channel_access").select("*").order("updated_at",{ascending:false}),
     supabase.from("service_requests").select("*").order("created_at",{ascending:false}),
-    supabase.from("payments").select("*").order("created_at",{ascending:false})
+    supabase.from("payments").select("*").order("created_at",{ascending:false}),
+    supabase.from("service_catalog").select("*").order("sort_order",{ascending:true}).order("name",{ascending:true})
   ]);
 
   const customers=cRes.data||[];
   const access=aRes.data||[];
   const requests=rRes.data||[];
   const payments=pRes.data||[];
+  const services=sRes.data||[];
   if(pRes.error) console.error("Payments:",pRes.error);
-  dashboardCache={customers,access,requests,payments};
+  if(sRes.error) console.error("Service catalog:",sRes.error);
+  dashboardCache={customers,access,requests,payments,services};
 
   const customerMap=new Map(customers.map(c=>[c.id,c]));
   const connected=access.filter(a=>a.google_connected);
@@ -106,13 +109,15 @@ async function loadAdminDashboard(){
   setText("accessSectionCount",access.length);
   setText("monetizationSectionCount",monetizationCases.length);
   setText("adsenseSectionCount",adsenseLinked.length);
-  setText("servicesSectionCount",requests.length);
+  setText("servicesSectionCount",services.length);
 
   renderCustomers(customers);
   renderChannels(customers,access);
   renderAccess(customerMap,access);
   renderMonetization(customerMap,access);
   renderAdsense(customerMap,access);
+  renderServiceCatalog(services);
+  setupDirectPayment(customers,services);
   renderServices(requests,payments,customerMap);
   renderHistory(customers,access,requests,customerMap);
   renderAdminManage(customerMap,access);
@@ -191,6 +196,153 @@ function renderAdsense(customerMap,rows){
     </tr>`;
   }).join(""):'<tr><td colspan="5">No AdSense records.</td></tr>';
 }
+
+
+function moneyINR(n){
+  return `₹${Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+}
+
+function resetServiceEditor(){
+  if($("adminServiceId")) $("adminServiceId").value="";
+  if($("adminServiceName")) $("adminServiceName").value="";
+  if($("adminServiceDescription")) $("adminServiceDescription").value="";
+  if($("adminServicePrice")) $("adminServicePrice").value="";
+  if($("adminServiceActive")) $("adminServiceActive").checked=true;
+  if($("adminServiceMessage")) $("adminServiceMessage").textContent="";
+}
+
+function renderServiceCatalog(rows=[]){
+  setText("serviceCatalogCount",rows.length);
+  const body=$("serviceCatalogBody"); if(!body) return;
+  body.innerHTML=rows.length?rows.map(s=>`
+    <tr>
+      <td><b>${esc(s.name||"Service")}</b></td>
+      <td>${esc(s.description||"-")}</td>
+      <td>${moneyINR(s.price||0)}</td>
+      <td>${s.is_active?'<span class="yt-status-chip good">Active</span>':'<span class="yt-status-chip pending">Inactive</span>'}</td>
+      <td class="yt-service-action-cell">
+        <button class="btn yt-edit-service" type="button" data-id="${esc(s.id)}">Edit</button>
+        <button class="btn yt-delete-service" type="button" data-id="${esc(s.id)}">Delete</button>
+      </td>
+    </tr>
+  `).join(""):'<tr><td colspan="5">No services yet.</td></tr>';
+
+  body.querySelectorAll(".yt-edit-service").forEach(btn=>btn.addEventListener("click",()=>{
+    const s=rows.find(x=>String(x.id)===String(btn.dataset.id)); if(!s)return;
+    $("adminServiceId").value=s.id;
+    $("adminServiceName").value=s.name||"";
+    $("adminServiceDescription").value=s.description||"";
+    $("adminServicePrice").value=Number(s.price||0);
+    $("adminServiceActive").checked=!!s.is_active;
+    $("adminServiceName").focus();
+  }));
+
+  body.querySelectorAll(".yt-delete-service").forEach(btn=>btn.addEventListener("click",async()=>{
+    const s=rows.find(x=>String(x.id)===String(btn.dataset.id)); if(!s)return;
+    if(!confirm(`Delete service "${s.name}"?`))return;
+    const {error}=await supabase.from("service_catalog").delete().eq("id",s.id);
+    if(error){alert(error.message);return;}
+    await loadAdminDashboard();
+  }));
+}
+
+function setupDirectPayment(customers=[],services=[]){
+  const customerSelect=$("directPaymentCustomer");
+  const serviceSelect=$("directPaymentService");
+  if(customerSelect){
+    const current=customerSelect.value;
+    customerSelect.innerHTML='<option value="">Select Customer</option>'+customers.map(c=>
+      `<option value="${esc(c.id)}">${esc(c.full_name||c.email||"Customer")} ${c.email?`(${esc(c.email)})`:""}</option>`
+    ).join("");
+    if(current) customerSelect.value=current;
+  }
+  if(serviceSelect){
+    const current=serviceSelect.value;
+    serviceSelect.innerHTML='<option value="">Select Service</option>'+services.filter(s=>s.is_active).map(s=>
+      `<option value="${esc(s.id)}" data-price="${Number(s.price||0)}">${esc(s.name||"Service")}${Number(s.price)>0?` — ${moneyINR(s.price)}`:""}</option>`
+    ).join("");
+    if(current) serviceSelect.value=current;
+
+    if(!serviceSelect.dataset.priceBound){
+      serviceSelect.dataset.priceBound="1";
+      serviceSelect.addEventListener("change",()=>{
+        const opt=serviceSelect.options[serviceSelect.selectedIndex];
+        const price=Number(opt?.dataset?.price||0);
+        if(price>0 && $("directPaymentAmount")) $("directPaymentAmount").value=price.toFixed(2);
+      });
+    }
+  }
+}
+
+if($("saveAdminService")) $("saveAdminService").onclick=async()=>{
+  const id=$("adminServiceId")?.value||"";
+  const name=$("adminServiceName")?.value.trim()||"";
+  const description=$("adminServiceDescription")?.value.trim()||"";
+  const price=Number($("adminServicePrice")?.value||0);
+  const is_active=!!$("adminServiceActive")?.checked;
+  const msg=$("adminServiceMessage");
+  if(!name){if(msg)msg.textContent="Service name required.";return;}
+  if(!Number.isFinite(price)||price<0){if(msg)msg.textContent="Valid price enter karo.";return;}
+  const payload={name,description,price:Number(price.toFixed(2)),is_active,updated_at:new Date().toISOString()};
+  const result=id
+    ? await supabase.from("service_catalog").update(payload).eq("id",id)
+    : await supabase.from("service_catalog").insert(payload);
+  if(result.error){if(msg)msg.textContent=result.error.message;return;}
+  if(msg)msg.textContent=id?"Service updated ✅":"Service added ✅";
+  resetServiceEditor();
+  await loadAdminDashboard();
+};
+
+if($("cancelAdminServiceEdit")) $("cancelAdminServiceEdit").onclick=resetServiceEditor;
+
+if($("createDirectPayment")) $("createDirectPayment").onclick=async()=>{
+  const btn=$("createDirectPayment");
+  const msg=$("directPaymentMessage");
+  const customer_id=$("directPaymentCustomer")?.value||"";
+  const service_id=$("directPaymentService")?.value||"";
+  const amount=Number($("directPaymentAmount")?.value||0);
+  const services=dashboardCache.services||[];
+  const service=services.find(s=>String(s.id)===String(service_id));
+  if(!customer_id){if(msg)msg.textContent="Customer select karo.";return;}
+  if(!service){if(msg)msg.textContent="Service select karo.";return;}
+  if(!Number.isFinite(amount)||amount<=0){if(msg)msg.textContent="Valid amount enter karo.";return;}
+
+  btn.disabled=true;
+  if(msg)msg.textContent="Creating...";
+
+  const {data:req,error:reqErr}=await supabase.from("service_requests").insert({
+    customer_id,
+    service_type:service.name,
+    status:"payment_pending"
+  }).select("id").single();
+
+  if(reqErr){
+    btn.disabled=false;
+    if(msg)msg.textContent=reqErr.message;
+    return;
+  }
+
+  const {error:payErr}=await supabase.from("payments").insert({
+    customer_id,
+    request_id:req.id,
+    service_name:service.name,
+    amount:Number(amount.toFixed(2)),
+    currency:"INR",
+    status:"pending"
+  });
+
+  if(payErr){
+    await supabase.from("service_requests").delete().eq("id",req.id);
+    btn.disabled=false;
+    if(msg)msg.textContent=payErr.message;
+    return;
+  }
+
+  btn.disabled=false;
+  if(msg)msg.textContent="Direct payment created ✅ User ke My Requests me Pay Now aayega.";
+  if($("directPaymentAmount")) $("directPaymentAmount").value="";
+  await loadAdminDashboard();
+};
 
 function renderServices(rows,payments=[],customerMap=new Map()){
   const body=$("serviceRequestsBody"); if(!body) return;

@@ -184,8 +184,48 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
     </section>
 
     <section class="yt-premium-view" id="view-services">
-      <div class="yt-premium-section-head"><div><span>SERVICES + PAYMENT</span><h2>Services</h2><p>Service request aur PayU payment invoice ek hi jagah.</p></div><b id="servicesSectionCount">0</b></div>
-      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+      <div class="yt-premium-section-head"><div><span>SERVICES + PAYMENT</span><h2>Services</h2><p>Service add/edit/delete aur customer ko direct PayU payment assign karein.</p></div><b id="servicesSectionCount">0</b></div>
+
+      <div class="yt-service-admin-grid">
+        <div class="panel yt-premium-panel yt-admin-service-form">
+          <div class="yt-manager-head"><div><h3>Add / Edit Service</h3><p>Active services user dashboard me automatically dikhenge.</p></div></div>
+          <input id="adminServiceId" type="hidden">
+          <label>Service Name</label>
+          <input id="adminServiceName" type="text" placeholder="Example: Channel Audit">
+          <label>Description</label>
+          <textarea id="adminServiceDescription" rows="3" placeholder="Short service description"></textarea>
+          <label>Default Price (₹)</label>
+          <input id="adminServicePrice" type="number" min="0" step="0.01" placeholder="0">
+          <label class="yt-inline-check"><input id="adminServiceActive" type="checkbox" checked> Active</label>
+          <div class="yt-form-actions">
+            <button id="saveAdminService" class="btn primary" type="button">Save Service</button>
+            <button id="cancelAdminServiceEdit" class="btn" type="button">Clear</button>
+          </div>
+          <p id="adminServiceMessage"></p>
+        </div>
+
+        <div class="panel yt-premium-panel yt-direct-payment-form">
+          <div class="yt-manager-head"><div><h3>Direct Payment</h3><p>Customer request ke bina direct service + amount assign karein.</p></div></div>
+          <label>Customer</label>
+          <select id="directPaymentCustomer"><option value="">Select Customer</option></select>
+          <label>Service</label>
+          <select id="directPaymentService"><option value="">Select Service</option></select>
+          <label>Amount (₹)</label>
+          <input id="directPaymentAmount" type="number" min="1" step="0.01" placeholder="Amount">
+          <button id="createDirectPayment" class="btn primary" type="button">Create Direct Payment</button>
+          <p id="directPaymentMessage"></p>
+        </div>
+      </div>
+
+      <div class="panel yt-premium-panel">
+        <div class="yt-manager-head"><div><h3>Service Catalog</h3><p>Existing services manage karein.</p></div><b id="serviceCatalogCount">0</b></div>
+        <div class="yt-table-scroll">
+          <table class="data-table"><thead><tr><th>Service</th><th>Description</th><th>Price</th><th>Status</th><th>Action</th></tr></thead>
+          <tbody id="serviceCatalogBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+        </div>
+      </div>
+
+      <div class="panel yt-premium-panel"><div class="yt-manager-head"><div><h3>Requests & Payments</h3><p>User requests aur direct assigned payments.</p></div></div><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Status</th><th>Payment</th><th>Amount</th><th>Action</th><th>Date</th></tr></thead>
         <tbody id="serviceRequestsBody"><tr><td colspan="7">Loading...</td></tr></tbody></table>
       </div></div>
