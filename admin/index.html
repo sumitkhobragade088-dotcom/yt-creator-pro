@@ -7,6 +7,13 @@
 <title>Admin Dashboard | YT Creator Pro</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="../assets/css/style.css">
+<style>
+html.yt-admin-boot body{visibility:hidden!important}
+</style>
+<script>
+document.documentElement.classList.add("yt-admin-boot");
+window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot"),1500);
+</script>
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -212,14 +219,6 @@
 
 
       <div id="manageWorkspace" class="yt-manage-inline-workspace" hidden>
-        <div class="yt-manage-tabs" id="ytManageTabs">
-          <button type="button" class="active" data-manage-tab="channel">Channel</button>
-          <button type="button" data-manage-tab="content">Content</button>
-          <button type="button" data-manage-tab="analytics">Analytics</button>
-          <button type="button" data-manage-tab="copyright">Copyright</button>
-          <button type="button" data-manage-tab="playlists">Playlists</button>
-          <button type="button" data-manage-tab="settings">Settings</button>
-        </div>
         <div class="yt-manage-inline-titlebar">
           <div>
             <span>FULL CHANNEL MANAGEMENT</span>
@@ -531,5 +530,29 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 
 <script type="module" src="../assets/js/admin-auth.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
+
+<script>
+(function(){
+  const saved=sessionStorage.getItem("yt_admin_view")||"dashboard";
+  if(typeof showPremiumAdminView==="function" && document.getElementById(`view-${saved}`)){
+    showPremiumAdminView(saved);
+  }else{
+    document.querySelectorAll(".yt-premium-view").forEach(v=>v.classList.remove("active"));
+    document.querySelectorAll(".yt-premium-nav-btn").forEach(b=>b.classList.remove("active"));
+    document.getElementById(`view-${saved}`)?.classList.add("active");
+    document.querySelector(`.yt-premium-nav-btn[data-view="${saved}"]`)?.classList.add("active");
+    const titles={
+      dashboard:"Dashboard",customers:"Users / Customers",channels:"YouTube Channels",manage:"Manage Channel",
+      access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",
+      copyright:"Copyright / Restrictions",services:"Services",history:"History",cms:"Admin Dashboard CMS",
+      editor:"Admin Editor",settings:"Settings"
+    };
+    const title=document.getElementById("adminPageTitle");
+    if(title)title.textContent=titles[saved]||"Dashboard";
+  }
+  requestAnimationFrame(()=>document.documentElement.classList.remove("yt-admin-boot"));
+})();
+</script>
+
 </body>
 </html>

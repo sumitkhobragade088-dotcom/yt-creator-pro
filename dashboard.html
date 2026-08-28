@@ -7,6 +7,13 @@
 <title>Creator Dashboard | YT Creator Pro</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="assets/css/style.css">
+<style>
+html.yt-user-boot body{visibility:hidden!important}
+</style>
+<script>
+document.documentElement.classList.add("yt-user-boot");
+window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),1500);
+</script>
 </head>
 
 <body id="creatorDashboard" class="yt-user-dashboard-page">
@@ -261,13 +268,11 @@ document.getElementById("userServiceSearchBtn")?.addEventListener("click",()=>{
   openUserView("requests");
 });
 </script>
-
 <script>
 document.addEventListener("DOMContentLoaded",()=>{
-  const saved=sessionStorage.getItem("yt_user_view");
-  if(saved && document.getElementById(`user-view-${saved}`)){
-    setTimeout(()=>openUserView(saved),0);
-  }
+  const saved=sessionStorage.getItem("yt_user_view")||"dashboard";
+  if(document.getElementById(`user-view-${saved}`)) openUserView(saved);
+  document.documentElement.classList.remove("yt-user-view-restoring");
 });
 </script>
 
@@ -290,4 +295,26 @@ document.getElementById("installUserDashboardApp")?.addEventListener("click",asy
 });
 if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").catch(()=>{}); }
 </script>
+
+<script>
+(function(){
+  const saved=sessionStorage.getItem("yt_user_view")||"dashboard";
+  if(typeof openUserView==="function" && document.getElementById(`user-view-${saved}`)){
+    openUserView(saved);
+  }else{
+    document.querySelectorAll(".yt-user-view").forEach(v=>v.classList.remove("active"));
+    document.querySelectorAll("[data-user-view]").forEach(b=>b.classList.remove("active"));
+    document.getElementById(`user-view-${saved}`)?.classList.add("active");
+    document.querySelectorAll(`[data-user-view="${saved}"]`).forEach(b=>b.classList.add("active"));
+    const titles={
+      dashboard:"Dashboard",services:"Services",requests:"My Requests",channel:"YouTube Channel",
+      access:"Channel Access",monetization:"Monetization",adsense:"AdSense",profile:"My Profile"
+    };
+    const title=document.getElementById("userDashboardTitle");
+    if(title)title.textContent=titles[saved]||"Dashboard";
+  }
+  requestAnimationFrame(()=>document.documentElement.classList.remove("yt-user-boot"));
+})();
+</script>
+
 </body>
