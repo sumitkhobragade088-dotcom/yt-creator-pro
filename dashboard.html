@@ -33,6 +33,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       <button class="active" data-user-view="dashboard">🏠 <span>Dashboard</span></button>
       <button data-user-view="services">🛠️ <span>Services</span></button>
       <button data-user-view="requests">📋 <span>My Requests</span></button>
+      <button data-user-view="payments">💳 <span>Payments</span></button>
       <button data-user-view="channel">📺 <span>YouTube Channel</span></button>
       <button data-user-view="access">🔐 <span>Channel Access</span></button>
       <button data-user-view="monetization">💰 <span>Monetization</span></button>
@@ -112,7 +113,8 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
         <select id="userServiceType">
           <option value="">Select Service</option>
         </select>
-        <button id="submitUserServiceRequest" class="yt-user-red-btn" type="button">Submit Request</button>
+        <button id="submitUserServiceRequestLegacy" type="button" hidden></button>
+        <button id="submitPaidServiceRequest" class="yt-user-red-btn" type="button">Submit Request & Pay</button>
         <p id="userServiceRequestMessage"></p>
       </div>
     </section>
@@ -123,7 +125,17 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       </div>
       <div id="userPaymentResult" class="yt-payment-result" hidden></div>
       <div class="yt-demo-content-card">
-        <div id="requestList">Loading...</div>
+        <div id="paidRequestList">Loading...</div>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-payments">
+      <div class="yt-demo-section-head">
+        <div><span>PAYMENTS</span><h2>My Payments</h2><p>Payment status, amount and retry actions.</p></div>
+      </div>
+      <div id="userPaymentResultNew" class="yt-payment-result" hidden></div>
+      <div class="yt-demo-content-card">
+        <div id="userPaymentsList">Loading payments...</div>
       </div>
     </section>
 
@@ -269,6 +281,7 @@ document.addEventListener("DOMContentLoaded",()=>{
 </script>
 
 <script type="module" src="assets/js/auth.js"></script>
+<script type="module" src="assets/js/service-payment-flow.js"></script>
 <script type="module" src="assets/js/google-youtube.js"></script>
 <script>
 let dashboardInstallPrompt=null;
@@ -299,7 +312,7 @@ if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").
     document.getElementById(`user-view-${saved}`)?.classList.add("active");
     document.querySelectorAll(`[data-user-view="${saved}"]`).forEach(b=>b.classList.add("active"));
     const titles={
-      dashboard:"Dashboard",services:"Services",requests:"My Requests",channel:"YouTube Channel",
+      dashboard:"Dashboard",services:"Services",requests:"My Requests",payments:"Payments",channel:"YouTube Channel",
       access:"Channel Access",monetization:"Monetization",adsense:"AdSense",profile:"My Profile"
     };
     const title=document.getElementById("userDashboardTitle");

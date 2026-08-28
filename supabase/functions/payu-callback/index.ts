@@ -43,7 +43,7 @@ Deno.serve(async (req) => {
     const raw: Record<string,string> = {};
     p.forEach((v,k)=>{ raw[k]=v; });
     await admin.from("payments").update({
-      status: ok ? "paid" : "failed",
+      status: ok ? "paid" : ((get(p,"error_Message") || get(p,"error") || "").toLowerCase().includes("cancel") ? "cancelled" : "failed"),
       mihpayid:get(p,"mihpayid") || null,
       payment_mode:get(p,"mode") || null,
       error_message: ok ? null : (get(p,"error_Message") || get(p,"error") || "Payment failed"),

@@ -835,3 +835,9 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
 
 .yt-danger-outline{border-color:#f04438!important;color:#b42318!important;background:#fff!important}
 .yt-danger-outline:hover{background:#fff1f0!important}
+
+/* Paid request + payment flow */
+.yt-request-status{display:inline-flex;padding:6px 10px;border-radius:999px;font-weight:800;text-transform:capitalize;background:#f2f4f7}
+.yt-request-status.completed{background:#ecfdf3}.yt-request-status.rejected{background:#fef3f2}
+#adminUserRequestsBody select{min-width:120px;padding:8px;border:1px solid #d0d5dd;border-radius:8px;background:#fff}
+.yt-mini-action{margin-left:6px;padding:8px 10px;border:0;border-radius:8px;font-weight:800;cursor:pointer}
