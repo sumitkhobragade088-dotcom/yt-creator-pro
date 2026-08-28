@@ -169,14 +169,11 @@ function renderAccess(customer, access) {
 async function loadDashboard() {
   if (!$("creatorDashboard")) return;
 
-  let user;
-  try {
-    const result = await timeout(supabase.auth.getUser(), 8000, "Session");
-    user = result?.data?.user;
-  } catch (e) {
-    console.error(e);
-    return location.href = "login.html";
-  }
+  // Read the already-persisted Supabase session locally.
+  // Do NOT call getUser() here: it makes another network request and was
+  // causing a valid fresh login to be sent back to login when that request was slow.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData?.session?.user || null;
   if (!user) return location.href = "login.html";
 
   setText("userEmail", user.email || "");

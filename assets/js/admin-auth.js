@@ -74,11 +74,11 @@ let dashboardCache={customers:[],access:[],requests:[]};
 async function loadAdminDashboard(){
   if (!document.body.dataset.adminProtected) return;
 
-  let user=null;
-  try{
-    const uRes=await withTimeout(supabase.auth.getUser(),8000,"Admin session");
-    user=uRes?.data?.user||null;
-  }catch(e){console.error(e);}
+  // Use the persisted local session after login.
+  // Avoid getUser() here because its extra network round-trip could time out
+  // and incorrectly throw a freshly authenticated admin back to login.
+  const { data: sessionData } = await supabase.auth.getSession();
+  const user = sessionData?.session?.user || null;
   if (!(await isAdmin(user))) {
     location.href = "login.html";
     return;
