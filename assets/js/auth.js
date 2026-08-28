@@ -145,8 +145,6 @@ async function loadDashboard() {
 
     const statusEl = document.getElementById("youtubeConnectStatus");
     const connectBtn = document.getElementById("connectYouTubeBtn");
-    const deleteAccessBtn = document.getElementById("deleteChannelAccessBtn");
-    if (deleteAccessBtn) deleteAccessBtn.style.display = access ? "inline-flex" : "none";
 
     if (access) {
       const setText = (id, value) => {
@@ -361,59 +359,9 @@ async function loadDashboard() {
   }
 }
 
-
-window.deleteExistingChannelAccess = async () => {
-  const btn = document.getElementById("deleteChannelAccessBtn");
-  if (!confirm("Existing Channel Access delete karna hai? Google connection/token bhi remove hoga. Iske baad Reconnect YouTube karna padega.")) return;
-
-  if (btn) btn.disabled = true;
-  try {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session?.access_token) {
-      alert("Session expired. Login again.");
-      location.href = "login.html";
-      return;
-    }
-
-    const response = await fetch("https://ncxexmekzlrliicaqfcl.supabase.co/functions/v1/youtube-oauth", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer " + session.access_token,
-        "apikey": "sb_publishable_mayjwNbdFk6xltqcgbfLqA_dbTjSd7q"
-      },
-      body: JSON.stringify({ action: "disconnect" })
-    });
-
-    const result = await response.json().catch(() => ({}));
-    if (!response.ok || !result.success) {
-      throw new Error(result.details || result.error || "Channel Access delete failed");
-    }
-
-    sessionStorage.removeItem("yt_pkce_verifier");
-    sessionStorage.removeItem("yt_oauth_state");
-    sessionStorage.removeItem("yt_oauth_redirect_uri");
-    alert("Existing Channel Access deleted ✅ Ab Reconnect YouTube karo.");
-    location.reload();
-  } catch (e) {
-    alert(e?.message || "Channel Access delete failed");
-  } finally {
-    if (btn) btn.disabled = false;
-  }
-};
-
 window.logoutCreator = async () => {
-  try {
-    await supabase.auth.signOut();
-  } catch (e) {
-    console.error("Logout:", e);
-  } finally {
-    sessionStorage.removeItem("yt_user_view");
-    sessionStorage.removeItem("yt_pkce_verifier");
-    sessionStorage.removeItem("yt_oauth_state");
-    sessionStorage.removeItem("yt_oauth_redirect_uri");
-    location.replace(new URL("login.html", location.href).href);
-  }
+  await supabase.auth.signOut();
+  location.href = "login.html";
 };
 
 window.copyManager = async () => {
