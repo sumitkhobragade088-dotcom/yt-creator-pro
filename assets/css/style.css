@@ -780,7 +780,24 @@ body header{margin-left:250px}
 #view-manage .yt-admin-sidebar,#view-manage header{display:none!important}
 .yt-manage-list-compact{margin-bottom:10px!important}
 
-/* TARGETED FIX: Manage Channel section tabs */
-.yt-manage-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px;padding:10px;background:#fff;border:1px solid #e5eaf2;border-radius:14px;position:sticky;top:0;z-index:5}
-.yt-manage-tabs button{border:1px solid #dbe2ea;background:#f8fafc;color:#334155;border-radius:10px;padding:9px 13px;font-weight:850;cursor:pointer}
-.yt-manage-tabs button.active{background:#111d4f;color:#fff;border-color:#111d4f;box-shadow:0 6px 16px rgba(17,29,79,.16)}
+/* TARGETED FIX: no Dashboard flash during refresh restore */
+html.yt-admin-view-restoring .yt-premium-main{visibility:hidden!important}
+html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
+
+
+/* ===== PAYU PAYMENT – isolated additions only ===== */
+.yt-request-payment-row{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:14px!important;padding:14px 0!important;border-bottom:1px solid #eceff3!important}
+.yt-request-payment-row>div:first-child{display:flex!important;flex-direction:column!important;gap:4px!important}
+.yt-request-payment-row small{color:#6b7280!important}
+.yt-payment-actions{display:flex!important;align-items:center!important;gap:10px!important;flex-wrap:wrap!important;justify-content:flex-end!important}
+.yt-pay-chip{display:inline-flex!important;align-items:center!important;padding:7px 10px!important;border-radius:999px!important;font-size:11px!important;font-weight:850!important}
+.yt-pay-chip.waiting{background:#f3f4f6!important;color:#6b7280!important}
+.yt-pay-chip.pending{background:#fff7ed!important;color:#c2410c!important}
+.yt-pay-chip.paid{background:#ecfdf5!important;color:#047857!important}
+.yt-pay-now-btn{padding:9px 14px!important}
+.yt-payment-result{margin:0 0 14px!important;padding:13px 15px!important;border-radius:13px!important;font-weight:850!important}
+.yt-payment-result.success{background:#ecfdf5!important;color:#047857!important;border:1px solid #a7f3d0!important}
+.yt-payment-result.failed{background:#fff1f2!important;color:#be123c!important;border:1px solid #fecdd3!important}
+.yt-admin-payment-amount{width:120px!important;min-width:110px!important;padding:9px 10px!important;border:1px solid #dbe1e8!important;border-radius:10px!important;background:#fff!important}
+.yt-payment-admin-note{margin-top:12px!important;padding:12px 14px!important;border-radius:12px!important;background:#eff6ff!important;color:#1e40af!important;font-size:12px!important;font-weight:750!important}
+@media(max-width:650px){.yt-request-payment-row{align-items:flex-start!important;flex-direction:column!important}.yt-payment-actions{justify-content:flex-start!important}}

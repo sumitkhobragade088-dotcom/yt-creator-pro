@@ -63,16 +63,19 @@ async function loadAdminDashboard(){
   }
   setText("adminEmailView", user.email || "");
 
-  const [cRes,aRes,rRes] = await Promise.all([
+  const [cRes,aRes,rRes,pRes] = await Promise.all([
     supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at").order("created_at",{ascending:false}),
     supabase.from("channel_access").select("*").order("updated_at",{ascending:false}),
-    supabase.from("service_requests").select("*").order("created_at",{ascending:false})
+    supabase.from("service_requests").select("*").order("created_at",{ascending:false}),
+    supabase.from("payments").select("*").order("created_at",{ascending:false})
   ]);
 
   const customers=cRes.data||[];
   const access=aRes.data||[];
   const requests=rRes.data||[];
-  dashboardCache={customers,access,requests};
+  const payments=pRes.data||[];
+  if(pRes.error) console.error("Payments:",pRes.error);
+  dashboardCache={customers,access,requests,payments};
 
   const customerMap=new Map(customers.map(c=>[c.id,c]));
   const connected=access.filter(a=>a.google_connected);
@@ -110,7 +113,7 @@ async function loadAdminDashboard(){
   renderAccess(customerMap,access);
   renderMonetization(customerMap,access);
   renderAdsense(customerMap,access);
-  renderServices(requests);
+  renderServices(requests,payments,customerMap);
   renderHistory(customers,access,requests,customerMap);
   renderAdminManage(customerMap,access);
   renderAdminAnalytics(customerMap,access);
@@ -189,11 +192,64 @@ function renderAdsense(customerMap,rows){
   }).join(""):'<tr><td colspan="5">No AdSense records.</td></tr>';
 }
 
-function renderServices(rows){
+function renderServices(rows,payments=[],customerMap=new Map()){
   const body=$("serviceRequestsBody"); if(!body) return;
-  body.innerHTML=rows.length?rows.map(r=>`
-    <tr><td>${esc(r.service_type||"Service")}</td><td>${esc(r.status||"pending")}</td><td>${dateText(r.created_at)}</td></tr>
-  `).join(""):'<tr><td colspan="3">No service requests.</td></tr>';
+  const paymentByRequest=new Map((payments||[]).map(p=>[p.request_id,p]));
+  const money=n=>`₹${Number(n||0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+
+  body.innerHTML=rows.length?rows.map(r=>{
+    const c=customerMap.get(r.customer_id)||{};
+    const pay=paymentByRequest.get(r.id);
+    const paid=String(pay?.status||"").toLowerCase()==="paid";
+    return `<tr>
+      <td>${esc(c.full_name||c.email||"-")}</td>
+      <td><b>${esc(r.service_type||"Service")}</b></td>
+      <td>${esc(r.status||"pending")}</td>
+      <td>${pay ? (paid?'<span class="yt-status-chip good">Paid ✅</span>':`<span class="yt-status-chip pending">${esc(pay.status||"pending")}</span>`) : '<span class="yt-status-chip">Not Assigned</span>'}</td>
+      <td>${pay ? money(pay.amount) : `<input class="yt-admin-payment-amount" type="number" min="1" step="0.01" placeholder="₹ Amount" data-amount-for="${esc(r.id)}">`}</td>
+      <td>${paid ? '<span class="yt-status-chip good">Complete</span>' : `<button type="button" class="btn primary yt-create-payment-btn" data-request-id="${esc(r.id)}" data-payment-id="${esc(pay?.id||"")}">${pay?"Update Amount":"Create Payment"}</button>`}</td>
+      <td>${dateText(r.created_at)}</td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="7">No service requests.</td></tr>';
+
+  body.querySelectorAll(".yt-create-payment-btn").forEach(btn=>{
+    btn.addEventListener("click",async()=>{
+      const requestId=btn.dataset.requestId;
+      const existingId=btn.dataset.paymentId;
+      const req=rows.find(r=>String(r.id)===String(requestId));
+      const existing=paymentByRequest.get(req?.id);
+      let amount=existing?.amount;
+      if(!existingId){
+        const input=body.querySelector(`[data-amount-for="${CSS.escape(requestId)}"]`);
+        amount=Number(input?.value||0);
+      }else{
+        const raw=prompt("New payment amount (₹)",String(existing?.amount||""));
+        if(raw===null)return;
+        amount=Number(raw);
+      }
+      if(!Number.isFinite(amount)||amount<=0){ alert("Valid amount enter karo."); return; }
+
+      btn.disabled=true;
+      const payload={
+        customer_id:req.customer_id,
+        request_id:req.id,
+        amount:Number(amount.toFixed(2)),
+        currency:"INR",
+        status:"pending",
+        service_name:req.service_type||"Service"
+      };
+      let result;
+      if(existingId){
+        result=await supabase.from("payments").update({amount:payload.amount,service_name:payload.service_name,status:"pending"}).eq("id",existingId);
+      }else{
+        result=await supabase.from("payments").insert(payload);
+      }
+      btn.disabled=false;
+      if(result.error){ alert(result.error.message); return; }
+      alert(existingId?"Payment amount updated ✅":"Payment created ✅");
+      await loadAdminDashboard();
+    });
+  });
 }
 
 function renderHistory(customers,access,requests,customerMap){

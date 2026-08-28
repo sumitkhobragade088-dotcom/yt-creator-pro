@@ -184,11 +184,12 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
     </section>
 
     <section class="yt-premium-view" id="view-services">
-      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Sirf service request data.</p></div><b id="servicesSectionCount">0</b></div>
+      <div class="yt-premium-section-head"><div><span>SERVICES + PAYMENT</span><h2>Services</h2><p>Service request aur PayU payment invoice ek hi jagah.</p></div><b id="servicesSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Service</th><th>Status</th><th>Date</th></tr></thead>
-        <tbody id="serviceRequestsBody"><tr><td colspan="3">Loading...</td></tr></tbody></table>
+        <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Status</th><th>Payment</th><th>Amount</th><th>Action</th><th>Date</th></tr></thead>
+        <tbody id="serviceRequestsBody"><tr><td colspan="7">Loading...</td></tr></tbody></table>
       </div></div>
+      <div class="yt-payment-admin-note">PayU Key/Salt browser me save nahi hota. Secret sirf Supabase Edge Function Secrets me rahega.</div>
     </section>
 
     <section class="yt-premium-view" id="view-history">

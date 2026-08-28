@@ -192,20 +192,87 @@ async function loadDashboard() {
 
     const { data: reqs } = await supabase
       .from("service_requests")
-      .select("service_type,status,created_at")
+      .select("id,service_type,status,created_at")
       .eq("customer_id", customer.id)
       .order("created_at", { ascending: false });
+
+    const { data: payments, error: paymentsError } = await supabase
+      .from("payments")
+      .select("id,request_id,amount,currency,status,txnid,mihpayid,created_at,updated_at")
+      .eq("customer_id", customer.id)
+      .order("created_at", { ascending: false });
+    if (paymentsError) console.error(paymentsError);
+
+    const paymentByRequest = new Map((payments || []).map(p => [p.request_id, p]));
+    const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 
     const list = document.getElementById("requestList");
     if (list) {
       list.innerHTML = "";
       (reqs || []).forEach(r => {
+        const pay = paymentByRequest.get(r.id);
         const div = document.createElement("div");
-        div.className = "request-row";
-        div.innerHTML = `<b>${r.service_type || "Service"}</b><span>${r.status || "pending"}</span>`;
+        div.className = "request-row yt-request-payment-row";
+        const paymentUi = !pay
+          ? `<span class="yt-pay-chip waiting">Payment not assigned</span>`
+          : String(pay.status || "").toLowerCase() === "paid"
+            ? `<span class="yt-pay-chip paid">Paid ✅ ${money(pay.amount)}</span>`
+            : `<span class="yt-pay-chip pending">${money(pay.amount)} · ${pay.status || "pending"}</span>
+               <button type="button" class="yt-user-red-btn yt-pay-now-btn" data-payment-id="${pay.id}">Pay Now</button>`;
+        div.innerHTML = `<div><b>${r.service_type || "Service"}</b><small>${r.status || "pending"}</small></div><div class="yt-payment-actions">${paymentUi}</div>`;
         list.appendChild(div);
       });
       if (!reqs || reqs.length === 0) list.innerHTML = "<p>No service requests yet.</p>";
+
+      list.querySelectorAll("[data-payment-id]").forEach(btn => {
+        btn.addEventListener("click", async () => {
+          const paymentId = btn.dataset.paymentId;
+          btn.disabled = true;
+          const oldText = btn.textContent;
+          btn.textContent = "Opening PayU...";
+          try {
+            const { data, error } = await supabase.functions.invoke("payu-initiate", {
+              body: { payment_id: paymentId }
+            });
+            if (error) throw error;
+            if (!data?.endpoint || !data?.fields) throw new Error("Payment gateway response invalid.");
+
+            const form = document.createElement("form");
+            form.method = "POST";
+            form.action = data.endpoint;
+            form.style.display = "none";
+            Object.entries(data.fields).forEach(([name, value]) => {
+              const input = document.createElement("input");
+              input.type = "hidden";
+              input.name = name;
+              input.value = value ?? "";
+              form.appendChild(input);
+            });
+            document.body.appendChild(form);
+            form.submit();
+          } catch (err) {
+            alert(err?.message || "PayU payment start nahi hua.");
+            btn.disabled = false;
+            btn.textContent = oldText;
+          }
+        });
+      });
+    }
+
+    const params = new URLSearchParams(location.search);
+    const paymentResult = params.get("payment");
+    if (paymentResult) {
+      const box = document.getElementById("userPaymentResult");
+      if (box) {
+        box.hidden = false;
+        box.className = `yt-payment-result ${paymentResult === "success" ? "success" : "failed"}`;
+        box.textContent = paymentResult === "success"
+          ? "Payment successful ✅"
+          : "Payment failed / cancelled. Aap dobara Pay Now kar sakte hain.";
+      }
+      sessionStorage.setItem("yt_user_view","requests");
+      if (typeof openUserView === "function") openUserView("requests");
+      history.replaceState({}, "", "dashboard.html");
     }
 
     const renderFilteredRequests = (targetId, matchText) => {
