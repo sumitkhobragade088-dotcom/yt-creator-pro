@@ -1,16 +1,16 @@
-YT Creator Pro ⭐ — Secure Admin Build
+CACHE-BUST FINAL FIX
 
-Admin email:
-sumitkhobragade088@gmail.com
+Why the same old message was still visible:
+The browser/site was still loading the old cached assets/js/google-callback.js.
 
-Included:
-- Customer Supabase login/register
-- Protected /admin/ dashboard
-- Separate /admin/login.html
-- Admin role check through public.admin_users
-- Manager email updated everywhere
-- ADMIN-RLS.sql included for secure admin data access
+This patch avoids that completely:
+- google-callback.html now loads a NEW file:
+  assets/js/google-callback-fixed.js?v=20260828-1425
+- The new JS contains NO 30-second timeout and NO old timeout message.
 
-Next:
-Run ADMIN-RLS.sql in Supabase SQL Editor, then upload this build to GitHub.
-After that, test /admin/login.html.
+Upload BOTH files:
+1) google-callback.html
+2) assets/js/google-callback-fixed.js
+
+Do not delete other files.
+No Supabase redeploy needed for this patch.
