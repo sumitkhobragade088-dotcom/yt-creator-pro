@@ -63,12 +63,8 @@ async function run() {
   let response;
   let result = {};
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 30000);
-
     response = await fetch(FUNCTION_URL, {
       method: "POST",
-      signal: controller.signal,
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + session.access_token,
@@ -81,13 +77,10 @@ async function run() {
       })
     });
 
-    clearTimeout(timer);
     result = await response.json().catch(() => ({}));
   } catch (e) {
     title.textContent = "YouTube Connect Failed";
-    show(e?.name === "AbortError"
-      ? "Connection save timed out. Please reconnect once."
-      : "Could not reach YouTube connection backend: " + (e?.message || e));
+    show("Could not reach YouTube connection backend: " + (e?.message || e));
     return;
   }
 
