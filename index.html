@@ -20,7 +20,7 @@
     <a href="#services">Services</a>
     <a href="login.html">Login</a>
     <a class="register" href="register.html">Register</a>
-  <button id="installUserAppTop" class="yt-user-nav-install" type="button">📱 Install App</button></nav>
+</nav>
 </header>
 
 <main class="yt-user-public-main">
@@ -32,7 +32,6 @@
       <div class="yt-user-home-actions">
         <a class="yt-user-red-btn" href="register.html">▶ Get Started</a>
         <a class="yt-user-outline-btn" href="login.html">Login</a>
-        <button id="installUserApp" class="yt-user-install-btn" type="button">📱 Install App</button>
       </div>
       <div class="yt-user-trust-row">
         <span>🔐 Secure Access</span><span>📺 Channel Support</span><span>💰 Monetization</span>
@@ -72,41 +71,9 @@
 </main>
 
 
-<div id="userInstallBanner" class="yt-user-install-banner" hidden>
-  <div><b>📱 Install YT Creator Pro App</b><span>App ko phone/home screen par install karein.</span></div>
-  <button id="installUserAppBanner" type="button">Install App</button>
-  <button id="closeUserInstallBanner" class="close" type="button">×</button>
-</div>
-
 <footer class="yt-user-public-footer">Independent creator support service. Not affiliated with or endorsed by YouTube or Google.</footer>
 
 <script>
-let userInstallPrompt=null;
-window.addEventListener("beforeinstallprompt",e=>{
-  e.preventDefault();
-  userInstallPrompt=e;
-  document.getElementById("installUserApp")?.classList.add("ready");
-  document.getElementById("userInstallBanner")?.removeAttribute("hidden");
-});
-async function runUserInstall(){
-  if(userInstallPrompt){
-    userInstallPrompt.prompt();
-    await userInstallPrompt.userChoice;
-    userInstallPrompt=null;
-    document.getElementById("userInstallBanner")?.setAttribute("hidden","");
-  }else{
-    alert("Chrome menu → Add to Home screen / Install app use karein.");
-  }
-}
-document.getElementById("installUserApp")?.addEventListener("click",runUserInstall);
-
-document.getElementById("installUserAppTop")?.addEventListener("click",runUserInstall);
-
-document.getElementById("installUserAppBanner")?.addEventListener("click",runUserInstall);
-document.getElementById("closeUserInstallBanner")?.addEventListener("click",()=>document.getElementById("userInstallBanner")?.setAttribute("hidden",""));
-if(new URLSearchParams(location.search).get("install")==="1"){
-  document.getElementById("userInstallBanner")?.removeAttribute("hidden");
-}
 if("serviceWorker" in navigator){
   window.addEventListener("load",()=>navigator.serviceWorker.register("app-sw.js").catch(console.error));
 }
