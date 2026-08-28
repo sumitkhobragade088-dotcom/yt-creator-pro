@@ -207,19 +207,19 @@ async function loadDashboard() {
 
     const catalog = document.getElementById("userServiceCatalog");
     const serviceSelect = document.getElementById("userServiceType");
-    const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+    const serviceMoney = (n) => `₹${Number(n || 0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
 
     if (catalog && serviceSelect) {
       const rows = activeServices || [];
       serviceSelect.innerHTML = '<option value="">Select Service</option>' + rows.map(s =>
-        `<option value="${String(s.service_name||"").replaceAll('"',"&quot;")}">${s.service_name} — ${money(s.charge)}</option>`
+        `<option value="${String(s.service_name||"").replaceAll('"',"&quot;")}">${s.service_name} — ${serviceMoney(s.charge)}</option>`
       ).join("");
 
       catalog.innerHTML = rows.length ? rows.map(s => `
         <button type="button" data-service-pick="${String(s.service_name||"").replaceAll('"',"&quot;")}">
           <span>▶️</span>
           <b>${s.service_name || "Service"}</b>
-          <small>${s.description || "Creator service"} · <strong>${money(s.charge)}</strong></small>
+          <small>${s.description || "Creator service"} · <strong>${serviceMoney(s.charge)}</strong></small>
         </button>
       `).join("") : '<div class="yt-service-loading">No active services available.</div>';
 
