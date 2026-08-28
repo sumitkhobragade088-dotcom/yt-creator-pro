@@ -30,7 +30,6 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
     <nav class="yt-premium-nav">
       <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
       <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
-      <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
       <button class="yt-premium-nav-btn" data-view="manage">🎛️ <span>Manage Channel</span></button>
       <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
@@ -154,17 +153,6 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       </div></div>
     </section>
 
-    <section class="yt-premium-view" id="view-user-requests">
-      <div class="yt-premium-section-head">
-        <div><span>USER REQUESTS</span><h2>User Requests</h2><p>Paid customer requests and processing controls.</p></div>
-        <b id="userRequestsCount">0</b>
-      </div>
-      <div class="yt-premium-table-wrap"><table>
-        <thead><tr><th>Customer</th><th>Service</th><th>Payment</th><th>Request Status</th><th>Date</th><th>Action</th></tr></thead>
-        <tbody id="adminUserRequestsBody"><tr><td colspan="6">Loading...</td></tr></tbody>
-      </table></div>
-    </section>
-
     <section class="yt-premium-view" id="view-channels">
       <div class="yt-premium-section-head"><div><span>CHANNELS</span><h2>YouTube Channels</h2><p>Sirf connected channel data.</p></div><b id="channelsSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
@@ -198,10 +186,11 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
     </section>
 
     <section class="yt-premium-view" id="view-services">
-      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Available service list only.</p></div><b id="servicesCatalogCount">0</b></div>
-      <div class="yt-premium-table-wrap"><table><thead><tr><th>Service</th><th>Charge</th><th>Status</th></tr></thead>
-        <tbody id="adminServicesCatalogBody"><tr><td colspan="3">Loading...</td></tr></tbody></table>
-      </div>
+      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Customer service requests only.</p></div><b id="servicesSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Status</th><th>Date</th></tr></thead>
+        <tbody id="serviceRequestsBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
+      </div></div>
     </section>
 
     <section class="yt-premium-view" id="view-payments">
@@ -618,7 +607,6 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 </script>
 
 <script type="module" src="../assets/js/admin-auth.js"></script>
-<script type="module" src="../assets/js/admin-request-payment-flow.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 
 <script>
@@ -637,7 +625,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
     document.getElementById(`view-${saved}`)?.classList.add("active");
     document.querySelector(`.yt-premium-nav-btn[data-view="${saved}"]`)?.classList.add("active");
     const titles={
-      dashboard:"Dashboard",customers:"Users / Customers","user-requests":"User Requests",channels:"YouTube Channels",manage:"Manage Channel",
+      dashboard:"Dashboard",customers:"Users / Customers",channels:"YouTube Channels",manage:"Manage Channel",
       access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",
       copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS",
       editor:"Admin Editor",settings:"Settings"
