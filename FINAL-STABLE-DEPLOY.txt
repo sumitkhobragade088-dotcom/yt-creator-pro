@@ -1,0 +1,33 @@
+YT CREATOR PRO — FINAL STABLE RESULT
+
+FIXED
+- Admin Login: no admin_users query blocking the login screen.
+- User Login: profile/database query no longer blocks successful login.
+- Login/auth calls have hard timeouts; no endless “Signing in...” / “Checking admin account...”.
+- Dashboard tables/cards start with real defaults / no-data text, not stuck “Loading...”.
+- Admin startup only loads core dashboard data. Payments, Service Charge, Services and User Requests are lazy-loaded when opened.
+- User startup only loads profile + channel access. Services, Requests and Payments load only when opened.
+- Manage Channel backend calls have a 20-second timeout instead of endless waiting.
+
+REQUEST/PAYMENT FLOW
+- User sidebar includes Payments.
+- Services -> Submit Request -> PayU.
+- Before payment the internal request status is payment_pending and is hidden from My Requests/Admin User Requests.
+- PayU verified success sets payment=paid and request=pending.
+- My Requests shows only paid requests.
+- Payments shows Pending / Failed / Cancelled / Success and retry/pay-again actions.
+- Admin sidebar has User Requests directly below Users / Customers.
+- Admin User Requests: Pending / Processing / On Hold / Completed / Rejected.
+- Admin Services = service list only.
+- Admin Payments / PayU = payment status/transactions only.
+- Service Charge keeps Add/Edit/Update/Delete + Active/Inactive.
+
+DEPLOY
+1. Upload this FULL ZIP to the GitHub Pages repo and replace matching files.
+2. Supabase SQL Editor: run FINAL-STABILITY-PAID-REQUESTS.sql once.
+3. Redeploy ONLY the payu-callback Edge Function.
+4. Do NOT redeploy youtube-oauth or youtube-manage.
+5. Do NOT change Google OAuth, PayU secrets, SITE_URL, or custom domain.
+
+IMPORTANT
+- Set a charge greater than ₹0 in Admin -> Service Charge before testing a paid service.

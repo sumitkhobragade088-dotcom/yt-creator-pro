@@ -835,3 +835,9 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
 
 .yt-danger-outline{border-color:#f04438!important;color:#b42318!important;background:#fff!important}
 .yt-danger-outline:hover{background:#fff1f0!important}
+
+/* Final stability/payment request controls */
+#userRequestsBody select{min-width:122px;padding:8px;border:1px solid #d0d5dd;border-radius:8px;background:#fff}
+#userRequestsBody .btn{margin-left:6px}
+.yt-request-payment-row{gap:12px}
+.yt-payment-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}

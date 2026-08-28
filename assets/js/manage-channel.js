@@ -7,7 +7,7 @@ let activeContentTab="video";
 let uploadBusy=false;
 const $=id=>document.getElementById(id);
 async function session(){const {data:{session}}=await supabase.auth.getSession();if(!session){location.href="login.html";throw new Error("Login required")}return session}
-async function api(action,payload={}){if(!customerId)throw new Error("Select a Manager Access Granted channel first.");const s=await session();const r=await fetch(FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},body:JSON.stringify({action,customer_id:customerId,...payload})});const d=await r.json();if(!r.ok)throw new Error(d.details||d.error||"Request failed");return d}
+async function api(action,payload={}){if(!customerId)throw new Error("Select a Manager Access Granted channel first.");const s=await session();const c=new AbortController();const t=setTimeout(()=>c.abort(),20000);try{const r=await fetch(FUNCTION_URL,{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+s.access_token},body:JSON.stringify({action,customer_id:customerId,...payload}),signal:c.signal});const d=await r.json();if(!r.ok)throw new Error(d.details||d.error||"Request failed");return d}catch(e){if(e?.name==="AbortError")throw new Error("YouTube request timeout. Please retry.");throw e}finally{clearTimeout(t)}}
 const esc=(x="")=>String(x).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
 const fmt=n=>Number(n||0).toLocaleString("en-IN");
 

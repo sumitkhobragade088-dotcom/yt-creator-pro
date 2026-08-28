@@ -33,6 +33,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       <button class="active" data-user-view="dashboard">🏠 <span>Dashboard</span></button>
       <button data-user-view="services">🛠️ <span>Services</span></button>
       <button data-user-view="requests">📋 <span>My Requests</span></button>
+      <button data-user-view="payments">💳 <span>Payments</span></button>
       <button data-user-view="channel">📺 <span>YouTube Channel</span></button>
       <button data-user-view="access">🔐 <span>Channel Access</span></button>
       <button data-user-view="monetization">💰 <span>Monetization</span></button>
@@ -84,7 +85,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       </div>
 
       <div class="yt-demo-stat-grid">
-        <div class="s-blue"><small>Channel</small><b id="channelNameView">Loading...</b><span>Registered channel</span></div>
+        <div class="s-blue"><small>Channel</small><b id="channelNameView">Not connected</b><span>Registered channel</span></div>
         <div class="s-yellow"><small>Subscribers</small><b id="ytSubscribers">0</b><span>Current total</span></div>
         <div class="s-green"><small>Views</small><b id="ytViews">0</b><span>Channel views</span></div>
         <div class="s-pink"><small>Videos</small><b id="ytVideos">0</b><span>Published content</span></div>
@@ -93,6 +94,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       <div class="yt-demo-quick-grid">
         <button data-user-view="services"><span>🛠️</span><b>Services</b><small>Submit a new request</small></button>
         <button data-user-view="requests"><span>📋</span><b>My Requests</b><small>Track submitted requests</small></button>
+        <button data-user-view="payments"><span>💳</span><b>Payments</b><small>Payment status and retry</small></button>
         <button data-user-view="channel"><span>📺</span><b>Channel Status</b><small>See connected channel</small></button>
         <button data-user-view="access"><span>🔐</span><b>Channel Access</b><small>Google + manager access</small></button>
         <button data-user-view="profile"><span>👤</span><b>My Profile</b><small>Account information</small></button>
@@ -105,7 +107,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
         <div><span>SERVICES</span><h2>Creator Services</h2><p>Select a service and submit a new request.</p></div>
       </div>
       <div class="yt-demo-service-cards" id="userServiceCatalog">
-        <div class="yt-service-loading">Loading services...</div>
+        <div class="yt-service-loading">Open Services to load available services.</div>
       </div>
       <div class="yt-demo-content-card yt-demo-service-submit">
         <label>Selected Service</label>
@@ -123,7 +125,17 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       </div>
       <div id="userPaymentResult" class="yt-payment-result" hidden></div>
       <div class="yt-demo-content-card">
-        <div id="requestList">Loading...</div>
+        <div id="requestList">No paid requests yet.</div>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-payments">
+      <div class="yt-demo-section-head">
+        <div><span>PAYMENTS</span><h2>My Payments</h2><p>Payment status, amount and retry actions.</p></div>
+      </div>
+      <div id="userPaymentResultNew" class="yt-payment-result" hidden></div>
+      <div class="yt-demo-content-card">
+        <div id="userPaymentsList">No payments yet.</div>
       </div>
     </section>
 
@@ -136,8 +148,8 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
         <div class="yt-profile-head">
           <img id="ytChannelLogo" class="yt-logo" alt="YouTube Channel Logo">
           <div>
-            <h2 id="ytChannelName">Loading...</h2>
-            <span id="youtubeConnectStatus" class="status-badge">Checking...</span>
+            <h2 id="ytChannelName">YouTube Channel</h2>
+            <span id="youtubeConnectStatus" class="status-badge">Not Connected</span>
           </div>
         </div>
         <div class="yt-stats">
@@ -192,7 +204,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       </div>
       <div class="yt-demo-content-card">
         <h3>Monetization Requests</h3>
-        <div id="userMonetizationRequests">Loading...</div>
+        <div id="userMonetizationRequests">No monetization requests yet.</div>
       </div>
     </section>
 
@@ -206,7 +218,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       </div>
       <div class="yt-demo-content-card">
         <h3>AdSense Requests</h3>
-        <div id="userAdsenseRequests">Loading...</div>
+        <div id="userAdsenseRequests">No AdSense requests yet.</div>
       </div>
     </section>
 
@@ -231,6 +243,7 @@ const userViewTitles={
   dashboard:"Dashboard",
   services:"Services",
   requests:"My Requests",
+  payments:"Payments",
   channel:"YouTube Channel",
   access:"Channel Access",
   monetization:"Monetization",
@@ -299,7 +312,7 @@ if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").
     document.getElementById(`user-view-${saved}`)?.classList.add("active");
     document.querySelectorAll(`[data-user-view="${saved}"]`).forEach(b=>b.classList.add("active"));
     const titles={
-      dashboard:"Dashboard",services:"Services",requests:"My Requests",channel:"YouTube Channel",
+      dashboard:"Dashboard",services:"Services",requests:"My Requests",payments:"Payments",channel:"YouTube Channel",
       access:"Channel Access",monetization:"Monetization",adsense:"AdSense",profile:"My Profile"
     };
     const title=document.getElementById("userDashboardTitle");

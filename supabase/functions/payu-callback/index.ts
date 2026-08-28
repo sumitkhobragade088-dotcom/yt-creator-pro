@@ -43,13 +43,19 @@ Deno.serve(async (req) => {
     const raw: Record<string,string> = {};
     p.forEach((v,k)=>{ raw[k]=v; });
     await admin.from("payments").update({
-      status: ok ? "paid" : "failed",
+      status: ok ? "paid" : ((get(p,"error_Message") || get(p,"error") || "").toLowerCase().includes("cancel") ? "cancelled" : "failed"),
       mihpayid:get(p,"mihpayid") || null,
       payment_mode:get(p,"mode") || null,
       error_message: ok ? null : (get(p,"error_Message") || get(p,"error") || "Payment failed"),
       raw_response:raw,
       updated_at:new Date().toISOString()
     }).eq("id",payment.id);
+    if (ok && payment.request_id) {
+      await admin.from("service_requests")
+        .update({ status: "pending" })
+        .eq("id", payment.request_id)
+        .eq("status", "payment_pending");
+    }
   } else if (payment) {
     await admin.from("payments").update({
       status:"failed",

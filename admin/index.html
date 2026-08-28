@@ -30,6 +30,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
     <nav class="yt-premium-nav">
       <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
       <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
+      <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
       <button class="yt-premium-nav-btn" data-view="manage">🎛️ <span>Manage Channel</span></button>
       <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
@@ -149,7 +150,15 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <div class="yt-premium-section-head"><div><span>CUSTOMERS</span><h2>Users / Customers</h2><p>Sirf customer data.</p></div><b id="customersSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th></tr></thead>
-        <tbody id="customersBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+        <tbody id="customersBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-user-requests">
+      <div class="yt-premium-section-head"><div><span>USER REQUESTS</span><h2>User Requests</h2><p>Paid customer requests and processing control.</p></div><b id="userRequestsSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Payment</th><th>Request Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody id="userRequestsBody"><tr><td colspan="6">No requests yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -157,7 +166,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <div class="yt-premium-section-head"><div><span>CHANNELS</span><h2>YouTube Channels</h2><p>Sirf connected channel data.</p></div><b id="channelsSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Email</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manager Access</th></tr></thead>
-        <tbody id="youtubeChannelsBody"><tr><td colspan="8">Loading...</td></tr></tbody></table>
+        <tbody id="youtubeChannelsBody"><tr><td colspan="8">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -165,7 +174,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <div class="yt-premium-section-head"><div><span>ACCESS</span><h2>Access Requests</h2><p>Sirf permission/access data.</p></div><b id="accessSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Google Connected</th><th>Manager Access</th><th>Updated</th></tr></thead>
-        <tbody id="accessRequestsBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+        <tbody id="accessRequestsBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -173,7 +182,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <div class="yt-premium-section-head"><div><span>MONETIZATION</span><h2>Monetization Cases</h2><p>Sirf monetization case data.</p></div><b id="monetizationSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th></tr></thead>
-        <tbody id="monetizationBody"><tr><td colspan="6">Loading...</td></tr></tbody></table>
+        <tbody id="monetizationBody"><tr><td colspan="6">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -181,15 +190,15 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <div class="yt-premium-section-head"><div><span>ADSENSE</span><h2>AdSense</h2><p>Sirf AdSense access data.</p></div><b id="adsenseSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>AdSense Access</th><th>Monetization</th><th>Updated</th></tr></thead>
-        <tbody id="adsenseBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+        <tbody id="adsenseBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
     <section class="yt-premium-view" id="view-services">
-      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Customer service requests only.</p></div><b id="servicesSectionCount">0</b></div>
+      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Available service list only.</p></div><b id="servicesSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Status</th><th>Date</th></tr></thead>
-        <tbody id="serviceRequestsBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
+        <table class="data-table"><thead><tr><th>Service</th><th>Description</th><th>Charge</th><th>Status</th></tr></thead>
+        <tbody id="serviceRequestsBody"><tr><td colspan="4">No services yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -220,7 +229,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
           <div class="yt-table-scroll">
             <table class="data-table">
               <thead><tr><th>Payment ID</th><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th><th>Mode</th><th>Date</th></tr></thead>
-              <tbody id="paymentsBody"><tr><td colspan="7">Loading...</td></tr></tbody>
+              <tbody id="paymentsBody"><tr><td colspan="7">No data yet.</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -263,7 +272,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
         <div class="yt-table-scroll">
           <table class="data-table">
             <thead><tr><th>Service</th><th>Description</th><th>Current Charge</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="serviceChargeBody"><tr><td colspan="5">Loading...</td></tr></tbody>
+            <tbody id="serviceChargeBody"><tr><td colspan="5">No data yet.</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -271,7 +280,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
 
     <section class="yt-premium-view" id="view-history">
       <div class="yt-premium-section-head"><div><span>HISTORY</span><h2>History</h2><p>Recent admin/customer/channel activity.</p></div></div>
-      <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">Loading...</div></div></div>
+      <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">No data yet.</div></div></div>
     </section>
 
 
@@ -290,7 +299,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
         <div class="yt-table-scroll">
           <table class="data-table">
             <thead><tr><th>Customer</th><th>Channel</th><th>Manager Access</th><th>Action</th></tr></thead>
-            <tbody id="manageChannelsBody"><tr><td colspan="4">Loading...</td></tr></tbody>
+            <tbody id="manageChannelsBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
           </table>
         </div>
       </div>
@@ -307,7 +316,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
         </div>
         <div class="panel">
     <div class="yt-manager-head">
-      <div><h2 id="channelTitle">Manage Channel</h2><p id="manageMessage">Loading connected channel…</p></div>
+      <div><h2 id="channelTitle">Manage Channel</h2><p id="manageMessage">Select a channel to manage.</p></div>
       <button id="refreshAll" class="btn primary">Refresh / Sync</button>
     </div>
     <div id="channelStats" class="yt-manager-stats"></div>
@@ -420,7 +429,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
           </tr>
         </thead>
         <tbody id="contentTableBody">
-          <tr><td colspan="6">Loading…</td></tr>
+          <tr><td colspan="6">No data yet.</td></tr>
         </tbody>
       </table>
     </div>
@@ -449,7 +458,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
         <thead>
           <tr><th>Video</th><th>Type</th><th>Visibility</th><th>Views</th><th>Comments</th><th>Date</th></tr>
         </thead>
-        <tbody id="analyticsTableBody"><tr><td colspan="6">Loading…</td></tr></tbody>
+        <tbody id="analyticsTableBody"><tr><td colspan="6">No data yet.</td></tr></tbody>
       </table>
     </div>
   </section>
@@ -467,7 +476,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <div><small>Restrictions Found</small><b id="copyrightRestricted">0</b></div>
       <div><small>Live/Processing Issues</small><b id="copyrightIssues">0</b></div>
     </div>
-    <div id="copyrightList" class="yt-copyright-list">Loading…</div>
+    <div id="copyrightList" class="yt-copyright-list">No data yet.</div>
   </section>
 
   <section class="panel" id="settingsSection">
@@ -496,7 +505,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       </div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Channel</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manage</th></tr></thead>
-        <tbody id="adminAnalyticsBody"><tr><td colspan="5">Loading...</td></tr></tbody></table>
+        <tbody id="adminAnalyticsBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -504,7 +513,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
       <div class="yt-premium-section-head"><div><span>COPYRIGHT</span><h2>Copyright / Restrictions</h2><p>Open each channel manager for API-visible restrictions and YouTube Studio copyright checks.</p></div></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
         <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Copyright / Restrictions</th></tr></thead>
-        <tbody id="adminCopyrightBody"><tr><td colspan="4">Loading...</td></tr></tbody></table>
+        <tbody id="adminCopyrightBody"><tr><td colspan="4">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -625,7 +634,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
     document.getElementById(`view-${saved}`)?.classList.add("active");
     document.querySelector(`.yt-premium-nav-btn[data-view="${saved}"]`)?.classList.add("active");
     const titles={
-      dashboard:"Dashboard",customers:"Users / Customers",channels:"YouTube Channels",manage:"Manage Channel",
+      dashboard:"Dashboard",customers:"Users / Customers","user-requests":"User Requests",channels:"YouTube Channels",manage:"Manage Channel",
       access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",
       copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS",
       editor:"Admin Editor",settings:"Settings"
