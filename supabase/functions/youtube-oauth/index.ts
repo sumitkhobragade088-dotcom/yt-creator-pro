@@ -136,12 +136,23 @@ Deno.serve(async (req) => {
       return J(req, { error: "Refresh token missing", details: "Reconnect with Google consent and try again." }, 400);
     }
 
+    // Do not rely on a UNIQUE(customer_id) constraint here.
+    // Reconnect safely replaces the old stored token, then inserts the fresh token.
+    const deleteOldToken = await rest(
+      SUPABASE_URL, SERVICE,
+      `youtube_oauth_tokens?customer_id=eq.${encodeURIComponent(customer.id)}`,
+      { method: "DELETE" }
+    );
+    if (!deleteOldToken.ok) {
+      return J(req, { error: "Old YouTube token cleanup failed", details: await deleteOldToken.text() }, 400);
+    }
+
     const saveToken = await rest(
       SUPABASE_URL, SERVICE,
-      "youtube_oauth_tokens?on_conflict=customer_id",
+      "youtube_oauth_tokens",
       {
         method: "POST",
-        headers: { Prefer: "resolution=merge-duplicates,return=minimal" },
+        headers: { Prefer: "return=minimal" },
         body: JSON.stringify({ customer_id: customer.id, refresh_token: refreshToken })
       }
     );

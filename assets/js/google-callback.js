@@ -56,25 +56,43 @@ async function run() {
   title.textContent = "Connecting YouTube…";
   show("Google permission approved. Saving your channel securely…", true);
 
-  const response = await fetch(FUNCTION_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": "Bearer " + session.access_token,
-      "apikey": PUBLISHABLE_KEY
-    },
-    body: JSON.stringify({
-      code,
-      code_verifier: verifier,
-      redirect_uri: `${location.origin}/google-callback.html`
-    })
-  });
+  let response;
+  let result = {};
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 30000);
 
-  const result = await response.json();
+    response = await fetch(FUNCTION_URL, {
+      method: "POST",
+      signal: controller.signal,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer " + session.access_token,
+        "apikey": PUBLISHABLE_KEY
+      },
+      body: JSON.stringify({
+        code,
+        code_verifier: verifier,
+        redirect_uri: `${location.origin}/google-callback.html`
+      })
+    });
+
+    clearTimeout(timer);
+    result = await response.json().catch(() => ({}));
+  } catch (e) {
+    title.textContent = "YouTube Connect Failed";
+    show(e?.name === "AbortError"
+      ? "Connection save timed out. Please reconnect once."
+      : "Could not reach YouTube connection backend: " + (e?.message || e));
+    return;
+  }
 
   if (!response.ok || !result.success) {
     title.textContent = "YouTube Connect Failed";
-    show(result.details || result.error || "Could not connect YouTube.");
+    const detail = typeof result.details === "string"
+      ? result.details
+      : (result.details ? JSON.stringify(result.details) : "");
+    show(detail || result.error || `Could not connect YouTube (HTTP ${response.status}).`);
     return;
   }
 
@@ -96,6 +114,11 @@ async function run() {
       </div>
     </div>
   `;
+
+  sessionStorage.setItem("yt_user_view", "access");
+  setTimeout(() => {
+    location.replace("dashboard.html");
+  }, 1400);
 }
 
 run();
