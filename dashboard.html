@@ -12,7 +12,6 @@ html.yt-user-boot body{visibility:hidden!important}
 </style>
 <script>
 document.documentElement.classList.add("yt-user-boot");
-window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),1500);
 </script>
 
 <style id="yt-user-request-payment-profile-access-fix">
@@ -103,6 +102,32 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
 @media(max-width:700px){
   .yt-user-request-card,.yt-user-payment-card{grid-template-columns:1fr}
   .yt-user-status-stack{align-items:flex-start}
+}
+</style>
+
+
+<style id="yt-user-profile-edit-only">
+#user-view-profile .yt-profile-edit-card input{
+  width:100%;
+  box-sizing:border-box;
+  margin-top:7px;
+  padding:10px 11px;
+  border:1px solid #dfe5ef;
+  border-radius:10px;
+  background:#f7f9fc;
+  color:#172033;
+  font-weight:800;
+}
+#user-view-profile .yt-profile-edit-card input:not(:disabled){
+  background:#fff;
+  border-color:#6d5dfc;
+  box-shadow:0 0 0 3px rgba(109,93,252,.10);
+}
+#user-view-profile .yt-profile-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:14px;
 }
 </style>
 
@@ -322,14 +347,35 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
       </div>
 
       <div class="yt-demo-profile-grid yt-customer-profile-grid">
-        <div><small>Customer Name</small><b id="userNameProfile">Creator</b></div>
-        <div><small>Email</small><b id="userEmailProfile">-</b></div>
-        <div><small>Mobile</small><b id="userMobileProfile">-</b></div>
-        <div><small>Joined Date</small><b id="userJoinedProfile">-</b></div>
-        <div><small>YouTube Channel</small><b id="userChannelProfile">-</b></div>
-        <div><small>Channel Status</small><b id="userChannelStatusProfile">Not connected</b></div>
-        <div class="yt-profile-wide"><small>Channel URL</small><b id="channelUrlView">Not added</b></div>
+        <div class="yt-profile-edit-card">
+          <small>Customer Name</small>
+          <input id="userNameProfileInput" type="text" disabled>
+        </div>
+        <div>
+          <small>Email</small><b id="userEmailProfile">-</b>
+        </div>
+        <div class="yt-profile-edit-card">
+          <small>Mobile</small>
+          <input id="userMobileProfileInput" type="tel" disabled>
+        </div>
+        <div>
+          <small>Joined Date</small><b id="userJoinedProfile">-</b>
+        </div>
+        <div>
+          <small>YouTube Channel</small><b id="userChannelProfile">-</b>
+        </div>
+        <div>
+          <small>Channel Status</small><b id="userChannelStatusProfile">Not connected</b>
+        </div>
+        <div class="yt-profile-wide">
+          <small>Channel URL</small><b id="channelUrlView">Not added</b>
+        </div>
       </div>
+      <div class="yt-profile-actions">
+        <button id="editUserProfileBtn" type="button" class="yt-user-outline-btn">Edit Profile</button>
+        <button id="saveUserProfileBtn" type="button" class="yt-user-red-btn" hidden>Update Profile</button>
+      </div>
+      <p id="userProfileMessage" class="yt-channel-access-message"></p>
     </section>
 
   </main>

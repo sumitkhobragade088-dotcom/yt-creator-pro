@@ -209,8 +209,10 @@ async function loadDashboard() {
 
   setText("userName", customer.full_name || "Creator");
   setText("userNameTop", customer.full_name || "Creator");
-  setText("userNameProfile", customer.full_name || "Creator");
-  setText("userMobileProfile", customer.mobile || "-");
+  const nameProfileInput=$("userNameProfileInput");
+  const mobileProfileInput=$("userMobileProfileInput");
+  if(nameProfileInput) nameProfileInput.value=customer.full_name || "";
+  if(mobileProfileInput) mobileProfileInput.value=customer.mobile || "";
   setText("userJoinedProfile", customer.created_at ? new Date(customer.created_at).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "-");
   setText("userChannelProfile", customer.channel_name || "-");
   setText("channelUrlView", customer.channel_url || "Not added");
@@ -452,6 +454,59 @@ document.addEventListener("click",(e)=>{
 
 const submitBtn = $("submitUserServiceRequest");
 if (submitBtn) submitBtn.addEventListener("click", submitServiceAndPay);
+
+
+function setProfileEditing(enabled){
+  const name=$("userNameProfileInput");
+  const mobile=$("userMobileProfileInput");
+  const edit=$("editUserProfileBtn");
+  const save=$("saveUserProfileBtn");
+  if(name)name.disabled=!enabled;
+  if(mobile)mobile.disabled=!enabled;
+  if(edit)edit.hidden=enabled;
+  if(save)save.hidden=!enabled;
+  if(enabled)name?.focus();
+}
+
+$("editUserProfileBtn")?.addEventListener("click",()=>setProfileEditing(true));
+
+$("saveUserProfileBtn")?.addEventListener("click",async()=>{
+  if(!dashboardCustomer)return;
+  const btn=$("saveUserProfileBtn");
+  const msgEl=$("userProfileMessage");
+  const full_name=$("userNameProfileInput")?.value.trim()||"";
+  const mobile=$("userMobileProfileInput")?.value.trim()||"";
+
+  if(!full_name){
+    if(msgEl){msgEl.textContent="Customer name is required.";msgEl.className="yt-channel-access-message bad";}
+    return;
+  }
+
+  if(btn)btn.disabled=true;
+  if(msgEl){msgEl.textContent="Updating profile...";msgEl.className="yt-channel-access-message";}
+
+  try{
+    const {data,error}=await supabase
+      .from("customers")
+      .update({full_name,mobile})
+      .eq("id",dashboardCustomer.id)
+      .select("*")
+      .single();
+
+    if(error)throw error;
+    dashboardCustomer=data||{...dashboardCustomer,full_name,mobile};
+
+    setText("userName",dashboardCustomer.full_name||"Creator");
+    setText("userNameTop",dashboardCustomer.full_name||"Creator");
+    if(msgEl){msgEl.textContent="Profile updated successfully.";msgEl.className="yt-channel-access-message ok";}
+    setProfileEditing(false);
+  }catch(e){
+    if(msgEl){msgEl.textContent=e?.message||"Profile update failed.";msgEl.className="yt-channel-access-message bad";}
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+});
+
 
 document.addEventListener("DOMContentLoaded",()=>{
   const params = new URLSearchParams(location.search);
