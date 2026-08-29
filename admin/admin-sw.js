@@ -1,4 +1,4 @@
-const CACHE='yt-admin-v3';
+const CACHE='yt-admin-v4';
 const ASSETS=['./','index.html','login.html','manifest.webmanifest','../assets/css/style.css','../assets/js/admin-auth.js','../assets/js/supabase.js'];
 
 self.addEventListener('install',e=>{

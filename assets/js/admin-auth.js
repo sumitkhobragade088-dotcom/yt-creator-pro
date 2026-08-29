@@ -523,22 +523,18 @@ if("serviceWorker" in navigator){
 
 function renderAdminManage(customerMap, rows){
   const body=$("manageChannelsBody"); if(!body)return;
-  // Any user who has successfully connected YouTube must appear here immediately.
-  // Full management uses the stored OAuth refresh token; manager_access is shown
-  // as status only and no longer hides an otherwise connected channel.
-  const connected=(rows||[]).filter(a=>a.google_connected);
+  // Only channels with confirmed manager access can be opened in the management workspace.
+  const connected=(rows||[]).filter(a=>a.google_connected && a.manager_access);
   setText("manageSectionCount",connected.length);
   body.innerHTML=connected.length?connected.map(a=>{
     const c=customerMap.get(a.customer_id)||{};
     return `<tr>
       <td>${esc(c.full_name||c.email||"-")}</td>
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
-      <td>${a.manager_access
-        ? '<span class="yt-status-chip good">GRANTED ✅</span>'
-        : '<span class="yt-status-chip pending">YOUTUBE CONNECTED ✅</span>'}</td>
+      <td><span class="yt-status-chip good">GRANTED ✅</span></td>
       <td><button class="btn primary" type="button" data-manage-customer="${esc(a.customer_id)}" data-manage-target="channel">Manage Channel</button></td>
     </tr>`;
-  }).join(""):'<tr><td colspan="4">No connected YouTube channel yet.</td></tr>';
+  }).join(""):'<tr><td colspan="4">No channel with Manager Access Granted yet.</td></tr>';
 }
 function renderAdminAnalytics(customerMap, rows){
   const connected=(rows||[]).filter(a=>a.google_connected);
@@ -623,6 +619,12 @@ if($("resetAdminEditor")) $("resetAdminEditor").onclick=()=>{
 
 
 function openInlineChannelManager(customerId,target="channel"){
+  const accessRow=(dashboardCache.access||[]).find(a=>String(a.customer_id)===String(customerId));
+  if(!accessRow?.manager_access){
+    alert("Manager Access is not granted for this channel yet.");
+    showPremiumAdminView("access");
+    return;
+  }
   showPremiumAdminView("manage");
   const listPanel=$("manageChannelListPanel");
   const workspace=$("manageWorkspace");
