@@ -884,5 +884,3 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
   .yt-user-home-actions{flex-wrap:wrap}
   .yt-user-red-btn,.yt-user-outline-btn{min-width:145px}
 }
-
-.yt-monetization-analytics{margin-top:16px}.yt-revenue-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.yt-revenue-grid>div{padding:16px;border:1px solid #e5e7eb;border-radius:16px;background:#fff}.yt-revenue-grid small{display:block;color:#64748b;font-weight:700;margin-bottom:6px}.yt-revenue-grid b{font-size:22px}@media(max-width:760px){.yt-revenue-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
