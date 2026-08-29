@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://ytcreatorpro.in/sitemap.xml
+Disallow: /admin/
+Sitemap: https://khobragade.online/sitemap.xml
