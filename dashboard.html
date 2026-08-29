@@ -131,6 +131,35 @@ document.documentElement.classList.add("yt-user-boot");
 }
 </style>
 
+
+<style id="yt-user-bottom-profile-only">
+.yt-demo-user-sidebar-bottom .yt-user-bottom-profile{
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:62px;
+  z-index:5;
+  width:auto;
+  box-sizing:border-box;
+  border:0;
+  border-radius:11px;
+  padding:12px 13px;
+  background:rgba(255,255,255,.08);
+  color:#dbeafe;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  text-align:left;
+  font-weight:850;
+  cursor:pointer;
+}
+.yt-demo-user-sidebar-bottom .yt-user-bottom-profile.active{
+  background:linear-gradient(135deg,#4320bc,#2343d8);
+  color:#fff;
+  box-shadow:inset 4px 0 #ff4fb3,0 7px 16px rgba(0,0,0,.15);
+}
+</style>
+
 </head>
 
 <body id="creatorDashboard" class="yt-user-dashboard-page">
@@ -155,10 +184,10 @@ document.documentElement.classList.add("yt-user-boot");
       <button data-user-view="access">🔐 <span>Channel Access</span></button>
       <button data-user-view="monetization">💰 <span>Monetization</span></button>
       <button data-user-view="adsense">💳 <span>AdSense</span></button>
-      <button data-user-view="profile">👤 <span>Profile</span></button>
     </nav>
 
     <div class="yt-demo-user-sidebar-bottom">
+      <button class="yt-user-bottom-profile" data-user-view="profile">👤 <span>My Profile</span></button>
       <button onclick="logoutCreator()" style="position:absolute;left:14px;right:14px;bottom:14px;z-index:5;display:block;width:auto;box-sizing:border-box;margin:0;padding:11px;border:0;border-radius:11px;background:#172033;color:#fff;font-weight:900;cursor:pointer;text-align:center;line-height:1.2">↪ Logout</button>
       <div class="yt-demo-secure-note">🛡 Secure Account<br><span>Protected creator portal</span></div>
     </div>
