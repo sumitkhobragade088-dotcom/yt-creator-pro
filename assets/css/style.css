@@ -841,3 +841,46 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
 #userRequestsBody .btn{margin-left:6px}
 .yt-request-payment-row{gap:12px}
 .yt-payment-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+
+
+/* ===== FINAL PRODUCTION FINISHING POLISH =====
+   Visual-only enhancements. Existing layout, IDs, JS hooks and flows remain unchanged. */
+.yt-user-home-page{
+  background:
+    radial-gradient(circle at 12% 8%,rgba(255,0,0,.045),transparent 28%),
+    linear-gradient(180deg,#ffffff 0,#f8fafc 46%,#f5f7fb 100%);
+}
+.yt-user-public-header{
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  background:rgba(255,255,255,.94);
+  box-shadow:0 1px 0 rgba(15,23,42,.06);
+}
+.yt-user-home-hero{position:relative}
+.yt-user-home-copy h1{letter-spacing:-.045em;max-width:760px}
+.yt-user-home-copy>p{font-size:15px;max-width:680px}
+.yt-user-red-btn,.yt-user-outline-btn{
+  min-height:46px;
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.yt-user-red-btn:hover{transform:translateY(-1px);box-shadow:0 10px 24px rgba(255,0,0,.20)}
+.yt-user-outline-btn:hover{transform:translateY(-1px);border-color:#b9c0ca;box-shadow:0 8px 20px rgba(15,23,42,.07)}
+.yt-user-section-title{max-width:760px}
+.yt-user-section-title>p{margin:-14px 0 25px;color:#64748b;font-size:13px;line-height:1.65}
+.yt-user-service-grid article{
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+.yt-user-service-grid article:hover{
+  transform:translateY(-3px);
+  border-color:#d7dce5;
+  box-shadow:0 14px 34px rgba(30,45,75,.09);
+}
+.yt-user-process-row span{
+  box-shadow:0 6px 18px rgba(30,45,75,.045);
+}
+.yt-user-public-footer{line-height:1.6}
+@media(max-width:600px){
+  .yt-user-home-copy h1{letter-spacing:-.035em}
+  .yt-user-home-actions{flex-wrap:wrap}
+  .yt-user-red-btn,.yt-user-outline-btn{min-width:145px}
+}
