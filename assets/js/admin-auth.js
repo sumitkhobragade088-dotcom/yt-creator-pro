@@ -175,8 +175,42 @@ function renderAccess(customerMap,rows){
       <td>${a.google_connected?'<span class="yt-status-chip good">Connected ✅</span>':'<span class="yt-status-chip bad">Not Connected</span>'}</td>
       <td>${a.manager_access?'<span class="yt-status-chip good">Granted ✅</span>':'<span class="yt-status-chip pending">Pending 🟡</span>'}</td>
       <td>${dateText(a.updated_at)}</td>
+      <td>${a.manager_access
+        ? '<button class="btn" type="button" disabled>Granted ✅</button>'
+        : `<button class="btn primary" type="button" data-grant-manager-access="${esc(a.customer_id)}">Mark Access Granted</button>`}
+      </td>
     </tr>`;
-  }).join(""):'<tr><td colspan="5">No access records.</td></tr>';
+  }).join(""):'<tr><td colspan="6">No access records.</td></tr>';
+
+  body.querySelectorAll("[data-grant-manager-access]").forEach(btn=>{
+    btn.addEventListener("click",async()=>{
+      const customerId=btn.dataset.grantManagerAccess;
+      if(!customerId)return;
+      const oldText=btn.textContent;
+      btn.disabled=true;
+      btn.textContent="Saving...";
+      try{
+        const updatedAt=new Date().toISOString();
+        const res=await withTimeout(
+          supabase.from("channel_access")
+            .update({manager_access:true,updated_at:updatedAt})
+            .eq("customer_id",customerId)
+            .select("customer_id,manager_access,updated_at")
+            .maybeSingle(),
+          8000,"Grant manager access"
+        );
+        if(res?.error)throw res.error;
+        if(!res?.data?.manager_access)throw new Error("Manager access could not be saved. Check Supabase admin update policy.");
+        btn.textContent="Granted ✅";
+        await loadAdminDashboard();
+      }catch(e){
+        console.error("Grant manager access",e);
+        alert(e?.message||"Manager access update failed.");
+        btn.disabled=false;
+        btn.textContent=oldText;
+      }
+    });
+  });
 }
 
 function renderMonetization(customerMap,rows){
@@ -435,6 +469,8 @@ const premiumViewTitles={
   analytics:"Analytics / Stats",
   copyright:"Copyright / Restrictions",
   services:"Services",
+  payments:"Payments / PayU",
+  "service-charge":"Service Charge",
   history:"History",
   cms:"Admin Dashboard CMS",
   editor:"Admin Editor",
