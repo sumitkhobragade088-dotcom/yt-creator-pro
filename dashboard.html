@@ -133,6 +133,24 @@ document.documentElement.classList.add("yt-user-boot");
 
 
 <style id="yt-user-bottom-profile-only">
+/* Only sidebar layout fixed: no overlap, all buttons remain visible. */
+.yt-demo-user-sidebar{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.yt-demo-user-nav{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-bottom:12px;
+}
+.yt-demo-user-sidebar-bottom{
+  position:relative;
+  flex:0 0 122px;
+  min-height:122px;
+}
 .yt-demo-user-sidebar-bottom .yt-user-bottom-profile{
   position:absolute;
   left:14px;
@@ -157,6 +175,9 @@ document.documentElement.classList.add("yt-user-boot");
   background:linear-gradient(135deg,#4320bc,#2343d8);
   color:#fff;
   box-shadow:inset 4px 0 #ff4fb3,0 7px 16px rgba(0,0,0,.15);
+}
+.yt-demo-user-sidebar-bottom .yt-demo-secure-note{
+  display:none;
 }
 </style>
 
