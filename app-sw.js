@@ -1,4 +1,4 @@
-const CACHE='yt-user-app-v4';
+const CACHE='yt-user-app-v4-cmsfix2';
 const CORE=['./','index.html','login.html','register.html','dashboard.html','assets/css/style.css','assets/js/auth.js','assets/js/cms-engine.js','manifest.webmanifest'];
 
 self.addEventListener('install',e=>{

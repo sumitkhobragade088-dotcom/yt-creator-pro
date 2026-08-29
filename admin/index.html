@@ -296,8 +296,8 @@ document.documentElement.classList.add("yt-admin-boot");
     <section class="yt-premium-view" id="view-monetization">
       <div class="yt-premium-section-head"><div><span>MONETIZATION</span><h2>Monetization Cases</h2><p>Monetization cases and processing status.</p></div><b id="monetizationSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th></tr></thead>
-        <tbody id="monetizationBody"><tr><td colspan="6">No data yet.</td></tr></tbody></table>
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Full Details</th></tr></thead>
+        <tbody id="monetizationBody"><tr><td colspan="7">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -435,6 +435,18 @@ document.documentElement.classList.add("yt-admin-boot");
       <button id="refreshAll" class="btn primary">Refresh / Sync</button>
     </div>
     <div id="channelStats" class="yt-manager-stats"></div>
+    <section id="monetizationAnalyticsPanel" class="yt-monetization-analytics panel" hidden>
+      <div class="yt-manager-head"><div><h2>💰 Monetization & Revenue</h2><p id="monetizationAnalyticsPeriod">Last 28 days • YouTube Analytics</p></div><button id="refreshMonetizationAnalytics" class="btn" type="button">Refresh Revenue</button></div>
+      <div class="yt-revenue-grid">
+        <div><small>Estimated Revenue</small><b id="ytEstimatedRevenue">$0.00</b></div>
+        <div><small>Estimated Ad Revenue</small><b id="ytEstimatedAdRevenue">$0.00</b></div>
+        <div><small>RPM</small><b id="ytRevenueRPM">$0.00</b></div>
+        <div><small>Playback CPM</small><b id="ytPlaybackCPM">$0.00</b></div>
+        <div><small>Analytics Views</small><b id="ytRevenueViews">0</b></div>
+        <div><small>Watch Time</small><b id="ytWatchHours">0 h</b></div>
+      </div>
+      <p id="monetizationAnalyticsMessage" class="yt-note">Revenue appears only for a monetized channel with YouTube Analytics monetary permission.</p>
+    </section>
   </div>
 <div id="managerUnlockedArea" class="yt-manager-unlocked">
   <section class="panel yt-banner-panel" id="channelBanner">

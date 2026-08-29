@@ -60,6 +60,25 @@ Deno.serve(async req=>{
   const tr=await fetch(`${url}/rest/v1/youtube_oauth_tokens?customer_id=eq.${b.customer_id}&select=refresh_token&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});const ts=await tr.json();if(!ts?.length)return J({error:"YouTube token not found. Customer must reconnect."},404);
   const rr=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:cid,client_secret:secret,refresh_token:ts[0].refresh_token,grant_type:"refresh_token"})});const rt=await rr.json();if(!rr.ok)return J({error:"Google refresh failed",details:(rt.error_description||rt.error)+" — Check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in Supabase Edge Function secrets; they must belong to the same Google OAuth Web Client used by the website."},400);const token=rt.access_token;
 
+  if(b.action==="monetization_analytics"){
+    const now=new Date();
+    const end=new Date(now.getTime()-86400000);
+    const start=new Date(end.getTime()-27*86400000);
+    const ds=(d:Date)=>d.toISOString().slice(0,10);
+    const base=`https://youtubeanalytics.googleapis.com/v2/reports?ids=channel%3D%3DMINE&startDate=${ds(start)}&endDate=${ds(end)}`;
+    let core:any={};let money:any={};let moneyError="";
+    try{
+      const d=await gj(`${base}&metrics=views,estimatedMinutesWatched,averageViewDuration`,token);
+      const r=d.rows?.[0]||[];core={views:Number(r[0]||0),watchMinutes:Number(r[1]||0),averageViewDuration:Number(r[2]||0)};
+    }catch(e){core={error:String(e)}}
+    try{
+      const d=await gj(`${base}&metrics=estimatedRevenue,estimatedAdRevenue,playbackBasedCpm`,token);
+      const r=d.rows?.[0]||[];money={estimatedRevenue:Number(r[0]||0),estimatedAdRevenue:Number(r[1]||0),playbackBasedCpm:Number(r[2]||0)};
+    }catch(e){moneyError=String(e)}
+    const rpm=core.views>0?((Number(money.estimatedRevenue||0)/core.views)*1000):0;
+    return J({success:true,period:{start:ds(start),end:ds(end),days:28},...core,...money,rpm,moneyAvailable:!moneyError,moneyError});
+  }
+
   if(b.action==="dashboard"){
    const cd=await gj("https://www.googleapis.com/youtube/v3/channels?part=snippet,brandingSettings,statistics,contentDetails&mine=true",token);const ch=cd.items?.[0];if(!ch)return J({error:"Channel not found"},404);
    const uploads=ch.contentDetails?.relatedPlaylists?.uploads;

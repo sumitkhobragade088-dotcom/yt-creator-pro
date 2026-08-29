@@ -8,7 +8,11 @@ function getYouTubeRedirectUri() {
   return "https://sumitkhobragade088-dotcom.github.io/yt-creator-pro/google-callback.html";
 }
 const REDIRECT_URI = getYouTubeRedirectUri();
-const SCOPE = "https://www.googleapis.com/auth/youtube.force-ssl";
+const SCOPE = [
+  "https://www.googleapis.com/auth/youtube.force-ssl",
+  "https://www.googleapis.com/auth/yt-analytics.readonly",
+  "https://www.googleapis.com/auth/yt-analytics-monetary.readonly"
+].join(" ");
 
 function randomString(length = 64) {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";

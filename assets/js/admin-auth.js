@@ -223,8 +223,9 @@ function renderMonetization(customerMap,rows){
       <td>${esc(a.channel_name||c.channel_name||"-")}</td>
       <td><span class="yt-status-chip">${esc(a.monetization_status||"pending")}</span></td>
       <td>${fmt(a.subscribers)}</td><td>${fmt(a.views)}</td><td>${fmt(a.videos)}</td>
+      <td>${a.google_connected&&a.manager_access?`<button class="btn primary" type="button" data-manage-customer="${esc(a.customer_id)}" data-manage-target="monetization">Open Revenue</button>`:'<span class="yt-status-chip pending">Access required</span>'}</td>
     </tr>`;
-  }).join(""):'<tr><td colspan="6">No monetization cases.</td></tr>';
+  }).join(""):'<tr><td colspan="7">No monetization cases.</td></tr>';
 }
 
 function renderAdsense(customerMap,rows){

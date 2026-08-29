@@ -6,9 +6,9 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 const slugify=v=>String(v||'page').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||('page-'+Date.now());
 
 const DEFAULTS={
-  admin_cms:{nav:{},hidden:[],order:[],pages:{},buttons:{},blocks:{},customPages:[],customButtons:[]},
+  admin_cms:{nav:{},hidden:[],order:[],pages:{},buttons:{},blocks:{},elements:{},customPages:[],customButtons:[],customElements:[]},
   admin_theme:{enabled:false,activeThemeId:'',themes:[],sidebar:'',primary:'',surface:'',text:'',radius:''},
-  website_cms:{nav:{},hidden:[],order:[],sections:{},cards:{},buttons:{},customPages:[],customButtons:[],customSections:[],brand:{name:'',tagline:''},footer:'',media:{logoUrl:'',heroImageUrl:''}},
+  website_cms:{nav:{},hidden:[],order:[],sections:{},cards:{},buttons:{},elements:{},customPages:[],customButtons:[],customSections:[],customElements:[],brand:{name:'',tagline:''},footer:'',media:{logoUrl:'',heroImageUrl:''}},
   website_theme:{enabled:false,activeThemeId:'',themes:[],primary:'',surface:'',text:'',radius:''},
   maintenance:{enabled:false,title:'YT Creator Pro is being updated',message:'New improvements are being added. Please check back shortly.',reopen:'',status:'UPDATE IN PROGRESS'},
   seo:{title:'YT Creator Pro | Secure • Professional • Creator-Focused',description:'Professional YouTube creator support for channel management, monetization guidance, AdSense assistance and secure Google-authorized access.',keywords:'YT Creator Pro, YouTube creator support, channel management, monetization help, AdSense assistance',googleVerification:'',pages:{}}
@@ -81,6 +81,79 @@ function injectThemeStyle(isAdmin){
 function currentPage(){const n=location.pathname.split('/').pop();return n||'index.html'}
 function setMeta(name,content,attr='name'){if(!content)return;let m=document.querySelector(`meta[${attr}="${name}"]`);if(!m){m=document.createElement('meta');m.setAttribute(attr,name);document.head.appendChild(m)}m.content=content}
 function sortByOrder(nodes,order,keyFn){if(!Array.isArray(order)||!order.length)return;const map=new Map(order.map((k,i)=>[k,i]));nodes.forEach((el,i)=>el.style.order=String(map.has(keyFn(el))?map.get(keyFn(el)):1000+i))}
+
+function stableSelector(el,root){
+  if(!el||el===root)return '';
+  if(el.id)return '#'+CSS.escape(el.id);
+  const parts=[];let cur=el;
+  while(cur&&cur!==root&&cur.nodeType===1){
+    let part=cur.tagName.toLowerCase();
+    const parent=cur.parentElement;if(!parent)break;
+    const sib=[...parent.children].filter(x=>x.tagName===cur.tagName);
+    if(sib.length>1)part+=`:nth-of-type(${sib.indexOf(cur)+1})`;
+    parts.unshift(part);cur=parent;
+  }
+  const prefix=root?.id?'#'+CSS.escape(root.id):'';
+  return prefix+(parts.length?' > '+parts.join(' > '):'');
+}
+function editableNode(el){
+  if(!el||['SCRIPT','STYLE','NOSCRIPT','OPTION'].includes(el.tagName))return false;
+  if(el.closest('#adminCmsFull,#websiteCmsFull,#ytCmsModal'))return false;
+  if(el.dataset?.cmsCustomPage||el.dataset?.cmsSiteBtn||el.dataset?.cmsAdminBtn)return false;
+  const tag=el.tagName;
+  if(['H1','H2','H3','H4','H5','H6','P','SPAN','SMALL','B','STRONG','EM','LABEL','A','BUTTON','IMG','INPUT','TEXTAREA','SELECT','TH','TD','LI','DIV','ARTICLE'].includes(tag)){
+    const hasOwnText=[...el.childNodes].some(n=>n.nodeType===3&&n.textContent.trim());
+    return hasOwnText||['A','BUTTON','IMG','INPUT','TEXTAREA','SELECT','TH','TD'].includes(tag)||el.children.length===0;
+  }
+  return false;
+}
+function inventoryDeep(scope){
+  const roots=scope==='admin'?[...document.querySelectorAll('.yt-premium-view')]:[document.querySelector('.yt-user-public-header'),document.querySelector('.yt-user-public-main'),document.querySelector('.yt-user-public-footer')].filter(Boolean);
+  const out=[];
+  for(const root of roots){
+    const page=scope==='admin'?(root.id||'admin').replace('view-',''):(root.tagName==='HEADER'?'header':root.tagName==='FOOTER'?'footer':'home');
+    for(const el of root.querySelectorAll('*')){
+      if(!editableNode(el))continue;
+      const key=stableSelector(el,root);if(!key)continue;
+      const own=[...el.childNodes].filter(n=>n.nodeType===3).map(n=>n.textContent).join(' ').trim();
+      out.push({key,page,type:el.tagName.toLowerCase(),label:(own||el.getAttribute('aria-label')||el.getAttribute('placeholder')||el.alt||el.id||key).slice(0,90),text:own,href:el.getAttribute('href')||'',src:el.getAttribute('src')||'',placeholder:el.getAttribute('placeholder')||'',title:el.getAttribute('title')||''});
+    }
+  }
+  const seen=new Set();return out.filter(x=>!seen.has(x.key)&&seen.add(x.key));
+}
+function deepContainers(scope){
+  if(scope==='admin')return [...document.querySelectorAll('.yt-premium-view')].filter(v=>!['view-cms','view-website-cms'].includes(v.id)).map(v=>({value:'#'+v.id,label:'Admin • '+(v.querySelector('h2')?.textContent?.trim()||v.id)}));
+  return [{value:'.yt-user-public-main',label:'Website • Main Content'},{value:'.yt-user-public-header',label:'Website • Header'},{value:'.yt-user-public-footer',label:'Website • Footer'}].filter(x=>document.querySelector(x.value));
+}
+function setOwnText(el,text){
+  if(text===undefined||text===null)return;
+  const nodes=[...el.childNodes].filter(n=>n.nodeType===3);
+  if(nodes.length){nodes[0].textContent=text;for(const n of nodes.slice(1))n.textContent=''}
+  else if(!el.children.length)el.textContent=text;
+}
+function applyDeep(c,scope){
+  for(const [key,v] of Object.entries(c.elements||{})){
+    let el;try{el=document.querySelector(key)}catch(_){continue}if(!el)continue;
+    el.hidden=!!v.hidden;
+    if(v.text!==undefined)setOwnText(el,v.text);
+    if(v.href!==undefined&&v.href!==''&&el.tagName==='A')el.setAttribute('href',v.href);
+    if(v.src!==undefined&&v.src!==''&&el.tagName==='IMG')el.setAttribute('src',v.src);
+    if(v.placeholder!==undefined&&['INPUT','TEXTAREA'].includes(el.tagName))el.setAttribute('placeholder',v.placeholder||'');
+    if(v.title!==undefined)el.setAttribute('title',v.title||'');
+    if(v.className)for(const cls of String(v.className).split(/\s+/).filter(Boolean))el.classList.add(cls);
+  }
+  for(const x of (c.customElements||[]).filter(v=>!v.hidden).sort((a,b)=>(a.order??999)-(b.order??999))){
+    if(document.querySelector(`[data-cms-deep-new="${CSS.escape(x.id)}"]`))continue;
+    let host;try{host=document.querySelector(x.host)}catch(_){continue}if(!host)continue;
+    let el;
+    if(x.type==='button'){el=document.createElement('a');el.className=scope==='admin'?'yt-premium-top-btn':'yt-user-outline-btn';el.href=x.href||'#'}
+    else if(x.type==='heading'){el=document.createElement('h3')}
+    else if(x.type==='card'){el=document.createElement('div');el.className=scope==='admin'?'panel yt-premium-panel':'yt-user-public-section'}
+    else el=document.createElement('p');
+    el.dataset.cmsDeepNew=x.id;el.textContent=x.text||'New element';host.appendChild(el);
+  }
+}
+
 function adminNavConfig(c,key){const legacyHidden=(c.hidden||[]).includes(key),v=c.nav?.[key];return typeof v==='string'?{label:v,hidden:legacyHidden}:{label:'',icon:'',hidden:legacyHidden,...(v||{})}}
 
 async function applyAdmin(){
@@ -102,6 +175,8 @@ async function applyAdmin(){
   for(const [key,v] of Object.entries(c.blocks||{})){const el=document.querySelector(`[data-cms-block-key="${CSS.escape(key)}"]`);if(el){el.hidden=!!v.hidden;if(v.order!==undefined)el.style.order=String(v.order)}}
   for(const x of (c.customButtons||[]).filter(v=>!v.hidden).sort((a,b)=>(a.order??999)-(b.order??999))){if(document.querySelector(`[data-cms-admin-btn="${x.id}"]`))continue;const host=document.querySelector(x.host||'.yt-premium-header-actions')||document.querySelector('.yt-premium-header-actions');if(!host)continue;const a=document.createElement(x.href?'a':'button');a.className='yt-premium-top-btn';a.dataset.cmsAdminBtn=x.id;a.textContent=x.label||'New Button';a.style.order=String(x.order??999);if(x.href){a.href=x.href;a.target=x.newTab?'_blank':'_self';if(x.newTab)a.rel='noopener noreferrer'}host.appendChild(a)}
   const saved=sessionStorage.getItem('yt_admin_view')||'';if(saved.startsWith('cms-custom:')){const id=saved.slice(11),sec=document.querySelector(`[data-cms-admin-page="${CSS.escape(id)}"]`),b=document.querySelector(`[data-cms-custom-page="${CSS.escape(id)}"]`);if(sec&&b){document.querySelectorAll('.yt-premium-view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.yt-premium-nav-btn').forEach(v=>v.classList.remove('active'));sec.classList.add('active');b.classList.add('active');const x=(c.customPages||[]).find(v=>v.id===id),title=document.getElementById('adminPageTitle');if(title&&x)title.textContent=x.label}}
+  applyDeep(c,'admin');
+
 }
 function siteNavConfig(c,key){const legacyHidden=(c.hidden||[]).includes(key),v=c.nav?.[key];return typeof v==='string'?{label:v,hidden:legacyHidden}:{label:'',hidden:legacyHidden,...(v||{})}}
 function renderVirtualPage(c,slug){
@@ -127,10 +202,11 @@ async function applyWebsite(){
     }
   }
   for(const [id,v] of Object.entries(c.buttons||{})){const el=document.getElementById(id);if(!el)continue;if(v.label)el.textContent=v.label;el.hidden=!!v.hidden;if(v.href&&el.tagName==='A')el.href=v.href;if(el.tagName==='A'&&v.newTab!==undefined){el.target=v.newTab?'_blank':'_self';if(v.newTab)el.rel='noopener noreferrer'}}
+  applyDeep(c,'website');
   const pageSeo=seo.pages?.[virtualSlug||page]||{};document.title=pageSeo.title||seo.title||document.title;const desc=pageSeo.description||seo.description;setMeta('description',desc);setMeta('keywords',pageSeo.keywords||seo.keywords);if(seo.googleVerification)setMeta('google-site-verification',seo.googleVerification);setMeta('og:title',document.title,'property');setMeta('og:description',desc,'property');setMeta('og:type','website','property');let canonical=document.querySelector('link[rel=\"canonical\"]');if(!canonical){canonical=document.createElement('link');canonical.rel='canonical';document.head.appendChild(canonical)}canonical.href=location.href.split('#')[0];
 }
 async function maintenanceGuard(){
-  if(location.pathname.includes('/admin/'))return false;const m=await read('maintenance'),preview=new URLSearchParams(location.search).get('maintenance_preview')==='1';if(!m.enabled&&!preview)return false;
+  const file=(location.pathname.split('/').pop()||'index.html').toLowerCase();if(location.pathname.includes('/admin/')||file==='google-callback.html'||file==='dashboard.html')return false;const m=await read('maintenance'),preview=new URLSearchParams(location.search).get('maintenance_preview')==='1';if(!m.enabled&&!preview)return false;
   document.documentElement.classList.remove('yt-user-boot','yt-user-view-restoring');
   document.body.innerHTML=`<main class="yt-maintenance-screen"><section class="yt-maintenance-card"><div class="yt-maintenance-icon">🛠️</div><div class="yt-maintenance-kicker">YT CREATOR PRO • SYSTEM UPDATE</div><h1>${esc(m.title)}</h1><p>${esc(m.message)}</p>${m.reopen?`<div class="yt-maintenance-reopen">Expected reopening: <b>${esc(m.reopen)}</b></div>`:''}<div class="yt-maintenance-status"><i></i>${esc(m.status||'UPDATE IN PROGRESS')}</div></section></main>`;
   if(!document.getElementById('ytMaintenanceStyle')){const st=document.createElement('style');st.id='ytMaintenanceStyle';st.textContent=`.yt-maintenance-screen{min-height:100vh;display:grid;place-items:center;padding:20px;background:radial-gradient(circle at top,#202b42,#070b13 72%);font-family:Arial,sans-serif}.yt-maintenance-card{width:min(720px,94vw);background:#fff;border-radius:26px;padding:42px 26px;text-align:center;box-shadow:0 30px 90px rgba(0,0,0,.35)}.yt-maintenance-icon{font-size:54px}.yt-maintenance-kicker{font-size:12px;font-weight:900;letter-spacing:.12em;color:#dc2626;margin:12px 0}.yt-maintenance-card h1{font-size:clamp(30px,6vw,50px);margin:0;color:#111827}.yt-maintenance-card p{font-size:17px;line-height:1.7;color:#64748b}.yt-maintenance-reopen{padding:12px;background:#f8fafc;border-radius:12px}.yt-maintenance-status{margin-top:20px;color:#15803d;font-weight:900;display:flex;gap:8px;justify-content:center;align-items:center}.yt-maintenance-status i{width:9px;height:9px;background:#22c55e;border-radius:50%;box-shadow:0 0 0 5px rgba(34,197,94,.12)}`;document.head.appendChild(st)}
@@ -142,5 +218,5 @@ function inventoryAdminBlocks(){
 function inventoryWebsite(){
   return {sections:[...document.querySelectorAll('.yt-user-public-main > section[id]')].map((el,i)=>({id:el.id,label:el.querySelector('h2')?.textContent?.trim()||el.id,order:i})),cards:[...document.querySelectorAll('#services article')].map((el,i)=>{const key='service-'+i;el.dataset.cmsSiteCard=key;return {key,label:el.querySelector('h3')?.textContent?.trim()||key,order:i}})};
 }
-window.YTCMS={read,write,uploadMedia,applyAdmin,applyWebsite,maintenanceGuard,defaults:DEFAULTS,slugify,inventoryAdminBlocks,inventoryWebsite};
+window.YTCMS={read,write,uploadMedia,applyAdmin,applyWebsite,maintenanceGuard,defaults:DEFAULTS,slugify,inventoryAdminBlocks,inventoryWebsite,inventoryDeep,deepContainers};
 if(location.pathname.includes('/admin/')){inventoryAdminBlocks();await applyAdmin()}else{inventoryWebsite();const stopped=await maintenanceGuard();if(!stopped)await applyWebsite()}

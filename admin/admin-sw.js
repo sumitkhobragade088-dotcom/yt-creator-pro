@@ -1,4 +1,4 @@
-const CACHE='yt-admin-v5';
+const CACHE='yt-admin-v5-cmsfix2';
 const ASSETS=['./','index.html','login.html','manifest.webmanifest','../assets/css/style.css','../assets/js/admin-auth.js','../assets/js/supabase.js','../assets/js/cms-engine.js','../assets/js/cms-admin-ui.js','../assets/css/cms-control.css'];
 
 self.addEventListener('install',e=>{

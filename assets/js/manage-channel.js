@@ -23,7 +23,7 @@ async function loadAll(){
   const bp=$("channelBannerPreview"), be=$("noBannerPreview");
   if(c.bannerUrl){bp.src=c.bannerUrl;bp.style.display="block";be.style.display="none"}else{bp.removeAttribute("src");bp.style.display="none";be.style.display="grid"}
   $("channelStats").innerHTML=`<div><b>${fmt(c.subscribers)}</b><span>Subscribers</span></div><div><b>${fmt(c.views)}</b><span>Views</span></div><div><b>${fmt(c.videos)}</b><span>Videos</span></div><div><b>${esc(c.channelId||"-")}</b><span>Channel ID</span></div>`;
-  $("manageMessage").textContent="Connected channel loaded ✅"; renderVideos();renderPlaylists();renderAnalytics();renderCopyright();
+  $("manageMessage").textContent="Connected channel loaded ✅"; renderVideos();renderPlaylists();renderAnalytics();renderCopyright();loadMonetizationAnalytics();
  }catch(e){
     $("manageMessage").textContent=e.message;
     if($("contentTableBody")) $("contentTableBody").innerHTML='<tr><td colspan="6">Could not load content.</td></tr>';
@@ -171,6 +171,25 @@ function renderContentTable(){
 }
 
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
+
+
+function money(n){return "$"+Number(n||0).toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2})}
+async function loadMonetizationAnalytics(){
+  const panel=$("monetizationAnalyticsPanel"),msg=$("monetizationAnalyticsMessage");if(!panel)return;
+  panel.hidden=false;if(msg)msg.textContent="Loading monetization analytics…";
+  try{
+    const d=await api("monetization_analytics");
+    if($("ytEstimatedRevenue"))$("ytEstimatedRevenue").textContent=money(d.estimatedRevenue);
+    if($("ytEstimatedAdRevenue"))$("ytEstimatedAdRevenue").textContent=money(d.estimatedAdRevenue);
+    if($("ytRevenueRPM"))$("ytRevenueRPM").textContent=money(d.rpm);
+    if($("ytPlaybackCPM"))$("ytPlaybackCPM").textContent=money(d.playbackBasedCpm);
+    if($("ytRevenueViews"))$("ytRevenueViews").textContent=fmt(d.views||0);
+    if($("ytWatchHours"))$("ytWatchHours").textContent=(Number(d.watchMinutes||0)/60).toLocaleString("en-IN",{maximumFractionDigits:1})+" h";
+    if($("monetizationAnalyticsPeriod")&&d.period)$("monetizationAnalyticsPeriod").textContent=`${d.period.start} → ${d.period.end} • Last ${d.period.days||28} days`;
+    if(msg)msg.textContent=d.moneyAvailable?"Live YouTube monetization analytics loaded ✅":"Revenue permission/data unavailable. Reconnect Google once to grant YouTube Analytics monetary permission.";
+  }catch(e){if(msg)msg.textContent=(e?.message||"Revenue data unavailable")+" • Existing channel management is unaffected."}
+}
+if($("refreshMonetizationAnalytics"))$("refreshMonetizationAnalytics").onclick=loadMonetizationAnalytics;
 
 function renderAnalytics(){
   if(!$("analyticsSubscribers")) return;
@@ -502,6 +521,7 @@ function scrollManageTarget(target){
     channel:"channelDetails",
     content:"channelContent",
     analytics:"analyticsOverview",
+    monetization:"monetizationAnalyticsPanel",
     copyright:"copyrightStatus",
     playlists:"playlistsSection",
     settings:"settingsSection"
