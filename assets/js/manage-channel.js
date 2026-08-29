@@ -4,6 +4,8 @@ let customerId=null;
 let videos=[],playlists=[];
 let currentChannel={};
 let activeContentTab="video";
+let contentPage=1;
+let contentPageSize=30;
 let uploadBusy=false;
 const $=id=>document.getElementById(id);
 async function session(){const {data:{session}}=await supabase.auth.getSession();if(!session){location.href="login.html";throw new Error("Login required")}return session}
@@ -18,6 +20,7 @@ async function loadAll(){
   $("manageMessage").textContent="Syncing YouTube…";
   const d=await api("dashboard");
   const c=d.channel||{}; currentChannel=c; videos=d.videos||[]; playlists=d.playlists||[];
+  if($("contentLoadStatus")) $("contentLoadStatus").textContent=d.contentTruncated?`Loaded first ${videos.length} uploads. Very large channels are capped at ${d.contentLimit||1000} per sync.`:`${videos.length} uploads synced from YouTube.`;
   $("channelTitle").textContent="Manage: "+(c.title||"YouTube Channel");
   $("channelName").value=c.title||"";$("channelDescription").value=c.description||"";$("channelKeywords").value=c.keywords||"";
   const bp=$("channelBannerPreview"), be=$("noBannerPreview");
@@ -68,106 +71,64 @@ function formatDate(v){
   const d=new Date(raw);
   return Number.isNaN(d.getTime())?"-":d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
 }
+function formatDuration(v){
+  const sec=Math.max(0,Number(v?.durationSeconds || isoDurationSeconds(v?.duration || "PT0S")));
+  const h=Math.floor(sec/3600),m=Math.floor((sec%3600)/60),s=Math.floor(sec%60);
+  return h?`${h}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`:`${m}:${String(s).padStart(2,"0")}`;
+}
 function contentRows(){
   const q=String($("contentSearch")?.value||"").trim().toLowerCase();
-
+  if(activeContentTab==="post") return [];
   if(activeContentTab==="playlist"){
     return (playlists||[])
       .filter(p=>!q || `${p.title||""} ${p.description||""}`.toLowerCase().includes(q))
-      .map(p=>({
-        kind:"playlist",
-        id:p.id,
-        title:p.title||"",
-        description:p.description||"",
-        thumbnail:p.thumbnail||"",
-        privacyStatus:p.privacyStatus||"-",
-        date:p.publishedAt||"",
-        views:"-",
-        comments:"-",
-        object:p
-      }));
+      .map(p=>({kind:"playlist",id:p.id,title:p.title||"",description:p.description||"",thumbnail:p.thumbnail||"",privacyStatus:p.privacyStatus||"-",date:p.publishedAt||"",views:"-",comments:"-",likes:"-",notice:"—",object:p}));
   }
-
   return (videos||[])
     .filter(v=>contentType(v)===activeContentTab)
     .filter(v=>!q || `${v.title||""} ${v.description||""}`.toLowerCase().includes(q))
-    .map(v=>({
-      kind:"video",
-      id:v.id,
-      title:v.title||"",
-      description:v.description||"",
-      thumbnail:v.thumbnail||"",
-      privacyStatus:v.privacyStatus||"-",
-      date:v.publishedAt||"",
-      views:v.views||0,
-      comments:v.comments||0,
-      object:v
-    }));
+    .map(v=>({kind:"video",id:v.id,title:v.title||"",description:v.description||"",thumbnail:v.thumbnail||"",privacyStatus:v.privacyStatus||"-",date:v.publishedAt||"",views:v.views||0,comments:v.comments||0,likes:v.likes||0,notice:copyrightLabel(v),object:v}));
 }
 
 function renderContentTable(){
-  const body=$("contentTableBody");
-  if(!body)return;
-  const rows=contentRows();
+  const body=$("contentTableBody"); if(!body)return;
+  const allRows=contentRows();
+  const total=allRows.length;
+  const maxPage=Math.max(1,Math.ceil(total/contentPageSize));
+  contentPage=Math.min(Math.max(1,contentPage),maxPage);
+  const start=(contentPage-1)*contentPageSize;
+  const rows=allRows.slice(start,start+contentPageSize);
 
-  if(!rows.length){
+  if(activeContentTab==="post"){
+    body.innerHTML='<tr><td colspan="9" class="yt-table-empty">Community Posts are available in YouTube Studio, but the public YouTube Data API does not expose them.</td></tr>';
+  }else if(!rows.length){
     const label=activeContentTab==="video"?"videos":activeContentTab==="short"?"shorts":activeContentTab==="live"?"live streams":"playlists";
-    body.innerHTML=`<tr><td colspan="6" class="yt-table-empty">No ${label} found.</td></tr>`;
-    return;
+    body.innerHTML=`<tr><td colspan="9" class="yt-table-empty">No ${label} found.</td></tr>`;
+  }else{
+    body.innerHTML=rows.map((r,idx)=>`
+      <tr>
+        <td class="yt-check-col"><input class="yt-content-check" type="checkbox" aria-label="Select ${esc(r.title)}"></td>
+        <td><div class="yt-table-content-cell"><div class="yt-thumb-wrap"><img src="${esc(r.thumbnail||"")}" alt="">${r.kind==="video"?`<span class="yt-duration">${formatDuration(r.object)}</span>`:""}</div><div><b>${esc(r.title)}</b><small>${esc(r.description||"").slice(0,90)}</small></div></div></td>
+        <td><span class="yt-notice ${String(r.notice).startsWith("⚠️")?"warn":""}">${esc(r.notice||"—")}</span></td>
+        <td><span class="yt-visibility-chip">${esc(r.privacyStatus||"-")}</span></td>
+        <td>${formatDate(r.object)}</td>
+        <td>${r.views==="-"?"-":fmt(r.views)}</td>
+        <td>${r.comments==="-"?"-":fmt(r.comments)}</td>
+        <td>${r.likes==="-"?"-":fmt(r.likes)}</td>
+        <td><div class="yt-row-actions"><button class="btn primary" data-content-edit="${idx}">${r.kind==="playlist"?"Edit / Update":"Edit / Manage"}</button>${r.kind==="playlist"?`<button class="btn danger" data-playlist-delete="${idx}">Delete</button>`:""}</div></td>
+      </tr>`).join("");
   }
 
-  body.innerHTML=rows.map((r,idx)=>`
-    <tr>
-      <td>
-        <div class="yt-table-content-cell">
-          <img src="${esc(r.thumbnail||"")}" alt="">
-          <div>
-            <b>${esc(r.title)}</b>
-            <small>${esc(r.description||"").slice(0,80)}</small>
-          </div>
-        </div>
-      </td>
-      <td><span class="yt-visibility-chip">${esc(r.privacyStatus||"-")}</span></td>
-      <td>${formatDate(r.object)}</td>
-      <td>${r.views==="-"?"-":fmt(r.views)}</td>
-      <td>${r.comments==="-"?"-":fmt(r.comments)}</td>
-      <td>
-        <div class="yt-row-actions">
-          <button class="btn primary" data-content-edit="${idx}">${r.kind==="playlist"?"Edit / Update":"Edit / Manage"}</button>
-          ${r.kind==="playlist"?`<button class="btn danger" data-playlist-delete="${idx}">Delete</button>`:""}
-        </div>
-      </td>
-    </tr>`).join("");
+  const from=total?start+1:0,to=Math.min(start+contentPageSize,total);
+  if($("contentPageInfo")) $("contentPageInfo").textContent=`${from}–${to} of ${total}`;
+  if($("contentFirstPage")) $("contentFirstPage").disabled=contentPage<=1;
+  if($("contentPrevPage")) $("contentPrevPage").disabled=contentPage<=1;
+  if($("contentNextPage")) $("contentNextPage").disabled=contentPage>=maxPage;
+  if($("contentLastPage")) $("contentLastPage").disabled=contentPage>=maxPage;
+  if($("selectAllContent")) $("selectAllContent").checked=false;
 
-  document.querySelectorAll("[data-content-edit]").forEach(btn=>{
-    btn.onclick=()=>{
-      const row=rows[Number(btn.dataset.contentEdit)];
-      if(row.kind==="playlist"){
-        const i=playlists.indexOf(row.object);
-        openPlaylist(i);
-      }else{
-        const i=videos.indexOf(row.object);
-        openEdit(i);
-      }
-    };
-  });
-  document.querySelectorAll("[data-playlist-delete]").forEach(btn=>{
-    btn.onclick=async()=>{
-      const row=rows[Number(btn.dataset.playlistDelete)];
-      if(!row || row.kind!=="playlist") return;
-      if(!confirm(`Playlist "${row.title}" permanently delete karna hai?`)) return;
-      try{
-        btn.disabled=true;
-        btn.textContent="Deleting…";
-        await api("delete_playlist",{playlist_id:row.id});
-        await loadAll();
-      }catch(e){
-        alert(e.message);
-        btn.disabled=false;
-        btn.textContent="Delete";
-      }
-    };
-  });
+  document.querySelectorAll("[data-content-edit]").forEach(btn=>{btn.onclick=()=>{const row=rows[Number(btn.dataset.contentEdit)];if(!row)return;if(row.kind==="playlist")openPlaylist(playlists.indexOf(row.object));else openEdit(videos.indexOf(row.object));};});
+  document.querySelectorAll("[data-playlist-delete]").forEach(btn=>{btn.onclick=async()=>{const row=rows[Number(btn.dataset.playlistDelete)];if(!row||row.kind!=="playlist")return;if(!confirm(`Playlist "${row.title}" permanently delete karna hai?`))return;try{btn.disabled=true;btn.textContent="Deleting…";await api("delete_playlist",{playlist_id:row.id});await loadAll()}catch(e){alert(e.message);btn.disabled=false;btn.textContent="Delete";}};});
 }
 
 function openEdit(i){const v=videos[i];$("editVideoId").value=v.id;$("editTitle").value=v.title||"";$("editDescription").value=v.description||"";$("editTags").value=(v.tags||[]).join(", ");$("editCategory").value=v.categoryId||"22";$("editPrivacy").value=v.privacyStatus||"private";$("editMessage").textContent=`Copyright claims: YouTube Data API me available nahi. API restrictions: ${v.restrictions?.regionBlocked?"Region blocked":"none reported"}`;$("editModal").hidden=false}
@@ -187,7 +148,28 @@ async function loadMonetizationAnalytics(){
     if($("ytWatchHours"))$("ytWatchHours").textContent=(Number(d.watchMinutes||0)/60).toLocaleString("en-IN",{maximumFractionDigits:1})+" h";
     if($("monetizationAnalyticsPeriod")&&d.period)$("monetizationAnalyticsPeriod").textContent=`${d.period.start} → ${d.period.end} • Last ${d.period.days||28} days`;
     if(msg)msg.textContent=d.moneyAvailable?"Live YouTube monetization analytics loaded ✅":"Revenue permission/data unavailable. Reconnect Google once to grant YouTube Analytics monetary permission.";
-  }catch(e){if(msg)msg.textContent=(e?.message||"Revenue data unavailable")+" • Existing channel management is unaffected."}
+    renderEligibility(d.eligibility||{});
+  }catch(e){if(msg)msg.textContent=(e?.message||"Revenue data unavailable")+" • Existing channel management is unaffected.";renderEligibility({subscribers:currentChannel.subscribers||0,uploadsLast90:null});}
+}
+function pct(v,target){return Math.max(0,Math.min(100,(Number(v||0)/target)*100))}
+function renderEligibility(e={}){
+  const subs=Number(e.subscribers??currentChannel.subscribers??0),uploads=e.uploadsLast90==null?null:Number(e.uploadsLast90);
+  if($("ytEligibilityDate")) $("ytEligibilityDate").textContent=e.asOf||new Date().toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});
+  if($("ytEligibilitySubscribers")) $("ytEligibilitySubscribers").textContent=`${fmt(subs)} subscribers`;
+  if($("ytEligibilitySubscribersTarget")) $("ytEligibilitySubscribersTarget").textContent=`${fmt(subs)} / 500`;
+  if($("ytEligibilitySubscribersBar")) $("ytEligibilitySubscribersBar").style.width=pct(subs,500)+"%";
+  if($("ytEligibilityUploads")) $("ytEligibilityUploads").textContent=uploads==null?"Video uploads unavailable":`${fmt(uploads)} video upload${uploads===1?"":"s"}`;
+  if($("ytEligibilityUploadsTarget")) $("ytEligibilityUploadsTarget").textContent=uploads==null?"— / 3":`${fmt(uploads)} / 3`;
+  if($("ytEligibilityUploadsBar")) $("ytEligibilityUploadsBar").style.width=uploads==null?"0%":pct(uploads,3)+"%";
+  const wh=e.qualifiedWatchHours,sv=e.qualifiedShortsViews;
+  if($("ytEligibilityWatchHours")) $("ytEligibilityWatchHours").textContent=wh==null?"Qualified watch hours — API unavailable":`${fmt(wh)} qualified watch hours`;
+  if($("ytEligibilityWatchHoursTarget")) $("ytEligibilityWatchHoursTarget").textContent=wh==null?"— / 3,000":`${fmt(wh)} / 3,000`;
+  if($("ytEligibilityWatchHoursBar")){ $("ytEligibilityWatchHoursBar").style.width=wh==null?"0%":pct(wh,3000)+"%"; $("ytEligibilityWatchHoursBar").classList.toggle("unavailable",wh==null);}
+  if($("ytEligibilityWatchHoursNote")) $("ytEligibilityWatchHoursNote").textContent=wh==null?"YouTube does not expose the official qualified public watch-hours eligibility counter through its public APIs.":"";
+  if($("ytEligibilityShortsViews")) $("ytEligibilityShortsViews").textContent=sv==null?"Qualified Shorts views — API unavailable":`${fmt(sv)} qualified Shorts views`;
+  if($("ytEligibilityShortsTarget")) $("ytEligibilityShortsTarget").textContent=sv==null?"— / 3M":`${fmt(sv)} / 3M`;
+  if($("ytEligibilityShortsBar")){ $("ytEligibilityShortsBar").style.width=sv==null?"0%":pct(sv,3000000)+"%"; $("ytEligibilityShortsBar").classList.toggle("unavailable",sv==null);}
+  if($("ytEligibilityShortsNote")) $("ytEligibilityShortsNote").textContent=sv==null?"YouTube does not expose the official qualified Shorts-views eligibility counter through its public APIs.":"";
 }
 if($("refreshMonetizationAnalytics"))$("refreshMonetizationAnalytics").onclick=loadMonetizationAnalytics;
 
@@ -260,11 +242,18 @@ document.querySelectorAll(".yt-content-tab").forEach(btn=>{
     document.querySelectorAll(".yt-content-tab").forEach(b=>b.classList.remove("active"));
     btn.classList.add("active");
     activeContentTab=btn.dataset.contentTab;
+    contentPage=1;
     if($("newPlaylistBtn")) $("newPlaylistBtn").hidden=activeContentTab!=="playlist";
     renderContentTable();
   };
 });
-if($("contentSearch")) $("contentSearch").oninput=renderContentTable;
+if($("contentSearch")) $("contentSearch").oninput=()=>{contentPage=1;renderContentTable()};
+if($("contentRowsPerPage")) $("contentRowsPerPage").onchange=()=>{contentPageSize=Number($("contentRowsPerPage").value||30);contentPage=1;renderContentTable()};
+if($("contentFirstPage")) $("contentFirstPage").onclick=()=>{contentPage=1;renderContentTable()};
+if($("contentPrevPage")) $("contentPrevPage").onclick=()=>{contentPage=Math.max(1,contentPage-1);renderContentTable()};
+if($("contentNextPage")) $("contentNextPage").onclick=()=>{contentPage+=1;renderContentTable()};
+if($("contentLastPage")) $("contentLastPage").onclick=()=>{contentPage=Math.max(1,Math.ceil(contentRows().length/contentPageSize));renderContentTable()};
+if($("selectAllContent")) $("selectAllContent").onchange=e=>document.querySelectorAll(".yt-content-check").forEach(c=>c.checked=e.target.checked);
 
 
 if($("refreshAnalytics")) $("refreshAnalytics").onclick=loadAll;

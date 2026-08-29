@@ -76,24 +76,37 @@ Deno.serve(async req=>{
       const r=d.rows?.[0]||[];money={estimatedRevenue:Number(r[0]||0),estimatedAdRevenue:Number(r[1]||0),playbackBasedCpm:Number(r[2]||0)};
     }catch(e){moneyError=String(e)}
     const rpm=core.views>0?((Number(money.estimatedRevenue||0)/core.views)*1000):0;
-    return J({success:true,period:{start:ds(start),end:ds(end),days:28},...core,...money,rpm,moneyAvailable:!moneyError,moneyError});
+    const chd=await gj("https://www.googleapis.com/youtube/v3/channels?part=statistics&mine=true",token);
+    const subscribers=Number(chd.items?.[0]?.statistics?.subscriberCount||0);
+    const since90=new Date(now.getTime()-90*86400000);
+    let uploadsLast90:number|null=null;
+    try{
+      const cd=await gj("https://www.googleapis.com/youtube/v3/channels?part=contentDetails&mine=true",token);const uploads=cd.items?.[0]?.contentDetails?.relatedPlaylists?.uploads;
+      if(uploads){let pageToken="",count=0,guard=0;do{const u=new URL("https://www.googleapis.com/youtube/v3/playlistItems");u.searchParams.set("part","snippet");u.searchParams.set("playlistId",uploads);u.searchParams.set("maxResults","50");if(pageToken)u.searchParams.set("pageToken",pageToken);const pd=await gj(u.toString(),token);for(const it of (pd.items||[])){const d=new Date(it.snippet?.publishedAt||0);if(d>=since90)count++;}pageToken=pd.nextPageToken||"";guard++;}while(pageToken&&guard<20);uploadsLast90=count;}
+    }catch(_){uploadsLast90=null}
+    return J({success:true,period:{start:ds(start),end:ds(end),days:28},...core,...money,rpm,moneyAvailable:!moneyError,moneyError,eligibility:{asOf:ds(end),subscribers,uploadsLast90,qualifiedWatchHours:null,qualifiedShortsViews:null,officialEligibilityCountersAvailable:false}});
   }
 
   if(b.action==="dashboard"){
    const cd=await gj("https://www.googleapis.com/youtube/v3/channels?part=snippet,brandingSettings,statistics,contentDetails&mine=true",token);const ch=cd.items?.[0];if(!ch)return J({error:"Channel not found"},404);
    const uploads=ch.contentDetails?.relatedPlaylists?.uploads;
-   let ids:string[]=[];if(uploads){const pd=await gj(`https://www.googleapis.com/youtube/v3/playlistItems?part=contentDetails&playlistId=${uploads}&maxResults=50`,token);ids=(pd.items||[]).map((x:any)=>x.contentDetails?.videoId).filter(Boolean)}
-   let videos:any[]=[];if(ids.length){const vd=await gj(`https://www.googleapis.com/youtube/v3/videos?part=snippet,status,statistics,contentDetails,liveStreamingDetails&id=${ids.join(",")}`,token);videos=(vd.items||[]).map((v:any)=>({id:v.id,title:v.snippet?.title||"",description:v.snippet?.description||"",tags:v.snippet?.tags||[],categoryId:v.snippet?.categoryId||"22",thumbnail:v.snippet?.thumbnails?.medium?.url||v.snippet?.thumbnails?.default?.url||"",privacyStatus:v.status?.privacyStatus||"",
-liveBroadcastContent:v.snippet?.liveBroadcastContent||"none",
-isLive:v.snippet?.liveBroadcastContent==="live",
-hadLiveStream:!!v.liveStreamingDetails,
-duration:v.contentDetails?.duration||"PT0S",
-durationSeconds:(()=>{const m=String(v.contentDetails?.duration||"PT0S").match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);return m?((Number(m[1]||0)*86400)+(Number(m[2]||0)*3600)+(Number(m[3]||0)*60)+Number(m[4]||0)):0})(),
-status:{uploadStatus:v.status?.uploadStatus||"",license:v.status?.license||"",embeddable:v.status?.embeddable},
-views:v.statistics?.viewCount||0,comments:v.statistics?.commentCount||0,publishedAt:v.snippet?.publishedAt||"",
-restrictions:{regionBlocked:!!(v.contentDetails?.regionRestriction?.blocked?.length)}}))}
-   const pl=await gj("https://www.googleapis.com/youtube/v3/playlists?part=snippet,status,contentDetails&mine=true&maxResults=50",token);const playlists=(pl.items||[]).map((p:any)=>({id:p.id,title:p.snippet?.title||"",description:p.snippet?.description||"",privacyStatus:p.status?.privacyStatus||"",itemCount:p.contentDetails?.itemCount||0,thumbnail:p.snippet?.thumbnails?.medium?.url||p.snippet?.thumbnails?.default?.url||"",publishedAt:p.snippet?.publishedAt||""}));
-   return J({channel:{channelId:ch.id,title:ch.snippet?.title||"",description:ch.snippet?.description||"",keywords:ch.brandingSettings?.channel?.keywords||"",bannerUrl:ch.brandingSettings?.image?.bannerExternalUrl||"",subscribers:ch.statistics?.subscriberCount||0,views:ch.statistics?.viewCount||0,videos:ch.statistics?.videoCount||0},videos,playlists,copyright_note:"Copyright claim details are not exposed by YouTube Data API; use YouTube Studio for exact claims."});
+   const ids:string[]=[];let contentTruncated=false;const contentLimit=1000;
+   if(uploads){
+     let pageToken="",guard=0;
+     do{
+       const u=new URL("https://www.googleapis.com/youtube/v3/playlistItems");u.searchParams.set("part","contentDetails");u.searchParams.set("playlistId",uploads);u.searchParams.set("maxResults","50");if(pageToken)u.searchParams.set("pageToken",pageToken);
+       const pd=await gj(u.toString(),token);for(const x of (pd.items||[])){const id=x.contentDetails?.videoId;if(id)ids.push(id);if(ids.length>=contentLimit)break}
+       pageToken=pd.nextPageToken||"";guard++;if(ids.length>=contentLimit){contentTruncated=!!pageToken;break}
+     }while(pageToken&&guard<25);
+   }
+   let videos:any[]=[];
+   for(let i=0;i<ids.length;i+=50){
+     const batch=ids.slice(i,i+50);const vd=await gj(`https://www.googleapis.com/youtube/v3/videos?part=snippet,status,statistics,contentDetails,liveStreamingDetails&id=${batch.join(",")}`,token);
+     videos.push(...(vd.items||[]).map((v:any)=>({id:v.id,title:v.snippet?.title||"",description:v.snippet?.description||"",tags:v.snippet?.tags||[],categoryId:v.snippet?.categoryId||"22",thumbnail:v.snippet?.thumbnails?.medium?.url||v.snippet?.thumbnails?.default?.url||"",privacyStatus:v.status?.privacyStatus||"",liveBroadcastContent:v.snippet?.liveBroadcastContent||"none",isLive:v.snippet?.liveBroadcastContent==="live",hadLiveStream:!!v.liveStreamingDetails,duration:v.contentDetails?.duration||"PT0S",durationSeconds:(()=>{const m=String(v.contentDetails?.duration||"PT0S").match(/P(?:(\d+)D)?T?(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/i);return m?((Number(m[1]||0)*86400)+(Number(m[2]||0)*3600)+(Number(m[3]||0)*60)+Number(m[4]||0)):0})(),status:{uploadStatus:v.status?.uploadStatus||"",license:v.status?.license||"",embeddable:v.status?.embeddable},views:v.statistics?.viewCount||0,comments:v.statistics?.commentCount||0,likes:v.statistics?.likeCount||0,publishedAt:v.snippet?.publishedAt||"",restrictions:{regionBlocked:!!(v.contentDetails?.regionRestriction?.blocked?.length)}})));
+   }
+   const order=new Map(ids.map((id,i)=>[id,i]));videos.sort((a:any,b:any)=>(order.get(a.id)??999999)-(order.get(b.id)??999999));
+   const playlists:any[]=[];let plToken="",plGuard=0;do{const u=new URL("https://www.googleapis.com/youtube/v3/playlists");u.searchParams.set("part","snippet,status,contentDetails");u.searchParams.set("mine","true");u.searchParams.set("maxResults","50");if(plToken)u.searchParams.set("pageToken",plToken);const pd=await gj(u.toString(),token);playlists.push(...(pd.items||[]).map((p:any)=>({id:p.id,title:p.snippet?.title||"",description:p.snippet?.description||"",privacyStatus:p.status?.privacyStatus||"",itemCount:p.contentDetails?.itemCount||0,thumbnail:p.snippet?.thumbnails?.medium?.url||p.snippet?.thumbnails?.default?.url||"",publishedAt:p.snippet?.publishedAt||""})));plToken=pd.nextPageToken||"";plGuard++;}while(plToken&&plGuard<20);
+   return J({channel:{channelId:ch.id,title:ch.snippet?.title||"",description:ch.snippet?.description||"",keywords:ch.brandingSettings?.channel?.keywords||"",bannerUrl:ch.brandingSettings?.image?.bannerExternalUrl||"",subscribers:ch.statistics?.subscriberCount||0,views:ch.statistics?.viewCount||0,videos:ch.statistics?.videoCount||0},videos,playlists,contentTruncated,contentLimit,copyright_note:"Copyright claim details are not exposed by YouTube Data API; use YouTube Studio for exact claims."});
   }
 
   if(b.action==="set_channel_banner"){

@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/cms-control.css">
+<link rel="stylesheet" href="../assets/css/channel-content.css">
 <style>
 html.yt-admin-boot body{visibility:hidden!important}
 </style>
@@ -436,7 +437,10 @@ document.documentElement.classList.add("yt-admin-boot");
     </div>
     <div id="channelStats" class="yt-manager-stats"></div>
     <section id="monetizationAnalyticsPanel" class="yt-monetization-analytics panel" hidden>
-      <div class="yt-manager-head"><div><h2>💰 Monetization & Revenue</h2><p id="monetizationAnalyticsPeriod">Last 28 days • YouTube Analytics</p></div><button id="refreshMonetizationAnalytics" class="btn" type="button">Refresh Revenue</button></div>
+      <div class="yt-manager-head">
+        <div><h2>💰 Monetization & Revenue</h2><p id="monetizationAnalyticsPeriod">Last 28 days • YouTube Analytics</p></div>
+        <button id="refreshMonetizationAnalytics" class="btn" type="button">Refresh Revenue</button>
+      </div>
       <div class="yt-revenue-grid">
         <div><small>Estimated Revenue</small><b id="ytEstimatedRevenue">$0.00</b></div>
         <div><small>Estimated Ad Revenue</small><b id="ytEstimatedAdRevenue">$0.00</b></div>
@@ -446,6 +450,31 @@ document.documentElement.classList.add("yt-admin-boot");
         <div><small>Watch Time</small><b id="ytWatchHours">0 h</b></div>
       </div>
       <p id="monetizationAnalyticsMessage" class="yt-note">Revenue appears only for a monetized channel with YouTube Analytics monetary permission.</p>
+
+      <div class="yt-eligibility" id="ytEligibilityPanel">
+        <div class="yt-eligibility-head"><h3>Eligibility</h3><span id="ytEligibilityInfo">ⓘ</span></div>
+        <div class="yt-eligibility-date">ⓘ <b>Showing data as of:</b> <span id="ytEligibilityDate">—</span></div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilitySubscribers">0 subscribers</b></div><strong id="ytEligibilitySubscribersTarget">0 / 500</strong></div>
+          <div class="yt-progress"><span id="ytEligibilitySubscribersBar"></span></div>
+        </div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilityUploads">0 video uploads</b><small>last 90 days</small></div><strong id="ytEligibilityUploadsTarget">0 / 3</strong></div>
+          <div class="yt-progress"><span id="ytEligibilityUploadsBar"></span></div>
+        </div>
+        <div class="yt-eligibility-or">and one of the following</div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilityWatchHours">Qualified watch hours</b><small>last 365 days</small></div><strong id="ytEligibilityWatchHoursTarget">— / 3,000</strong></div>
+          <div class="yt-progress"><span id="ytEligibilityWatchHoursBar"></span></div>
+          <small id="ytEligibilityWatchHoursNote" class="yt-api-note"></small>
+        </div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilityShortsViews">Qualified Shorts views</b><small>last 90 days</small></div><strong id="ytEligibilityShortsTarget">— / 3M</strong></div>
+          <div class="yt-progress"><span id="ytEligibilityShortsBar"></span></div>
+          <small id="ytEligibilityShortsNote" class="yt-api-note"></small>
+        </div>
+        <p class="yt-eligibility-foot">Official YPP eligibility counters that YouTube does not expose through public APIs are marked unavailable instead of estimated.</p>
+      </div>
     </section>
   </div>
 <div id="managerUnlockedArea" class="yt-manager-unlocked">
@@ -526,7 +555,7 @@ document.documentElement.classList.add("yt-admin-boot");
     <div class="yt-manager-head">
       <div>
         <h2>Channel Content</h2>
-        <p class="yt-note">YouTube Studio style content manager.</p>
+        <p class="yt-note" id="contentLoadStatus">YouTube Studio style content manager.</p>
       </div>
       <button id="refreshVideos" class="btn">Refresh Content</button>
     </div>
@@ -535,11 +564,12 @@ document.documentElement.classList.add("yt-admin-boot");
       <button class="yt-content-tab active" data-content-tab="video">Videos <span id="videosCount">0</span></button>
       <button class="yt-content-tab" data-content-tab="short">Shorts <span id="shortsCount">0</span></button>
       <button class="yt-content-tab" data-content-tab="live">Live <span id="liveCount">0</span></button>
+      <button class="yt-content-tab" data-content-tab="post">Posts <span>Studio</span></button>
       <button class="yt-content-tab" id="playlistsSection" data-content-tab="playlist">Playlists <span id="playlistsCount">0</span></button>
     </div>
 
     <div class="yt-content-toolbar">
-      <input id="contentSearch" type="search" placeholder="Filter content...">
+      <div class="yt-content-filter">☰ <input id="contentSearch" type="search" placeholder="Filter content..."></div>
       <button id="newPlaylistBtn" class="btn primary" hidden>+ New Playlist</button>
     </div>
 
@@ -547,21 +577,35 @@ document.documentElement.classList.add("yt-admin-boot");
       <table class="yt-studio-table">
         <thead>
           <tr>
+            <th class="yt-check-col"><input id="selectAllContent" type="checkbox" aria-label="Select visible content"></th>
             <th>Content</th>
+            <th>Notices</th>
             <th>Visibility</th>
             <th>Date</th>
             <th>Views</th>
             <th>Comments</th>
-            <th>Action</th>
+            <th>Likes</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody id="contentTableBody">
-          <tr><td colspan="6">No data yet.</td></tr>
+          <tr><td colspan="9">No data yet.</td></tr>
         </tbody>
       </table>
     </div>
 
-    <p class="yt-note">Shorts ka direct API flag available nahi hai; system duration/live metadata ke basis par separate karta hai. Exact Copyright claims YouTube Studio me check karein.</p>
+    <div class="yt-content-pagination">
+      <label>Rows per page
+        <select id="contentRowsPerPage"><option>10</option><option selected>30</option><option>50</option></select>
+      </label>
+      <span id="contentPageInfo">0–0 of 0</span>
+      <button id="contentFirstPage" class="yt-page-btn" type="button" title="First page">|‹</button>
+      <button id="contentPrevPage" class="yt-page-btn" type="button" title="Previous page">‹</button>
+      <button id="contentNextPage" class="yt-page-btn" type="button" title="Next page">›</button>
+      <button id="contentLastPage" class="yt-page-btn" type="button" title="Last page">›|</button>
+    </div>
+
+    <p class="yt-note">Posts are not exposed by the public YouTube Data API. Exact copyright/Studio-only notices are shown as “Check Studio” instead of fake data.</p>
   </section>
 </div>
 
