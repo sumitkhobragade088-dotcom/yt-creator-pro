@@ -7,6 +7,7 @@
 <title>Admin Dashboard | YT Creator Pro</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/cms-control.css">
 <style>
 html.yt-admin-boot body{visibility:hidden!important}
 </style>
@@ -580,13 +581,13 @@ document.documentElement.classList.add("yt-admin-boot");
     </section>
 
     <section class="yt-premium-view" id="view-cms">
-      <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard pages, sidebar and theme. Core functions are protected.</p></div></div>
-      <div id="adminCmsFull"></div>
+      <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard content without changing the current layout automatically.</p></div></div>
+      <div id="adminCmsFull" class="yt-cms-root"><div class="yt-cms-loading">Loading Admin CMS…</div></div>
     </section>
 
     <section class="yt-premium-view" id="view-website-cms">
-      <div class="yt-premium-section-head"><div><span>WEBSITE CMS</span><h2>Website CMS</h2><p>Manage public website content, navigation, theme, SEO and maintenance mode.</p></div></div>
-      <div id="websiteCmsFull"></div>
+      <div class="yt-premium-section-head"><div><span>WEBSITE CMS</span><h2>Website CMS</h2><p>Manage the normal website, maintenance mode, pages, buttons, theme and SEO.</p></div></div>
+      <div id="websiteCmsFull" class="yt-cms-root"><div class="yt-cms-loading">Loading Website CMS…</div></div>
     </section>
 
     <section class="yt-premium-view" id="view-editor">
@@ -675,10 +676,10 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 });
 </script>
 
-<script type="module" src="../assets/js/admin-auth.js"></script>
-<script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/cms-engine.js"></script>
 <script type="module" src="../assets/js/cms-admin-ui.js"></script>
+<script type="module" src="../assets/js/admin-auth.js"></script>
+<script type="module" src="../assets/js/manage-channel.js"></script>
 
 <script>
 (function(){
@@ -698,7 +699,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
     const titles={
       dashboard:"Dashboard",customers:"Users / Customers","user-requests":"User Requests",channels:"YouTube Channels",manage:"Manage Channel",
       access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",
-      copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS",
+      copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS","website-cms":"Website CMS",
       editor:"Admin Editor",settings:"Settings"
     };
     const title=document.getElementById("adminPageTitle");

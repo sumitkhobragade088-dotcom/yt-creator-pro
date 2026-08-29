@@ -7,14 +7,6 @@
 <link rel="manifest" href="manifest.webmanifest">
 <title>YT Creator Pro | Secure • Professional • Creator-Focused</title>
 <meta name="description" content="Professional YouTube creator support for channel management, monetization guidance, AdSense assistance and secure Google-authorized access.">
-<meta name="keywords" content="YT Creator Pro, YouTube creator support, channel management, monetization help, AdSense assistance">
-<meta name="robots" content="index,follow,max-image-preview:large">
-<link rel="canonical" href="https://khobragade.online/">
-<meta property="og:title" content="YT Creator Pro | YouTube Creator Support">
-<meta property="og:description" content="Professional YouTube creator support for channel management, monetization guidance and AdSense assistance.">
-<meta property="og:type" content="website">
-<meta property="og:url" content="https://khobragade.online/">
-<meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="assets/css/style.css">
 </head>
 <body class="yt-user-home-page">
@@ -39,8 +31,8 @@
       <h1>Build Your Channel.<br><em>Grow With Confidence.</em></h1>
       <p>Professional support for channel management, monetization and AdSense through secure Google-authorized access — without sharing your Gmail password.</p>
       <div class="yt-user-home-actions">
-        <a class="yt-user-red-btn" href="register.html">▶ Create Free Account</a>
-        <a class="yt-user-outline-btn" href="login.html">Login</a>
+        <a id="homeCreate" class="yt-user-red-btn" href="register.html">▶ Create Free Account</a>
+        <a id="homeLogin" class="yt-user-outline-btn" href="login.html">Login</a>
       </div>
       <div class="yt-user-trust-row">
         <span>🔐 Secure Google Access</span><span>📺 Creator Support</span><span>💰 Monetization Guidance</span>
@@ -88,7 +80,7 @@ if("serviceWorker" in navigator){
 }
 </script>
 
-<script type="module" src="assets/js/auth.js"></script>
 <script type="module" src="assets/js/cms-engine.js"></script>
+<script type="module" src="assets/js/auth.js"></script>
 </body>
 </html>

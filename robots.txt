@@ -1,6 +1,3 @@
 User-agent: *
 Allow: /
-Disallow: /admin/
-Disallow: /dashboard.html
-Disallow: /google-callback.html
-Sitemap: https://khobragade.online/sitemap.xml
+Sitemap: https://ytcreatorpro.in/sitemap.xml
