@@ -12,9 +12,14 @@ Deno.serve(async req=>{
   const url=Deno.env.get("SUPABASE_URL")!,anon=Deno.env.get("SUPABASE_ANON_KEY")!,service=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,cid="699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com",secret=Deno.env.get("GOOGLE_CLIENT_SECRET")!;
   const auth=req.headers.get("Authorization");if(!auth)return J({error:"Login required"},401);
   const ur=await fetch(`${url}/auth/v1/user`,{headers:{Authorization:auth,apikey:anon}});if(!ur.ok)return J({error:"Invalid session"},401);const user=await ur.json();
-  const adminFilter = user.email ? `or=(id.eq.${user.id},email.eq.${encodeURIComponent(user.email)})` : `id=eq.${user.id}`;
-  const ar=await fetch(`${url}/rest/v1/admin_users?${adminFilter}&select=id,email&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});
-  const admins=await ar.json();if(!admins?.length)return J({error:"Admin access required",details:"Logged-in admin was not found in admin_users."},403);
+  const canonicalAdminEmail="sumitkhobragade088@gmail.com";
+  const isCanonicalAdmin=String(user.email||"").toLowerCase()===canonicalAdminEmail;
+  if(!isCanonicalAdmin){
+    const adminFilter = user.email ? `or=(id.eq.${user.id},email.eq.${encodeURIComponent(user.email)})` : `id=eq.${user.id}`;
+    const ar=await fetch(`${url}/rest/v1/admin_users?${adminFilter}&select=id,email&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});
+    const admins=await ar.json();
+    if(!admins?.length)return J({error:"Admin access required",details:"Logged-in account is not authorized for channel management."},403);
+  }
   const b=await req.json();if(!b.customer_id)return J({error:"Customer missing"},400);
 
 

@@ -290,7 +290,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
         <div>
           <span>CHANNEL CONTROL</span>
           <h2>Manage Channel</h2>
-          <p>Sirf Manager Access Granted channels yahan full management ke liye available hain.</p>
+          <p>Connected YouTube channels yahan full management ke liye available hain.</p>
         </div>
         <b id="manageSectionCount">0</b>
       </div>
@@ -310,7 +310,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
           <div>
             <span>FULL CHANNEL MANAGEMENT</span>
             <h2>Channel Editor</h2>
-            <p>Manager Access Granted channel ka edit / update / delete / upload yahin Admin Dashboard me hoga.</p>
+            <p>Connected YouTube channel ka existing data, banner, details, videos aur playlists yahin se manage karein.</p>
           </div>
           <button id="closeManageWorkspace" class="btn" type="button">Close Editor</button>
         </div>
@@ -436,59 +436,7 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-admin-boot")
 
     <p class="yt-note">Shorts ka direct API flag available nahi hai; system duration/live metadata ke basis par separate karta hai. Exact Copyright claims YouTube Studio me check karein.</p>
   </section>
-
-
-  <section class="panel" id="analyticsOverview">
-    <div class="yt-manager-head">
-      <div>
-        <h2>Overview Analytics</h2>
-        <p class="yt-note">Connected channel ka live overview aur recent content performance.</p>
-      </div>
-      <button id="refreshAnalytics" class="btn">Refresh Analytics</button>
-    </div>
-    <div class="yt-analytics-cards">
-      <div class="yt-analytics-card"><small>Subscribers</small><b id="analyticsSubscribers">0</b><span>Current total</span></div>
-      <div class="yt-analytics-card"><small>Total Views</small><b id="analyticsViews">0</b><span>Channel lifetime</span></div>
-      <div class="yt-analytics-card"><small>Videos</small><b id="analyticsVideos">0</b><span>Published content</span></div>
-      <div class="yt-analytics-card"><small>Recent Views</small><b id="analyticsRecentViews">0</b><span>Loaded recent items</span></div>
-    </div>
-
-    <div class="yt-analytics-table-wrap">
-      <table class="yt-studio-table">
-        <thead>
-          <tr><th>Video</th><th>Type</th><th>Visibility</th><th>Views</th><th>Comments</th><th>Date</th></tr>
-        </thead>
-        <tbody id="analyticsTableBody"><tr><td colspan="6">No data yet.</td></tr></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="panel" id="copyrightStatus">
-    <div class="yt-manager-head">
-      <div>
-        <h2>Copyright / Restrictions</h2>
-        <p class="yt-note">YouTube Data API se available restriction/status information. Exact copyright claims/strikes ke liye YouTube Studio use karein.</p>
-      </div>
-      <button id="openCopyrightStudio" class="btn youtube-main-studio-btn">Open Copyright in Studio</button>
-    </div>
-    <div class="yt-copyright-summary">
-      <div><small>Videos Checked</small><b id="copyrightChecked">0</b></div>
-      <div><small>Restrictions Found</small><b id="copyrightRestricted">0</b></div>
-      <div><small>Live/Processing Issues</small><b id="copyrightIssues">0</b></div>
-    </div>
-    <div id="copyrightList" class="yt-copyright-list">No data yet.</div>
-  </section>
-
-  <section class="panel" id="settingsSection">
-    <h2>Admin Settings</h2>
-    <p class="yt-note">Selected customer/channel ke management controls. Sidebar shortcuts isi page ke modules par le jaate hain.</p>
-    <div class="yt-action-row">
-      <button id="settingsRefreshAll" class="btn primary">Refresh All Data</button>
-      <button id="settingsOpenStudio" class="btn youtube-main-studio-btn">Open YouTube Studio</button>
-    </div>
-  </section>
-
-  </div>
+</div>
 
       </div>
 
