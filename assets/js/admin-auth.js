@@ -473,6 +473,7 @@ const premiumViewTitles={
   "service-charge":"Service Charge",
   history:"History",
   cms:"Admin Dashboard CMS",
+  "website-cms":"Website CMS",
   editor:"Admin Editor",
   settings:"Settings"
 };

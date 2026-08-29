@@ -884,3 +884,10 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
   .yt-user-home-actions{flex-wrap:wrap}
   .yt-user-red-btn,.yt-user-outline-btn{min-width:145px}
 }
+/* CMS extension */
+:root{--cms-primary:#ff0000;--cms-surface:#fff;--cms-text:#172033;--cms-radius:16px}
+.cms-admin-active .yt-premium-top-btn.primary,.cms-site-active .yt-user-red-btn{background:var(--cms-primary)!important}
+.cms-admin-active .yt-premium-panel,.cms-site-active article{border-radius:var(--cms-radius)!important}
+.cms-manager-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.cms-box{padding:18px;border:1px solid #e2e8f0;border-radius:16px;background:#fff}.cms-box h3{margin:0 0 12px}.cms-row{display:grid;grid-template-columns:1fr auto;gap:8px;margin:8px 0}.cms-list{display:grid;gap:8px;margin-top:12px}.cms-item{display:flex;gap:8px;align-items:center;justify-content:space-between;padding:10px;border:1px solid #e5e7eb;border-radius:10px}.cms-actions{display:flex;gap:6px;flex-wrap:wrap}.cms-actions button{padding:6px 9px;border:0;border-radius:8px;cursor:pointer}.cms-danger{background:#fee2e2;color:#b91c1c}.cms-maint-body{margin:0;background:radial-gradient(circle at top,#222b45,#080d18 70%);min-height:100vh;display:grid;place-items:center;font-family:Arial,sans-serif}.cms-maint{width:min(92%,760px)}.cms-maint-card{background:rgba(255,255,255,.98);padding:48px 28px;text-align:center;border-radius:28px;box-shadow:0 30px 80px rgba(0,0,0,.35)}.cms-maint-icon{font-size:58px}.cms-maint-kicker{font-size:12px;font-weight:900;letter-spacing:.12em;color:#e11d48;margin:15px}.cms-maint-card h1{font-size:clamp(30px,6vw,52px);margin:0;color:#111827}.cms-maint-card p{font-size:17px;line-height:1.7;color:#64748b;max-width:590px;margin:18px auto}.cms-maint-time{padding:12px;background:#f8fafc;border-radius:12px}.cms-maint-pulse{margin-top:22px;font-weight:900;color:#16a34a}@media(max-width:800px){.cms-manager-grid{grid-template-columns:1fr}}
+
+.cms-admin-active .yt-premium-sidebar{background:var(--cms-sidebar,#101522)!important}

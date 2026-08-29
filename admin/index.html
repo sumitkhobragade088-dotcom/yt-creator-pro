@@ -156,6 +156,7 @@ document.documentElement.classList.add("yt-admin-boot");
       <button class="yt-premium-nav-btn" data-view="service-charge">₹ <span>Service Charge</span></button>
       <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
       <button class="yt-premium-nav-btn" data-view="cms">🧩 <span>Admin Dashboard CMS</span></button>
+      <button class="yt-premium-nav-btn" data-view="website-cms">🌐 <span>Website CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="editor">✏️ <span>Admin Editor</span></button>
       <button class="yt-premium-nav-btn" data-view="settings">⚙️ <span>Settings</span></button>
     </nav>
@@ -579,15 +580,13 @@ document.documentElement.classList.add("yt-admin-boot");
     </section>
 
     <section class="yt-premium-view" id="view-cms">
-      <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Edit dashboard heading text saved on this admin browser.</p></div></div>
-      <div class="panel yt-premium-panel yt-admin-editor-form">
-        <label>Dashboard Heading</label>
-        <input id="cmsDashboardHeading" value="Admin Dashboard">
-        <label>Dashboard Subtitle</label>
-        <textarea id="cmsDashboardSubtitle" rows="3">Live overview of users, channels, access, monetization, AdSense and service activity.</textarea>
-        <button id="saveAdminCms" class="btn primary">Save Dashboard CMS</button>
-        <p id="adminCmsMessage"></p>
-      </div>
+      <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard pages, sidebar and theme. Core functions are protected.</p></div></div>
+      <div id="adminCmsFull"></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-website-cms">
+      <div class="yt-premium-section-head"><div><span>WEBSITE CMS</span><h2>Website CMS</h2><p>Manage public website content, navigation, theme, SEO and maintenance mode.</p></div></div>
+      <div id="websiteCmsFull"></div>
     </section>
 
     <section class="yt-premium-view" id="view-editor">
@@ -678,6 +677,8 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 
 <script type="module" src="../assets/js/admin-auth.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
+<script type="module" src="../assets/js/cms-engine.js"></script>
+<script type="module" src="../assets/js/cms-admin-ui.js"></script>
 
 <script>
 (function(){
