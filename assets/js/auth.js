@@ -454,9 +454,6 @@ const submitBtn = $("submitUserServiceRequest");
 if (submitBtn) submitBtn.addEventListener("click", submitServiceAndPay);
 
 document.addEventListener("DOMContentLoaded",()=>{
-  const saved=sessionStorage.getItem("yt_user_view")||"dashboard";
-  setTimeout(()=>loadUserViewData(saved),0);
-
   const params = new URLSearchParams(location.search);
   const paymentResult = params.get("payment");
   if (paymentResult) {
@@ -509,4 +506,7 @@ window.copyManager = async () => {
   alert("Manager email copied");
 };
 
-loadDashboard();
+loadDashboard().then(()=>{
+  const saved=sessionStorage.getItem("yt_user_view")||"dashboard";
+  loadUserViewData(saved);
+}).catch(console.error);
