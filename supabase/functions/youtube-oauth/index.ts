@@ -78,6 +78,23 @@ Deno.serve(async (req) => {
       );
       if (!a.ok) return J(req, { error: "Channel Access delete failed", details: await a.text() }, 400);
 
+      // Clear the customer-facing channel fields as part of the same disconnect.
+      // This prevents stale channel name/URL from remaining in User Profile/Dashboard.
+      const clearCustomer = await rest(
+        SUPABASE_URL, SERVICE,
+        `customers?id=eq.${encodeURIComponent(customer.id)}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            channel_name: "",
+            channel_url: ""
+          })
+        }
+      );
+      if (!clearCustomer.ok) {
+        return J(req, { error: "Customer channel cleanup failed", details: await clearCustomer.text() }, 400);
+      }
+
       return J(req, { success: true, disconnected: true });
     }
 
@@ -243,6 +260,16 @@ Deno.serve(async (req) => {
 
     const thumb = ch.snippet?.thumbnails?.high?.url || ch.snippet?.thumbnails?.default?.url || "";
     const stats = ch.statistics || {};
+
+    // Preserve the existing Manager Access state during reconnect.
+    // Reconnecting YouTube must not revoke an access state already granted by Admin.
+    const existingAccessRes = await rest(
+      SUPABASE_URL, SERVICE,
+      `channel_access?customer_id=eq.${encodeURIComponent(customer.id)}&select=manager_access&limit=1`
+    );
+    const existingAccess = existingAccessRes.ok ? await existingAccessRes.json() : [];
+    const managerAccess = existingAccess?.[0]?.manager_access === true;
+
     const accessPayload = {
       customer_id: customer.id,
       google_connected: true,
@@ -252,7 +279,7 @@ Deno.serve(async (req) => {
       subscribers: Number(stats.subscriberCount || 0),
       views: Number(stats.viewCount || 0),
       videos: Number(stats.videoCount || 0),
-      manager_access: false,
+      manager_access: managerAccess,
       updated_at: new Date().toISOString()
     };
 
