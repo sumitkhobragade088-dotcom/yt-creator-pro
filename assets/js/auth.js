@@ -149,11 +149,20 @@ function renderAccess(customer, access) {
 
   const statusEl = $("youtubeConnectStatus");
   const connectBtn = $("connectYouTubeBtn");
+  const updateBtn = $("updateChannelAccessBtn");
+  const deleteBtn = $("deleteChannelAccessBtn");
   if (access?.google_connected) {
     if (statusEl) { statusEl.textContent = "YouTube Connected ✅"; statusEl.className = "status-badge connected"; }
     if (connectBtn) connectBtn.textContent = "Reconnect YouTube";
+    if (updateBtn) updateBtn.style.display = "";
+    if (deleteBtn) deleteBtn.style.display = "";
+    setText("userChannelStatusProfile","Connected ✅");
   } else {
     if (statusEl) { statusEl.textContent = "Not Connected"; statusEl.className = "status-badge"; }
+    if (connectBtn) connectBtn.textContent = "Connect YouTube Channel";
+    if (updateBtn) updateBtn.style.display = "none";
+    if (deleteBtn) deleteBtn.style.display = "none";
+    setText("userChannelStatusProfile","Not connected");
   }
 
   const img = $("ytChannelLogo");
@@ -201,6 +210,8 @@ async function loadDashboard() {
   setText("userName", customer.full_name || "Creator");
   setText("userNameTop", customer.full_name || "Creator");
   setText("userNameProfile", customer.full_name || "Creator");
+  setText("userMobileProfile", customer.mobile || "-");
+  setText("userJoinedProfile", customer.created_at ? new Date(customer.created_at).toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}) : "-");
   setText("userChannelProfile", customer.channel_name || "-");
   setText("channelUrlView", customer.channel_url || "Not added");
   setText("channelNameView", customer.channel_name || "Not connected");
@@ -347,25 +358,72 @@ async function loadRequestsAndPayments() {
   const pMap = new Map((payments||[]).map(p=>[p.request_id,p]));
   const paidRequests = (reqs||[]).filter(r => payStatus(pMap.get(r.id)) === "paid");
 
+  const prettyStatus=(value)=>{
+    const st=String(value||"pending").toLowerCase();
+    const map={payment_pending:"Payment Pending",pending:"Pending",processing:"Processing",on_hold:"On Hold",completed:"Completed",complete:"Completed",rejected:"Rejected",failed:"Failed"};
+    return map[st]||st.replace(/_/g," ").replace(/\b\w/g,c=>c.toUpperCase());
+  };
+  const statusClass=(value)=>{
+    const st=String(value||"pending").toLowerCase();
+    if(["completed","complete"].includes(st))return "completed";
+    if(["rejected","failed"].includes(st))return "rejected";
+    if(st==="processing")return "processing";
+    if(st==="on_hold")return "on_hold";
+    return "pending";
+  };
+  const dateText=(value)=>{
+    if(!value)return "-";
+    const d=new Date(value);
+    return Number.isNaN(d.getTime())?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+  };
+
+  // My Requests: show every request for this customer, with both request and payment status.
   const list = $("requestList");
   if (list) {
-    list.innerHTML = paidRequests.length ? paidRequests.map(r => {
-      const status = String(r.status || "pending") === "payment_pending" ? "pending" : String(r.status || "pending");
-      return `<div class="request-row"><div><b>${esc(r.service_type||"Service")}</b><small>${esc(status)}</small></div><span class="yt-pay-chip paid">Paid ✅</span></div>`;
-    }).join("") : "<p>No paid service requests yet.</p>";
+    list.innerHTML = (reqs||[]).length ? (reqs||[]).map(r => {
+      const p=pMap.get(r.id);
+      const pst=payStatus(p);
+      const payLabel=pst==="paid"?"Paid":pst==="failed"?"Failed":(pst==="cancelled"||pst==="canceled")?"Cancelled":"Pending";
+      const payClass=pst==="paid"?"paid":pst==="failed"?"failed":(pst==="cancelled"||pst==="canceled")?"cancelled":"pending";
+      return `<div class="yt-user-request-card">
+        <div class="yt-user-request-main">
+          <b>${esc(r.service_type||"Service")}</b>
+          <div class="yt-user-request-meta">
+            <span>Request: ${esc(String(r.id||"").slice(0,8).toUpperCase())}</span>
+            <span>${esc(dateText(r.created_at))}</span>
+          </div>
+        </div>
+        <div class="yt-user-status-stack">
+          <span class="yt-user-status-chip ${statusClass(r.status)}">${esc(prettyStatus(r.status))}</span>
+          <span class="yt-user-status-chip ${payClass}">Payment: ${esc(payLabel)}</span>
+        </div>
+      </div>`;
+    }).join("") : '<div class="yt-user-empty-state">No service requests yet.</div>';
   }
 
+  // Payments: show Paid / Pending / Failed / Cancelled clearly with retry actions.
   const payBox = $("userPaymentsList");
   if (payBox) {
     payBox.innerHTML = (payments||[]).length ? (payments||[]).map(p => {
       const st = payStatus(p);
-      const label = st==="paid" ? "Success" : st==="failed" ? "Failed" : (st==="cancelled"||st==="canceled") ? "Cancelled" : "Pending";
+      const label = st==="paid" ? "Paid" : st==="failed" ? "Failed" : (st==="cancelled"||st==="canceled") ? "Cancelled" : "Pending";
+      const cls = st==="paid"?"paid":st==="failed"?"failed":(st==="cancelled"||st==="canceled")?"cancelled":"pending";
       const action = st==="paid" ? "" : `<button type="button" class="yt-user-red-btn" data-retry-payment="${esc(p.id)}">${st==="failed"?"Retry Payment":(st==="cancelled"||st==="canceled")?"Pay Again":"Pay Now"}</button>`;
-      return `<div class="request-row yt-request-payment-row">
-        <div><b>${esc(p.service_name||"Service")}</b><small>${money(p.amount)} · ${esc(p.txnid||"Transaction not started")}</small></div>
-        <div class="yt-payment-actions"><span class="yt-pay-chip ${st==="paid"?"paid":"pending"}">${label}</span>${action}</div>
+      return `<div class="yt-user-payment-card">
+        <div class="yt-user-payment-main">
+          <b>${esc(p.service_name||"Service")}</b>
+          <div class="yt-user-payment-meta">
+            <span>${money(p.amount)}</span>
+            <span>${esc(p.txnid||"Transaction not started")}</span>
+            <span>${esc(dateText(p.updated_at||p.created_at))}</span>
+          </div>
+        </div>
+        <div class="yt-user-status-stack">
+          <span class="yt-user-status-chip ${cls}">${esc(label)}</span>
+          ${action}
+        </div>
       </div>`;
-    }).join("") : "<p>No payments yet.</p>";
+    }).join("") : '<div class="yt-user-empty-state">No payments yet.</div>';
     payBox.querySelectorAll("[data-retry-payment]").forEach(b => b.addEventListener("click",()=>startPayU(b.dataset.retryPayment,b)));
   }
 
@@ -403,19 +461,41 @@ document.addEventListener("DOMContentLoaded",()=>{
   const paymentResult = params.get("payment");
   if (paymentResult) {
     const success = paymentResult === "success";
-    const target = success ? "requests" : "payments";
-    sessionStorage.setItem("yt_user_view",target);
-    if (typeof window.openUserView === "function") window.openUserView(target);
-    const box = $("userPaymentResultNew") || $("userPaymentResult");
-    if (box) {
-      box.hidden=false;
-      box.className=`yt-payment-result ${success?"success":"failed"}`;
-      box.textContent=success
-        ? "Payment successful ✅ Request My Requests me add ho gaya."
-        : "Payment failed / cancelled. Payments se Retry / Pay Again karein.";
+    if (success) {
+      history.replaceState({}, "", "dashboard.html");
+      const overlay=$("paymentSuccessOverlay");
+      const countdown=$("paymentSuccessCountdown");
+      const goBtn=$("paymentSuccessMyRequestsBtn");
+      let left=12;
+      if(overlay)overlay.hidden=false;
+      if(countdown)countdown.textContent=String(left);
+
+      const goRequests=()=>{
+        sessionStorage.setItem("yt_user_view","requests");
+        location.replace("dashboard.html");
+      };
+      if(goBtn)goBtn.onclick=goRequests;
+
+      const timer=setInterval(()=>{
+        left-=1;
+        if(countdown)countdown.textContent=String(Math.max(left,0));
+        if(left<=0){
+          clearInterval(timer);
+          goRequests();
+        }
+      },1000);
+    } else {
+      sessionStorage.setItem("yt_user_view","payments");
+      if (typeof window.openUserView === "function") window.openUserView("payments");
+      const box = $("userPaymentResultNew") || $("userPaymentResult");
+      if (box) {
+        box.hidden=false;
+        box.className="yt-payment-result failed";
+        box.textContent="Payment failed / cancelled. Payments se Retry / Pay Again karein.";
+      }
+      history.replaceState({}, "", "dashboard.html");
+      setTimeout(loadRequestsAndPayments,50);
     }
-    history.replaceState({}, "", "dashboard.html");
-    setTimeout(loadRequestsAndPayments,50);
   }
 });
 

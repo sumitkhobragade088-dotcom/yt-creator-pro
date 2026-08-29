@@ -81,6 +81,89 @@ Deno.serve(async (req) => {
       return J(req, { success: true, disconnected: true });
     }
 
+    // Refresh current connected channel using the already stored refresh token.
+    if (body.action === "refresh") {
+      const storedRes = await rest(
+        SUPABASE_URL, SERVICE,
+        `youtube_oauth_tokens?customer_id=eq.${encodeURIComponent(customer.id)}&select=refresh_token&limit=1`
+      );
+      const stored = storedRes.ok ? await storedRes.json() : [];
+      const refreshToken = stored?.[0]?.refresh_token;
+      if (!refreshToken) return J(req, { error: "Stored YouTube access not found. Please reconnect YouTube." }, 404);
+
+      const refreshRes = await fetch("https://oauth2.googleapis.com/token", {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          client_id: CLIENT_ID,
+          client_secret: CLIENT_SECRET,
+          refresh_token: refreshToken,
+          grant_type: "refresh_token"
+        })
+      });
+      const refreshed = await refreshRes.json();
+      if (!refreshRes.ok || !refreshed.access_token) {
+        return J(req, { error: "YouTube refresh failed", details: refreshed?.error_description || refreshed?.error || "Reconnect YouTube." }, 400);
+      }
+
+      const channelRes = await fetch(
+        "https://www.googleapis.com/youtube/v3/channels?part=snippet,statistics&mine=true",
+        { headers: { Authorization: `Bearer ${refreshed.access_token}` } }
+      );
+      const channelData = await channelRes.json();
+      if (!channelRes.ok) {
+        return J(req, { error: "YouTube channel refresh failed", details: channelData?.error?.message || channelRes.status }, 400);
+      }
+      const ch = channelData.items?.[0];
+      if (!ch) return J(req, { error: "No YouTube channel found." }, 404);
+
+      const thumb = ch.snippet?.thumbnails?.high?.url || ch.snippet?.thumbnails?.default?.url || "";
+      const stats = ch.statistics || {};
+      const updateAccess = await rest(
+        SUPABASE_URL, SERVICE,
+        `channel_access?customer_id=eq.${encodeURIComponent(customer.id)}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            google_connected: true,
+            channel_id: ch.id,
+            channel_name: ch.snippet?.title || "",
+            channel_thumbnail: thumb,
+            subscribers: Number(stats.subscriberCount || 0),
+            views: Number(stats.viewCount || 0),
+            videos: Number(stats.videoCount || 0),
+            updated_at: new Date().toISOString()
+          })
+        }
+      );
+      if (!updateAccess.ok) return J(req, { error: "Channel Access update failed", details: await updateAccess.text() }, 400);
+
+      await rest(
+        SUPABASE_URL, SERVICE,
+        `customers?id=eq.${encodeURIComponent(customer.id)}`,
+        {
+          method: "PATCH",
+          body: JSON.stringify({
+            channel_name: ch.snippet?.title || "",
+            channel_url: `https://www.youtube.com/channel/${ch.id}`
+          })
+        }
+      );
+
+      return J(req, {
+        success: true,
+        refreshed: true,
+        channel: {
+          id: ch.id,
+          name: ch.snippet?.title || "",
+          thumbnail: thumb,
+          subscribers: stats.subscriberCount || "0",
+          views: stats.viewCount || "0",
+          videos: stats.videoCount || "0"
+        }
+      });
+    }
+
     const code = String(body.code || "");
     const verifier = String(body.code_verifier || "");
     const redirectUri = String(body.redirect_uri || "");

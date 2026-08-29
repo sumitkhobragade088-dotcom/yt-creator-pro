@@ -1,3 +1,5 @@
+import { supabase } from "./supabase.js";
+
 const CLIENT_ID = "699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com";
 function getYouTubeRedirectUri() {
   if (location.hostname === "khobragade.online" || location.hostname === "www.khobragade.online") {
@@ -51,4 +53,48 @@ window.connectYouTube = async function () {
   });
 
   location.href = "https://accounts.google.com/o/oauth2/v2/auth?" + params.toString();
+};
+
+function channelAccessMessage(text="", ok=false){
+  const el=document.getElementById("channelAccessActionMessage");
+  if(!el)return;
+  el.textContent=text;
+  el.className="yt-channel-access-message "+(ok?"ok":"bad");
+}
+
+window.deleteExistingChannelAccess = async function(){
+  if(!confirm("Delete connected YouTube channel access? You can reconnect later."))return;
+  const btn=document.getElementById("deleteChannelAccessBtn");
+  const old=btn?.textContent||"Delete Channel Access";
+  if(btn){btn.disabled=true;btn.textContent="Deleting...";}
+  channelAccessMessage("Deleting channel access...");
+  try{
+    const {data,error}=await supabase.functions.invoke("youtube-oauth",{body:{action:"disconnect"}});
+    if(error)throw error;
+    if(!data?.success)throw new Error(data?.error||"Delete failed.");
+    channelAccessMessage("Channel access deleted successfully.",true);
+    sessionStorage.setItem("yt_user_view","access");
+    setTimeout(()=>location.reload(),700);
+  }catch(e){
+    channelAccessMessage(e?.message||"Channel access delete failed.");
+    if(btn){btn.disabled=false;btn.textContent=old;}
+  }
+};
+
+window.updateExistingChannelAccess = async function(){
+  const btn=document.getElementById("updateChannelAccessBtn");
+  const old=btn?.textContent||"Update Channel Data";
+  if(btn){btn.disabled=true;btn.textContent="Updating...";}
+  channelAccessMessage("Updating latest YouTube channel data...");
+  try{
+    const {data,error}=await supabase.functions.invoke("youtube-oauth",{body:{action:"refresh"}});
+    if(error)throw error;
+    if(!data?.success)throw new Error(data?.error||data?.details||"Update failed.");
+    channelAccessMessage("Channel data updated successfully.",true);
+    sessionStorage.setItem("yt_user_view","access");
+    setTimeout(()=>location.reload(),700);
+  }catch(e){
+    channelAccessMessage(e?.message||"Channel data update failed.");
+    if(btn){btn.disabled=false;btn.textContent=old;}
+  }
 };

@@ -14,6 +14,98 @@ html.yt-user-boot body{visibility:hidden!important}
 document.documentElement.classList.add("yt-user-boot");
 window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),1500);
 </script>
+
+<style id="yt-user-request-payment-profile-access-fix">
+/* Admin-like scrollable user sidebar; no grid/main layout change. */
+.yt-demo-user-sidebar{
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:#6f5ee8 transparent;
+}
+.yt-demo-user-sidebar::-webkit-scrollbar{width:7px}
+.yt-demo-user-sidebar::-webkit-scrollbar-track{background:transparent}
+.yt-demo-user-sidebar::-webkit-scrollbar-thumb{background:#6f5ee8;border-radius:999px}
+.yt-demo-user-sidebar::-webkit-scrollbar-thumb:hover{background:#8b5cf6}
+
+/* Professional My Requests + Payments cards. */
+#requestList,#userPaymentsList{display:grid;gap:12px}
+.yt-user-request-card,.yt-user-payment-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:16px;
+  align-items:center;
+  padding:16px 18px;
+  border:1px solid #e4e9f2;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 8px 22px rgba(15,23,42,.05);
+}
+.yt-user-request-main,.yt-user-payment-main{min-width:0}
+.yt-user-request-main b,.yt-user-payment-main b{display:block;color:#172033;font-size:15px;margin-bottom:5px}
+.yt-user-request-meta,.yt-user-payment-meta{
+  display:flex;flex-wrap:wrap;gap:7px 12px;color:#718096;font-size:12px
+}
+.yt-user-status-stack{display:flex;align-items:flex-end;gap:7px;flex-direction:column}
+.yt-user-status-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.02em;white-space:nowrap
+}
+.yt-user-status-chip.paid,.yt-user-status-chip.completed{background:#e9fbf2;color:#087a45}
+.yt-user-status-chip.pending,.yt-user-status-chip.processing{background:#fff7df;color:#9a6500}
+.yt-user-status-chip.failed,.yt-user-status-chip.rejected,.yt-user-status-chip.cancelled{background:#fff0f0;color:#c62828}
+.yt-user-status-chip.on_hold{background:#f1edff;color:#6338c7}
+.yt-user-status-chip.neutral{background:#edf2f7;color:#4a5568}
+.yt-user-payment-card .yt-user-red-btn{padding:8px 12px;font-size:12px}
+.yt-user-empty-state{
+  padding:28px;text-align:center;border:1px dashed #d5dcea;border-radius:14px;
+  background:#fafcff;color:#6b7280
+}
+
+/* Customer profile. */
+.yt-customer-profile-grid>div{
+  border:1px solid #e5eaf2;
+  box-shadow:0 8px 20px rgba(15,23,42,.04);
+}
+.yt-customer-profile-grid .yt-profile-wide{grid-column:1/-1}
+.yt-customer-profile-grid .yt-profile-wide b{overflow-wrap:anywhere}
+
+/* Channel Access action feedback. */
+.yt-channel-access-message{margin:10px 0 0;font-weight:800;font-size:12px;color:#52617a}
+.yt-channel-access-message.ok{color:#087a45}
+.yt-channel-access-message.bad{color:#c62828}
+
+/* 12-second payment-success screen. */
+.yt-payment-success-overlay{
+  position:fixed;inset:0;z-index:5000;background:rgba(9,18,43,.72);
+  backdrop-filter:blur(5px);display:grid;place-items:center;padding:20px
+}
+.yt-payment-success-overlay[hidden]{display:none!important}
+.yt-payment-success-card{
+  width:min(480px,94vw);padding:34px;border-radius:22px;background:#fff;
+  text-align:center;box-shadow:0 28px 70px rgba(0,0,0,.24)
+}
+.yt-payment-success-icon{
+  width:72px;height:72px;margin:0 auto 16px;border-radius:50%;
+  display:grid;place-items:center;background:#e9fbf2;color:#08a25a;
+  font-size:40px;font-weight:1000
+}
+.yt-payment-success-kicker{font-size:11px;font-weight:900;letter-spacing:.12em;color:#08a25a}
+.yt-payment-success-card h2{margin:7px 0 8px;font-size:30px;color:#172033}
+.yt-payment-success-card p{margin:0 0 18px;color:#64748b}
+.yt-payment-success-status{
+  margin:0 0 18px;padding:13px;border-radius:12px;background:#f7f9fc;
+  border:1px solid #e8edf5
+}
+.yt-payment-success-status b,.yt-payment-success-status small{display:block}
+.yt-payment-success-status small{margin-top:4px;color:#738096}
+@media(max-width:700px){
+  .yt-user-request-card,.yt-user-payment-card{grid-template-columns:1fr}
+  .yt-user-status-stack{align-items:flex-start}
+}
+</style>
+
 </head>
 
 <body id="creatorDashboard" class="yt-user-dashboard-page">
@@ -172,8 +264,10 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
           <div><b>Connect YouTube Channel</b><p>Use secure Google permission to connect your channel.</p></div>
           <div class="yt-user-access-buttons">
             <button id="connectYouTubeBtn" class="yt-user-red-btn" onclick="connectYouTube()">Connect YouTube Channel</button>
-            <button id="deleteChannelAccessBtn" class="yt-user-outline-btn yt-danger-outline" type="button" onclick="deleteExistingChannelAccess()" style="display:none">Delete Existing Channel Access</button>
+            <button id="updateChannelAccessBtn" class="yt-user-outline-btn" type="button" onclick="updateExistingChannelAccess()" style="display:none">Update Channel Data</button>
+            <button id="deleteChannelAccessBtn" class="yt-user-outline-btn yt-danger-outline" type="button" onclick="deleteExistingChannelAccess()" style="display:none">Delete Channel Access</button>
           </div>
+          <p id="channelAccessActionMessage" class="yt-channel-access-message"></p>
         </div>
 
         <div class="yt-user-access-action-card manager">
@@ -227,16 +321,34 @@ window.setTimeout(()=>document.documentElement.classList.remove("yt-user-boot"),
         <div><span>PROFILE</span><h2>My Profile</h2><p>Your creator account information.</p></div>
       </div>
 
-      <div class="yt-demo-profile-grid">
-        <div><small>Name</small><b id="userNameProfile">Creator</b></div>
+      <div class="yt-demo-profile-grid yt-customer-profile-grid">
+        <div><small>Customer Name</small><b id="userNameProfile">Creator</b></div>
         <div><small>Email</small><b id="userEmailProfile">-</b></div>
-        <div><small>Channel</small><b id="userChannelProfile">-</b></div>
-        <div><small>Channel URL</small><b id="channelUrlView">Not added</b></div>
+        <div><small>Mobile</small><b id="userMobileProfile">-</b></div>
+        <div><small>Joined Date</small><b id="userJoinedProfile">-</b></div>
+        <div><small>YouTube Channel</small><b id="userChannelProfile">-</b></div>
+        <div><small>Channel Status</small><b id="userChannelStatusProfile">Not connected</b></div>
+        <div class="yt-profile-wide"><small>Channel URL</small><b id="channelUrlView">Not added</b></div>
       </div>
     </section>
 
   </main>
 </div>
+
+<div id="paymentSuccessOverlay" class="yt-payment-success-overlay" hidden>
+  <div class="yt-payment-success-card">
+    <div class="yt-payment-success-icon">✓</div>
+    <span class="yt-payment-success-kicker">PAYMENT COMPLETED</span>
+    <h2>Payment Successful</h2>
+    <p>Your service request has been submitted successfully.</p>
+    <div class="yt-payment-success-status">
+      <b>Request Ready</b>
+      <small>My Requests will open automatically in <span id="paymentSuccessCountdown">12</span> seconds.</small>
+    </div>
+    <button id="paymentSuccessMyRequestsBtn" type="button" class="yt-user-red-btn">Go to My Requests</button>
+  </div>
+</div>
+
 
 <script>
 const userViewTitles={
