@@ -1,199 +1,989 @@
 <!doctype html>
-<html lang="en">
+<html>
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<meta name="theme-color" content="#ff0000">
+<meta name="theme-color" content="#0b63ce">
+<title>Admin Dashboard | YT Creator Pro</title>
 <link rel="manifest" href="manifest.webmanifest">
-<title>YT Creator Pro | Secure • Professional • Creator-Focused</title>
-<meta name="description" content="Professional YouTube creator support for channel management, monetization guidance, AdSense assistance and secure Google-authorized access.">
-<link rel="stylesheet" href="assets/css/style.css">
-<link rel="stylesheet" href="assets/css/cms-control.css">
-  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
-
-<style id="yt-install-popup-style">
-#ytInstallOverlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.60)}
-#ytInstallOverlay.yt-show{display:flex}
-#ytInstallModal{position:relative;width:min(90vw,360px);padding:42px 22px 22px;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.32);text-align:center}
-#ytInstallClose{position:absolute;top:8px;right:10px;width:36px;height:36px;border:0;background:transparent;color:#222;font-size:30px;line-height:32px;cursor:pointer}
-#ytInstallNow{width:100%;border:0;border-radius:12px;padding:15px 18px;background:#16a34a;color:#fff;font-size:17px;font-weight:800;cursor:pointer}
-#ytInstallNow:active{transform:scale(.98)}
-@media (prefers-color-scheme:dark){#ytInstallModal{background:#171717}#ytInstallClose{color:#fff}}
+<link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/cms-control.css">
+<link rel="stylesheet" href="../assets/css/channel-content.css">
+<link rel="stylesheet" href="../assets/css/youtube-api-tools.css">
+<style>
+html.yt-admin-boot body{visibility:hidden!important}
 </style>
-
-</head>
-<body class="yt-user-home-page">
-<div id="ytPublicAnnouncementHost"></div>
-
-<header class="yt-user-public-header">
-  <a class="yt-user-public-brand" href="index.html">
-    <span class="yt-user-play-logo">▶</span>
-    <div><b>YT Creator Pro</b><small>Creator Support Portal</small></div>
-  </a>
-  <nav class="yt-user-public-nav">
-    <a class="active" href="index.html">Home</a>
-    <a href="#services">Services</a>
-    <a href="login.html">Login</a>
-    <a class="register" href="register.html">Register</a>
-</nav>
-</header>
-
-<main class="yt-user-public-main">
-  <section class="yt-user-home-hero">
-    <div class="yt-user-home-copy">
-      <span class="yt-user-home-kicker">PROFESSIONAL CREATOR SUPPORT</span>
-      <h1>Build Your Channel.<br><em>Grow With Confidence.</em></h1>
-      <p>Professional support for channel management, monetization and AdSense through secure Google-authorized access — without sharing your Gmail password.</p>
-      <div class="yt-user-home-actions">
-        <a id="homeCreate" class="yt-user-red-btn" href="register.html">▶ Create Free Account</a>
-        <a id="homeLogin" class="yt-user-outline-btn" href="login.html">Login</a>
-      </div>
-      <div class="yt-user-trust-row">
-        <span>🔐 Secure Google Access</span><span>📺 Creator Support</span><span>💰 Monetization Guidance</span>
-      </div>
-    </div>
-
-    <div class="yt-user-computer-stage">
-      <div class="yt-user-computer">
-        <div class="yt-user-computer-bar"><i></i><i></i><i></i></div>
-        <div class="yt-user-computer-screen">
-          <span>WELCOME TO</span>
-          <h2>YT Creator Pro</h2>
-          <p>Secure • Professional • Creator-Focused</p>
-          <div class="yt-user-screen-play">▶</div>
-        </div>
-      </div>
-      <div class="yt-user-computer-stand"></div>
-      <div class="yt-user-computer-base"></div>
-    </div>
-  </section>
-
-  <section id="services" class="yt-user-public-section">
-    <div class="yt-user-section-title"><span>CREATOR SERVICES</span><h2>Everything You Need to Move Forward</h2><p>Focused support for the most important parts of your YouTube creator journey.</p></div>
-    <div class="yt-user-service-grid">
-
-          <article class="service-card">
-            <div class="service-icon">📺</div>
-            <h3>Channel Management</h3>
-            <p>Manage authorized channel details, content and essential creator operations.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">💰</div>
-            <h3>Monetization Help</h3>
-            <p>Clear monetization guidance, eligibility support and application case tracking.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">₹</div>
-            <h3>AdSense Assistance</h3>
-            <p>Professional AdSense guidance for setup, access and verification workflows.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">📊</div>
-            <h3>YouTube Reporting Setup</h3>
-            <p>Set up authorized YouTube reporting and analytics workflows for creator data.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">🔴</div>
-            <h3>YouTube Live Streaming Setup</h3>
-            <p>Professional setup support for YouTube live streaming and authorized live workflows.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">💬</div>
-            <h3>YouTube Live Chat Setup / Moderation</h3>
-            <p>Configure live chat access, moderation tools and safer creator-community workflows.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">▶️</div>
-            <h3>YouTube Embedded Player Setup</h3>
-            <p>Set up YouTube embedded player integrations for supported websites and applications.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">🔗</div>
-            <h3>YouTube oEmbed Setup</h3>
-            <p>Configure YouTube oEmbed integration for clean and reliable video embedding.</p>
-          </article>
-        </div>
-  </section>
-<section id="monetization" class="yt-user-public-section">
-    <div class="yt-user-section-title"><span>SIMPLE PROCESS</span><h2>From Channel Review to Completion</h2><p>A clear, secure workflow designed to keep every step easy to understand.</p></div>
-    <div class="yt-user-process-row">
-      <span>1. Review Channel</span><span>2. Secure Access</span><span>3. Connect Google</span><span>4. Monetization Support</span><span>5. AdSense Guidance</span><span>6. Complete & Track</span>
-    </div>
-  </section>
-</main>
-
-
-<footer class="yt-user-public-footer">Independent creator support service. Not affiliated with or endorsed by YouTube or Google.</footer>
-
 <script>
-if("serviceWorker" in navigator){
-  window.addEventListener("load",()=>navigator.serviceWorker.register("app-sw.js").catch(console.error));
-}
+document.documentElement.classList.add("yt-admin-boot");
 </script>
 
-<script src="assets/js/cms-deep-catalog.js"></script>
-<script type="module" src="assets/js/cms-engine.js"></script>
-<script type="module" src="assets/js/cms-deep.js"></script>
-<script type="module" src="assets/js/auth.js"></script>
-<script type="module" src="assets/js/public-features.js"></script>
+<style id="yt-manage-channel-professional-polish">
+/* Visual polish only for Channel Details + Upload New Video.
+   Existing grid/layout/IDs/working controls are untouched. */
+#channelDetails .yt-pro-channel-details,
+#channelDetails .yt-pro-upload-video{
+  border:1px solid #e3e8f2;
+  border-radius:18px;
+  box-shadow:0 12px 30px rgba(15,23,42,.07);
+  background:#fff;
+  overflow:hidden;
+}
+#channelDetails .yt-pro-channel-details h2,
+#channelDetails .yt-pro-upload-video h2{
+  margin:0 0 8px;
+  padding-bottom:14px;
+  border-bottom:1px solid #edf1f7;
+  color:#172033;
+  font-size:24px;
+  letter-spacing:-.02em;
+}
+#channelDetails .yt-pro-channel-details .yt-note,
+#channelDetails .yt-pro-upload-video .yt-note{
+  margin:0 0 18px;
+  padding:10px 12px;
+  border-radius:10px;
+  background:#f7f9fc;
+  color:#62708a;
+  line-height:1.45;
+}
+#channelDetails .yt-pro-channel-details label,
+#channelDetails .yt-pro-upload-video label{
+  display:block;
+  margin:14px 0 7px;
+  color:#26344d;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.02em;
+}
+#channelDetails .yt-pro-channel-details input,
+#channelDetails .yt-pro-channel-details textarea,
+#channelDetails .yt-pro-upload-video input,
+#channelDetails .yt-pro-upload-video textarea,
+#channelDetails .yt-pro-upload-video select{
+  width:100%;
+  box-sizing:border-box;
+  border:1px solid #d8e0ec;
+  border-radius:10px;
+  background:#fff;
+  padding:10px 12px;
+  color:#172033;
+  outline:none;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease;
+}
+#channelDetails .yt-pro-channel-details input:focus,
+#channelDetails .yt-pro-channel-details textarea:focus,
+#channelDetails .yt-pro-upload-video input:focus,
+#channelDetails .yt-pro-upload-video textarea:focus,
+#channelDetails .yt-pro-upload-video select:focus{
+  border-color:#6d5dfc;
+  box-shadow:0 0 0 3px rgba(109,93,252,.12);
+}
+#channelDetails .yt-pro-channel-details input:disabled{
+  background:#f4f6f9;
+  color:#667085;
+}
+#channelDetails .yt-inline-edit{
+  gap:10px;
+  align-items:stretch;
+}
+#channelDetails .yt-inline-edit .btn{
+  white-space:normal;
+  min-height:42px;
+  border-radius:10px;
+}
+#channelDetails .yt-pro-channel-details #saveChannel,
+#channelDetails .yt-pro-upload-video #uploadVideo{
+  margin-top:16px;
+  min-height:42px;
+  border-radius:10px;
+  font-weight:900;
+  box-shadow:0 8px 18px rgba(255,193,7,.18);
+}
+#channelDetails .yt-pro-upload-video input[type="file"]{
+  padding:8px;
+  background:#f8fafc;
+}
+#channelDetails .yt-pro-upload-video input[type="file"]::file-selector-button{
+  margin-right:10px;
+  border:0;
+  border-radius:8px;
+  padding:8px 11px;
+  background:#172033;
+  color:#fff;
+  font-weight:800;
+  cursor:pointer;
+}
+#channelDetails .yt-pro-upload-video progress{
+  width:100%;
+  height:9px;
+  margin-top:12px;
+  border:0;
+  border-radius:999px;
+  overflow:hidden;
+}
+#channelDetails .yt-pro-channel-details #channelMessage,
+#channelDetails .yt-pro-upload-video #uploadMessage{
+  min-height:18px;
+  margin:10px 0 0;
+  font-size:12px;
+  font-weight:700;
+}
+</style>
 
-<div id="ytInstallOverlay" aria-hidden="true">
-  <div id="ytInstallModal" role="dialog" aria-modal="true" aria-label="Install YT Creator Pro">
-    <button id="ytInstallClose" type="button" aria-label="Close">&times;</button>
-    <button id="ytInstallNow" type="button">Install Now</button>
-  </div>
+  <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon-admin.svg">
+</head>
+<body data-admin-protected="true" class="yt-premium-admin-page">
+
+<div class="yt-premium-admin-shell">
+  <aside class="yt-premium-sidebar" id="ytPremiumSidebar">
+    <div class="yt-premium-brand">
+      <div class="yt-premium-brand-badge">YT</div>
+      <div>
+        <div class="yt-premium-brand-title">YT Creator Pro</div>
+        <div class="yt-premium-brand-sub">Admin Panel</div>
+      </div>
+    </div>
+
+    <nav class="yt-premium-nav">
+      <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
+      <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
+      <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>
+      <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
+      <button class="yt-premium-nav-btn" data-view="manage">🎛️ <span>Manage Channel</span></button>
+      <button class="yt-premium-nav-btn" data-view="analytics">📊 <span>Analytics / Stats</span></button>
+      <button class="yt-premium-nav-btn" data-view="monetization">💰 <span>Monetization Cases</span></button>
+      <button class="yt-premium-nav-btn" data-view="adsense">₹ <span>AdSense</span></button>
+      <button class="yt-premium-nav-btn" data-view="reporting">📑 <span>YouTube Reporting</span></button>
+      <button class="yt-premium-nav-btn" data-view="live-streaming">🔴 <span>Live Streaming</span></button>
+      <button class="yt-premium-nav-btn" data-view="live-chat">💬 <span>Live Chat</span></button>
+      <button class="yt-premium-nav-btn" data-view="embedded-player">▶️ <span>Embedded Player</span></button>
+      <button class="yt-premium-nav-btn" data-view="oembed">🔗 <span>YouTube oEmbed</span></button>
+      <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
+      <button class="yt-premium-nav-btn" data-view="copyright">©️ <span>Copyright / Restrictions</span></button>
+      <button class="yt-premium-nav-btn" data-view="services">🧰 <span>Services</span></button>
+      <button class="yt-premium-nav-btn" data-view="payments">💳 <span>Payments / PayU</span></button>
+      <button class="yt-premium-nav-btn" data-view="service-charge">₹ <span>Service Charge</span></button>
+      <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
+      <button class="yt-premium-nav-btn" data-view="operations">🧭 <span>Operations Center</span></button>
+      <button class="yt-premium-nav-btn" data-view="cms">🧩 <span>Admin Dashboard CMS</span></button>
+      <button class="yt-premium-nav-btn" data-view="website-cms">🌐 <span>Website CMS</span></button>
+      <button class="yt-premium-nav-btn" data-view="editor">✏️ <span>Admin Editor</span></button>
+      <button class="yt-premium-nav-btn" data-view="settings">⚙️ <span>Settings</span></button>
+    </nav>
+
+    <div class="yt-premium-sidebar-bottom">
+      <button id="adminSidebarLogout" class="yt-premium-logout">↪ Logout</button>
+    </div>
+  </aside>
+
+  <button id="ytPremiumSidebarToggle" class="yt-premium-sidebar-toggle" aria-label="Open menu">☰</button>
+
+  <main class="yt-premium-main">
+    <header class="yt-premium-header">
+      <div class="yt-premium-header-copy">
+        <div class="yt-premium-kicker">YT CREATOR PRO • ADMIN CONTROL</div>
+        <h1 id="adminPageTitle">Dashboard</h1>
+        <p id="adminEmailView"></p>
+      </div>
+      <div class="yt-premium-header-actions">
+        <div class="yt-notification-wrap" data-notification-role="admin">
+          <button class="yt-notification-bell" type="button" aria-label="Notifications">🔔<span class="yt-notification-count" hidden>0</span></button>
+          <div class="yt-notification-panel" hidden><div class="yt-notification-head"><b>Notifications</b><button type="button" data-notification-read-all>Mark all read</button></div><div class="yt-notification-list">Loading…</div></div>
+        </div>
+        <div class="yt-pref-controls" data-yt-pref-area="admin">
+  <button class="yt-theme-toggle" type="button" aria-label="Dark Mode" title="Dark Mode"><span class="yt-theme-icon">🌙</span><span class="yt-theme-text">Dark</span></button>
+  <label class="yt-lang-control" title="Language"><span>🌐</span><select class="yt-lang-select" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
 </div>
-<script id="yt-install-popup-script">
+        <a class="yt-premium-top-btn website" href="../index.html" target="_blank" rel="noopener noreferrer">🌐 Website</a>
+        <button id="shareUserApp" class="yt-premium-top-btn share" type="button">📤 Share App</button>
+        
+        <button id="installAdminApp" class="yt-premium-top-btn install">📱 Install Admin App</button>
+        <button id="refreshAdminDashboard" class="yt-premium-top-btn refresh">↻ Refresh</button>
+      </div>
+    </header>
+
+    <section class="yt-premium-view active" id="view-dashboard">
+      <div class="yt-premium-hero">
+        <div>
+          <span class="yt-premium-eyebrow">OVERVIEW</span>
+          <h2>Admin Dashboard</h2>
+          <p>Live overview of users, channels, access, monetization, AdSense and service activity.</p>
+        </div>
+        <div class="yt-premium-live-pill">● LIVE DATA</div>
+      </div>
+
+      <div class="yt-premium-card-grid">
+        <div class="yt-premium-stat-card green">
+          <div class="stat-icon">👥</div>
+          <div class="stat-label">Total Users / Customers</div>
+          <div class="stat-value" id="totalCustomers">0</div>
+          <div class="stat-foot">Registered users</div>
+        </div>
+
+        <div class="yt-premium-stat-card yellow">
+          <div class="stat-icon">📺</div>
+          <div class="stat-label">Total YouTube Channels</div>
+          <div class="stat-value" id="totalChannels">0</div>
+          <div class="stat-foot">Connected channels</div>
+        </div>
+
+        <div class="yt-premium-stat-card pink">
+          <div class="stat-icon">🔐</div>
+          <div class="stat-label">Access Requests</div>
+          <div class="stat-value" id="totalAccessRequests">0</div>
+          <div class="stat-foot">Total access records</div>
+        </div>
+
+        <div class="yt-premium-stat-card red">
+          <div class="stat-icon">⏳</div>
+          <div class="stat-label">Pending Access</div>
+          <div class="stat-value" id="pendingAccess">0</div>
+          <div class="stat-foot">Waiting for access</div>
+        </div>
+
+        <div class="yt-premium-stat-card blue">
+          <div class="stat-icon">💰</div>
+          <div class="stat-label">Monetization Cases</div>
+          <div class="stat-value" id="totalMonetizationCases">0</div>
+          <div class="stat-foot">Tracked cases</div>
+        </div>
+
+        <div class="yt-premium-stat-card black">
+          <div class="stat-icon">₹</div>
+          <div class="stat-label">AdSense Linked</div>
+          <div class="stat-value" id="totalAdsenseLinked">0</div>
+          <div class="stat-foot">Linked / available</div>
+        </div>
+
+        <div class="yt-premium-stat-card white">
+          <div class="stat-icon">🧰</div>
+          <div class="stat-label">Service Requests</div>
+          <div class="stat-value" id="totalRequests">0</div>
+          <div class="stat-foot">All service cases</div>
+        </div>
+
+        <div class="yt-premium-stat-card green2">
+          <div class="stat-icon">✅</div>
+          <div class="stat-label">Completed Requests</div>
+          <div class="stat-value" id="completedRequests">0</div>
+          <div class="stat-foot">Completed work</div>
+        </div>
+      </div>
+
+      <div class="yt-premium-summary-strip">
+        <div><span>Pending Services</span><b id="pendingRequests">0</b></div>
+        <div><span>Manager Access Granted</span><b id="grantedAccess">0</b></div>
+        <div><span>Approved / Monetized</span><b id="approvedMonetization">0</b></div>
+        <div><span>Total Channel Views</span><b id="allChannelViews">0</b></div>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-customers">
+      <div class="yt-premium-section-head"><div><span>CUSTOMERS</span><h2>Users / Customers</h2><p>Customer accounts and profile information.</p></div><b id="customersSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th></tr></thead>
+        <tbody id="customersBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-user-requests">
+      <div class="yt-premium-section-head"><div><span>USER REQUESTS</span><h2>User Requests</h2><p>Paid customer requests and processing control.</p></div><b id="userRequestsSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Service</th><th>Payment</th><th>Request Status</th><th>Date</th><th>Action</th></tr></thead>
+        <tbody id="userRequestsBody"><tr><td colspan="6">No requests yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-channels">
+      <div class="yt-premium-section-head"><div><span>CHANNELS</span><h2>YouTube Channels</h2><p>Connected YouTube channel information.</p></div><b id="channelsSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Email</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manager Access</th></tr></thead>
+        <tbody id="youtubeChannelsBody"><tr><td colspan="8">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-access">
+      <div class="yt-premium-section-head"><div><span>ACCESS</span><h2>Access Requests</h2><p>Google connection and manager-access status.</p></div><b id="accessSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Google Connected</th><th>Manager Access</th><th>Updated</th><th>Action</th></tr></thead>
+        <tbody id="accessRequestsBody"><tr><td colspan="6">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-monetization">
+      <div class="yt-premium-section-head"><div><span>MONETIZATION</span><h2>Monetization Cases</h2><p>Monetization cases and processing status.</p></div><b id="monetizationSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Full Details</th></tr></thead>
+        <tbody id="monetizationBody"><tr><td colspan="7">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-adsense">
+      <div class="yt-premium-section-head"><div><span>ADSENSE</span><h2>AdSense</h2><p>AdSense requests and access status.</p></div><b id="adsenseSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>AdSense Access</th><th>Monetization</th><th>Updated</th></tr></thead>
+        <tbody id="adsenseBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-services">
+      <div class="yt-premium-section-head"><div><span>SERVICES</span><h2>Services</h2><p>Available service list only.</p></div><b id="servicesSectionCount">0</b></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Service</th><th>Description</th><th>Charge</th><th>Status</th></tr></thead>
+        <tbody id="serviceRequestsBody"><tr><td colspan="4">No services yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-payments">
+      <div class="yt-premium-section-head">
+        <div><span>PAYMENTS / PAYU</span><h2>Payments / PayU</h2><p>Transactions read-only audit + secure PayU backend status.</p></div>
+        <b id="paymentsSectionCount">0</b>
+      </div>
+
+      <div class="yt-pay-summary-grid">
+        <div class="yt-pay-summary-card"><span>₹</span><div><small>Total Collection</small><b id="payTotalCollection">₹0.00</b></div></div>
+        <div class="yt-pay-summary-card"><span>✅</span><div><small>Success</small><b id="paySuccessCount">0</b></div></div>
+        <div class="yt-pay-summary-card"><span>⌛</span><div><small>Pending</small><b id="payPendingCount">0</b></div></div>
+        <div class="yt-pay-summary-card"><span>❌</span><div><small>Failed</small><b id="payFailedCount">0</b></div></div>
+      </div>
+
+      <div class="yt-pay-layout">
+        <div class="panel yt-premium-panel">
+          <div class="yt-manager-head"><div><h3>🔐 PayU Integration</h3><p>Merchant credentials remain protected in Supabase Edge Function Secrets.</p></div></div>
+          <div class="yt-payu-status-row"><span>Environment</span><b>Production</b></div>
+          <div class="yt-payu-status-row"><span>Secure Hash</span><b class="good-text">Server-side ✅</b></div>
+          <div class="yt-payu-status-row"><span>Callback Verification</span><b class="good-text">Enabled ✅</b></div>
+          <div class="yt-payment-admin-note">PayU Key/Salt browser me show ya save nahi hota.</div>
+        </div>
+
+        <div class="panel yt-premium-panel">
+          <div class="yt-manager-head"><div><h3>Transaction Records</h3><p>PayU payment transaction history.</p></div></div>
+          <div class="yt-table-scroll">
+            <table class="data-table">
+              <thead><tr><th>Payment ID</th><th>Customer</th><th>Service</th><th>Amount</th><th>Status</th><th>Mode</th><th>Date</th></tr></thead>
+              <tbody id="paymentsBody"><tr><td colspan="7">No data yet.</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-service-charge">
+      <div class="yt-premium-section-head">
+        <div><span>SERVICE CHARGE</span><h2>Service Charge</h2><p>Set and manage the current service charge used for customer requests.</p></div>
+        <b id="serviceChargeCount">0</b>
+      </div>
+
+      <div class="yt-service-charge-top">
+        <div class="panel yt-premium-panel yt-charge-form">
+          <div class="yt-manager-head"><div><h3 id="chargeFormTitle">New Service</h3><p>Add a new service or update an existing service.</p></div></div>
+          <input id="chargeServiceId" type="hidden">
+          <label>Service Name</label>
+          <input id="chargeServiceName" type="text" placeholder="Service name">
+          <label>Description</label>
+          <textarea id="chargeServiceDescription" rows="3" placeholder="Short description"></textarea>
+          <label>Current Charge (₹)</label>
+          <input id="chargeServiceAmount" type="number" min="0" step="0.01" placeholder="0">
+          <label class="yt-inline-check"><input id="chargeServiceActive" type="checkbox" checked> Active Service</label>
+          <div class="yt-charge-actions">
+            <button id="saveServiceCharge" class="btn primary" type="button">Add New Service</button>
+            <button id="cancelServiceChargeEdit" class="btn" type="button">Clear</button>
+          </div>
+          <p id="serviceChargeMessage"></p>
+        </div>
+
+        <div class="yt-charge-stats">
+          <div class="yt-charge-stat-card yt-charge-total"><small>Total Services</small><b id="chargeTotalServices">0</b></div>
+          <div class="yt-charge-stat-card yt-charge-active"><small>Active Services</small><b id="chargeActiveServices">0</b></div>
+          <div class="yt-charge-stat-card yt-charge-inactive"><small>Inactive Services</small><b id="chargeInactiveServices">0</b></div>
+        </div>
+      </div>
+
+      <div class="panel yt-premium-panel">
+        <div class="yt-manager-head"><div><h3>All Services & Current Charge</h3><p>Manage all active services and their current charges.</p></div></div>
+        <div class="yt-table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Service</th><th>Description</th><th>Current Charge</th><th>New Charge</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="serviceChargeBody"><tr><td colspan="6">No data yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-history">
+      <div class="yt-premium-section-head"><div><span>HISTORY</span><h2>History</h2><p>Recent admin/customer/channel activity.</p></div></div>
+      <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">No data yet.</div></div></div>
+    </section>
+
+
+    
+    <section class="yt-premium-view" id="view-manage">
+      <div class="yt-premium-section-head">
+        <div>
+          <span>CHANNEL CONTROL</span>
+          <h2>Manage Channel</h2>
+          <p>Connected YouTube channels available for authorized management.</p>
+        </div>
+        <b id="manageSectionCount">0</b>
+      </div>
+
+      <div id="manageChannelListPanel" class="panel yt-premium-panel">
+        <div class="yt-table-scroll">
+          <table class="data-table">
+            <thead><tr><th>Customer</th><th>Channel</th><th>Manager Access</th><th>Action</th></tr></thead>
+            <tbody id="manageChannelsBody"><tr><td colspan="4">No data yet.</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+
+
+      <div id="manageWorkspace" class="yt-manage-inline-workspace" hidden>
+        <div class="yt-manage-inline-titlebar">
+          <div>
+            <span>FULL CHANNEL MANAGEMENT</span>
+            <h2>Channel Editor</h2>
+            <p>Manage authorized channel details, banner, videos and playlists from one workspace.</p>
+          </div>
+          <button id="closeManageWorkspace" class="btn" type="button">Close Editor</button>
+        </div>
+        <div class="panel">
+    <div class="yt-manager-head">
+      <div><h2 id="channelTitle">Manage Channel</h2><p id="manageMessage">Select a channel to manage.</p></div>
+      <button id="refreshAll" class="btn primary">Refresh / Sync</button>
+    </div>
+    <div id="channelStats" class="yt-manager-stats"></div>
+    <section id="monetizationAnalyticsPanel" class="yt-monetization-analytics panel" hidden>
+      <div class="yt-manager-head">
+        <div><h2>💰 Monetization & Revenue</h2><p id="monetizationAnalyticsPeriod">Last 28 days • YouTube Analytics</p></div>
+        <button id="refreshMonetizationAnalytics" class="btn" type="button">Refresh Revenue</button>
+      </div>
+      <div class="yt-revenue-grid">
+        <div><small>Estimated Revenue</small><b id="ytEstimatedRevenue">$0.00</b></div>
+        <div><small>Estimated Ad Revenue</small><b id="ytEstimatedAdRevenue">$0.00</b></div>
+        <div><small>RPM</small><b id="ytRevenueRPM">$0.00</b></div>
+        <div><small>Playback CPM</small><b id="ytPlaybackCPM">$0.00</b></div>
+        <div><small>Analytics Views</small><b id="ytRevenueViews">0</b></div>
+        <div><small>Watch Time</small><b id="ytWatchHours">0 h</b></div>
+      </div>
+      <p id="monetizationAnalyticsMessage" class="yt-note">Revenue appears only for a monetized channel with YouTube Analytics monetary permission.</p>
+
+      <div class="yt-eligibility" id="ytEligibilityPanel">
+        <div class="yt-eligibility-head"><h3>Eligibility</h3><span id="ytEligibilityInfo">ⓘ</span></div>
+        <div class="yt-eligibility-date">ⓘ <b>Showing data as of:</b> <span id="ytEligibilityDate">—</span></div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilitySubscribers">0 subscribers</b></div><strong id="ytEligibilitySubscribersTarget">0 / 500</strong></div>
+          <div class="yt-progress"><span id="ytEligibilitySubscribersBar"></span></div>
+        </div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilityUploads">0 video uploads</b><small>last 90 days</small></div><strong id="ytEligibilityUploadsTarget">0 / 3</strong></div>
+          <div class="yt-progress"><span id="ytEligibilityUploadsBar"></span></div>
+        </div>
+        <div class="yt-eligibility-or">and one of the following</div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilityWatchHours">Qualified watch hours</b><small>last 365 days</small></div><strong id="ytEligibilityWatchHoursTarget">— / 3,000</strong></div>
+          <div class="yt-progress"><span id="ytEligibilityWatchHoursBar"></span></div>
+          <small id="ytEligibilityWatchHoursNote" class="yt-api-note"></small>
+        </div>
+        <div class="yt-eligibility-item">
+          <div class="yt-eligibility-line"><div><b id="ytEligibilityShortsViews">Qualified Shorts views</b><small>last 90 days</small></div><strong id="ytEligibilityShortsTarget">— / 3M</strong></div>
+          <div class="yt-progress"><span id="ytEligibilityShortsBar"></span></div>
+          <small id="ytEligibilityShortsNote" class="yt-api-note"></small>
+        </div>
+        <p class="yt-eligibility-foot">Official YPP eligibility counters that YouTube does not expose through public APIs are marked unavailable instead of estimated.</p>
+      </div>
+    </section>
+  </div>
+<div id="managerUnlockedArea" class="yt-manager-unlocked">
+  <section class="panel yt-banner-panel" id="channelBanner">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Channel Banner</h2>
+        <p class="yt-note">Banner ko yahin se Upload / Replace karein. Remove ke liye official YouTube Studio Branding khulega.</p>
+      </div>
+      <button id="openBannerStudio" class="btn">Open Banner in Studio</button>
+    </div>
+    <div class="yt-banner-grid">
+      <div class="yt-banner-preview-wrap">
+        <img id="channelBannerPreview" class="yt-banner-preview" alt="Channel banner preview">
+        <div id="noBannerPreview" class="yt-banner-empty">Current banner preview API me available na ho to yahan placeholder dikhega.</div>
+      </div>
+      <div>
+        <label>New Banner JPG / PNG</label>
+        <input id="channelBannerFile" type="file" accept="image/*">
+        <p class="yt-note">Koi bhi photo size select karo — system automatically 2560×1440 YouTube banner me fit karega. Preview upload se pehle dikhega.</p>
+        <div class="yt-action-row">
+          <button id="uploadChannelBanner" class="btn primary">Upload / Replace Banner</button>
+          <button id="removeChannelBanner" class="btn">Remove Banner in Studio</button>
+        </div>
+        <p id="bannerMessage"></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="yt-manager-grid" id="channelDetails">
+    <section class="panel yt-pro-channel-details">
+      <h2>Channel Details</h2>
+      <p class="yt-note">Channel name YouTube API se read-only hai. Description aur keywords update kiye ja sakte hain.</p>
+      <label>Channel Name</label><div class="yt-inline-edit"><input id="channelName" disabled><button id="editChannelNameStudio" class="btn youtube-main-studio-btn">Edit Channel Name in Studio</button></div>
+      <label>Description</label><textarea id="channelDescription" rows="6"></textarea>
+      <label>Keywords</label><input id="channelKeywords" placeholder="keyword1 keyword2">
+      <button id="saveChannel" class="btn primary">Update Channel</button>
+      <p id="channelMessage"></p>
+    </section>
+
+    <section class="panel yt-pro-upload-video">
+      <h2>Upload New Video</h2>
+      <label>Upload Type</label>
+<select id="uploadType">
+  <option value="video" selected>Normal Video</option>
+  <option value="short">YouTube Short</option>
+</select>
+<p id="uploadTypeHelp" class="yt-note">Normal Video selected. YouTube may still classify a short vertical clip as a Short based on its format/duration.</p>
+<label>Video File</label><input id="uploadFile" type="file" accept="video/*">
+      <label>Title</label><input id="uploadTitle" maxlength="100">
+      <label>Description</label><textarea id="uploadDescription" rows="4"></textarea>
+      <label>Tags</label><input id="uploadTags" placeholder="tag1, tag2">
+      <label>Video Category</label><select id="uploadCategory"><option value="1">Film & Animation</option>
+<option value="2">Autos & Vehicles</option>
+<option value="10">Music</option>
+<option value="15">Pets & Animals</option>
+<option value="17">Sports</option>
+<option value="19">Travel & Events</option>
+<option value="20">Gaming</option>
+<option value="22" selected>People & Blogs</option>
+<option value="23">Comedy</option>
+<option value="24">Entertainment</option>
+<option value="25">News & Politics</option>
+<option value="26">Howto & Style</option>
+<option value="27">Education</option>
+<option value="28">Science & Technology</option>
+<option value="29">Nonprofits & Activism</option></select>
+      <label>Privacy</label><select id="uploadPrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select>
+      <button id="uploadVideo" class="btn primary">Upload Video</button>
+      <progress id="uploadProgress" value="0" max="100" hidden></progress>
+      <div id="uploadResult" class="yt-upload-result" hidden></div>
+      <p id="uploadMessage"></p>
+    </section>
+  </div>
+
+  
+  <section class="panel yt-content-panel" id="channelContent">
+    <div class="yt-manager-head">
+      <div>
+        <h2>Channel Content</h2>
+        <p class="yt-note" id="contentLoadStatus">YouTube Studio style content manager.</p>
+      </div>
+      <button id="refreshVideos" class="btn">Refresh Content</button>
+    </div>
+
+    <div class="yt-content-tabs" role="tablist">
+      <button class="yt-content-tab active" data-content-tab="video">Videos <span id="videosCount">0</span></button>
+      <button class="yt-content-tab" data-content-tab="short">Shorts <span id="shortsCount">0</span></button>
+      <button class="yt-content-tab" data-content-tab="live">Live <span id="liveCount">0</span></button>
+      <button class="yt-content-tab" data-content-tab="post">Posts <span>Studio</span></button>
+      <button class="yt-content-tab" id="playlistsSection" data-content-tab="playlist">Playlists <span id="playlistsCount">0</span></button>
+    </div>
+
+    <div class="yt-content-toolbar">
+      <div class="yt-content-filter">☰ <input id="contentSearch" type="search" placeholder="Filter content..."></div>
+      <button id="newPlaylistBtn" class="btn primary" hidden>+ New Playlist</button>
+    </div>
+
+    <div class="yt-content-table-wrap">
+      <table class="yt-studio-table">
+        <thead>
+          <tr>
+            <th class="yt-check-col"><input id="selectAllContent" type="checkbox" aria-label="Select visible content"></th>
+            <th>Content</th>
+            <th>Notices</th>
+            <th>Visibility</th>
+            <th>Date</th>
+            <th>Views</th>
+            <th>Comments</th>
+            <th>Likes</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="contentTableBody">
+          <tr><td colspan="9">No data yet.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="yt-content-pagination">
+      <label>Rows per page
+        <select id="contentRowsPerPage"><option>10</option><option selected>30</option><option>50</option></select>
+      </label>
+      <span id="contentPageInfo">0–0 of 0</span>
+      <button id="contentFirstPage" class="yt-page-btn" type="button" title="First page">|‹</button>
+      <button id="contentPrevPage" class="yt-page-btn" type="button" title="Previous page">‹</button>
+      <button id="contentNextPage" class="yt-page-btn" type="button" title="Next page">›</button>
+      <button id="contentLastPage" class="yt-page-btn" type="button" title="Last page">›|</button>
+    </div>
+
+    <p class="yt-note">Posts are not exposed by the public YouTube Data API. Exact copyright/Studio-only notices are shown as “Check Studio” instead of fake data.</p>
+  </section>
+</div>
+
+      </div>
+
+    </section>
+
+
+    <section class="yt-premium-view" id="view-analytics">
+      <div class="yt-premium-section-head"><div><span>ANALYTICS</span><h2>Analytics / Stats</h2><p>Aggregate data from connected channels.</p></div></div>
+      <div class="yt-admin-mini-grid">
+        <div><small>Total Subscribers</small><b id="adminTotalSubscribers">0</b></div>
+        <div><small>Total Views</small><b id="adminTotalViews">0</b></div>
+        <div><small>Total Videos</small><b id="adminTotalVideos">0</b></div>
+        <div><small>Connected Channels</small><b id="adminConnectedChannels">0</b></div>
+      </div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Channel</th><th>Subscribers</th><th>Views</th><th>Videos</th><th>Manage</th></tr></thead>
+        <tbody id="adminAnalyticsBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+
+    <section class="yt-premium-view" id="view-reporting">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE REPORTING API</span><h2>YouTube Reporting</h2><p>Create and manage bulk YouTube Analytics reporting jobs and generated reports.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar"><label>Manager Access Granted Channel<select id="reportingCustomer"><option value="">Select channel…</option></select></label><button id="refreshReporting" class="btn primary" type="button">↻ Sync / Refresh</button><button id="loadReportTypes" class="btn" type="button">Load Report Types</button></div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>＋ New Reporting Job</h3><div class="yt-api-form"><label>Report Type</label><select id="reportTypeId"><option value="">Load report types first</option></select><label>Job Name</label><input id="reportJobName" placeholder="Monthly Channel Report"><div class="yt-api-actions"><button id="createReportJob" class="btn primary" type="button">Create Job</button></div><p class="yt-api-note">YouTube Reporting API supports create/list/delete jobs. Existing job definition is immutable; change it by deleting and creating a new job.</p></div></div>
+          <div class="yt-api-card"><h3>Existing Reporting Jobs</h3><div id="reportingJobs" class="yt-api-list"><div class="yt-api-empty">Select a channel.</div></div></div>
+        </div>
+        <div class="yt-api-card"><h3>Generated Reports</h3><div id="reportingReports" class="yt-api-list"><div class="yt-api-empty">Open a reporting job to see reports.</div></div><pre id="reportPreview" style="max-height:320px;overflow:auto;white-space:pre-wrap"></pre></div>
+        <p id="reportingStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-live-streaming">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE LIVE STREAMING</span><h2>Live Streaming</h2><p>Create, edit, bind, transition, complete and delete YouTube live broadcasts and streams.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar"><label>Manager Access Granted Channel<select id="liveCustomer"><option value="">Select channel…</option></select></label><button id="refreshLive" class="btn primary" type="button">↻ Sync / Refresh</button></div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>Broadcast • Existing / New</h3><div class="yt-api-form"><input id="broadcastId" type="hidden"><label>Title</label><input id="broadcastTitle" maxlength="100"><label>Description</label><textarea id="broadcastDescription" rows="4"></textarea><label>Scheduled Start</label><input id="broadcastStart" type="datetime-local"><label>Privacy</label><select id="broadcastPrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select><label><input id="broadcastAutoStart" type="checkbox"> Enable Auto Start</label><label><input id="broadcastAutoStop" type="checkbox"> Enable Auto Stop</label><div class="yt-api-actions"><button id="saveBroadcast" class="btn primary" type="button">Save / Update</button><button id="clearBroadcast" class="btn" type="button">New / Clear</button></div></div></div>
+          <div class="yt-api-card"><h3>Stream • Existing / New</h3><div class="yt-api-form"><input id="streamId" type="hidden"><label>Title</label><input id="streamTitle"><label>Description</label><textarea id="streamDescription" rows="3"></textarea><label>Resolution</label><select id="streamResolution"><option value="variable">Variable</option><option value="240p">240p</option><option value="360p">360p</option><option value="480p">480p</option><option value="720p">720p</option><option value="1080p">1080p</option><option value="1440p">1440p</option><option value="2160p">2160p</option></select><label>Frame Rate</label><select id="streamFrameRate"><option value="variable">Variable</option><option value="30fps">30fps</option><option value="60fps">60fps</option></select><div class="yt-api-actions"><button id="saveStream" class="btn primary" type="button">Save / Update</button><button id="clearStream" class="btn" type="button">New / Clear</button></div></div></div>
+        </div>
+        <div class="yt-api-card"><h3>Existing Broadcasts</h3><div id="broadcastList" class="yt-api-list"><div class="yt-api-empty">Select a channel.</div></div></div>
+        <div class="yt-api-card"><h3>Existing Streams</h3><div id="streamList" class="yt-api-list"><div class="yt-api-empty">Select a channel.</div></div></div>
+        <p id="liveStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-live-chat">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE LIVE CHAT</span><h2>Live Chat</h2><p>Read/send messages and use supported moderation controls for active or upcoming live chats.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar"><label>Manager Access Granted Channel<select id="chatCustomer"><option value="">Select channel…</option></select></label><button id="refreshChats" class="btn primary" type="button">↻ Sync Live Chats</button><label>Live Chat<select id="chatLiveId"><option value="">Select live chat…</option></select></label><button id="refreshMessages" class="btn" type="button">Refresh Messages</button></div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>Live Messages</h3><div id="chatMessages" class="yt-api-chat"><div class="yt-api-empty">Select a live chat.</div></div><div class="yt-api-form" style="margin-top:12px"><label>Send Message</label><textarea id="chatText" rows="3" maxlength="200"></textarea><button id="sendChatMessage" class="btn primary" type="button">Send Message</button></div></div>
+          <div class="yt-api-card"><h3>Moderators • Existing / New</h3><div class="yt-api-actions"><button id="loadModerators" class="btn" type="button">Load Moderators</button></div><div id="chatModerators" class="yt-api-list" style="margin-top:10px"><div class="yt-api-empty">Load moderators.</div></div><div class="yt-api-form" style="margin-top:12px"><label>Moderator Channel ID</label><input id="moderatorChannelId" placeholder="UC…"><button id="addModerator" class="btn primary" type="button">Add Moderator</button></div></div>
+          <div class="yt-api-card"><h3>Ban / Timeout</h3><div class="yt-api-form"><label>User Channel ID</label><input id="banChannelId" placeholder="UC…"><label>Timeout Seconds</label><input id="banDuration" type="number" min="0" value="300"><p class="yt-api-note">Use 0 for permanent ban; a positive value creates a temporary timeout.</p><button id="banUser" class="btn danger" type="button">Ban / Timeout</button><hr><label>Existing Ban ID</label><input id="banId"><button id="removeBan" class="btn" type="button">Remove Ban</button></div></div>
+        </div>
+        <p id="chatStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+
+    <section class="yt-premium-view" id="view-embedded-player">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE EMBEDDED PLAYER</span><h2>YouTube Embedded Player</h2><p>Load channel videos and preview/control them inside the Admin Dashboard.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar">
+          <label>Manager Access Granted Channel<select id="embeddedCustomer"><option value="">Select channel…</option></select></label>
+          <button id="refreshEmbeddedVideos" class="btn primary" type="button">↻ Sync Videos</button>
+          <label>Video ID or YouTube URL<input id="embeddedVideoInput" placeholder="Video ID or https://youtu.be/…"></label>
+          <button id="loadEmbeddedVideo" class="btn" type="button">Load Player</button>
+        </div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>Player</h3><div class="yt-api-player-wrap"><div id="embeddedPlayerPlaceholder" class="yt-api-player-placeholder">Select a video to preview.</div><div id="embeddedPlayer"></div></div><div class="yt-api-actions" style="margin-top:12px"><button id="embeddedPlay" class="btn primary" type="button">▶ Play</button><button id="embeddedPause" class="btn" type="button">⏸ Pause</button><button id="embeddedStop" class="btn" type="button">⏹ Stop</button></div><div id="embeddedVideoMeta" class="yt-api-meta"></div></div>
+          <div class="yt-api-card"><h3>Channel Videos</h3><div id="embeddedVideoList" class="yt-api-list"><div class="yt-api-empty">Select a channel and sync videos.</div></div></div>
+        </div>
+        <p id="embeddedStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-oembed">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE OEMBED</span><h2>YouTube oEmbed</h2><p>Read official embed metadata and preview any valid public YouTube video URL.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar">
+          <label>YouTube Video URL<input id="oembedUrl" placeholder="https://www.youtube.com/watch?v=…"></label>
+          <button id="fetchOembed" class="btn primary" type="button">Fetch oEmbed Data</button>
+          <button id="clearOembed" class="btn" type="button">New / Clear</button>
+        </div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>oEmbed Data</h3><div id="oembedData" class="yt-api-meta"><div class="yt-api-empty">Enter a public YouTube URL.</div></div></div>
+          <div class="yt-api-card"><h3>Preview</h3><div id="oembedPreview" class="yt-api-player-wrap"><div class="yt-api-player-placeholder">Preview will appear here.</div></div></div>
+        </div>
+        <p id="oembedStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-copyright">
+      <div class="yt-premium-section-head"><div><span>COPYRIGHT</span><h2>Copyright / Restrictions</h2><p>Open each channel manager for API-visible restrictions and YouTube Studio copyright checks.</p></div></div>
+      <div class="panel yt-premium-panel"><div class="yt-table-scroll">
+        <table class="data-table"><thead><tr><th>Customer</th><th>Channel</th><th>Status</th><th>Copyright / Restrictions</th></tr></thead>
+        <tbody id="adminCopyrightBody"><tr><td colspan="4">No data yet.</td></tr></tbody></table>
+      </div></div>
+    </section>
+
+
+    <section class="yt-premium-view" id="view-operations">
+      <div class="yt-premium-section-head">
+        <div><span>OPERATIONS</span><h2>Operations Center</h2><p>Support, documents, refunds, user controls, announcements, analytics, exports and audit tools.</p></div>
+      </div>
+
+      <div class="yt-feature-stats">
+        <div><small>Open Tickets</small><b id="fcOpenTickets">0</b></div>
+        <div><small>Refund Requests</small><b id="fcRefunds">0</b></div>
+        <div><small>Documents</small><b id="fcDocuments">0</b></div>
+        <div><small>Revenue</small><b id="fcRevenue">₹0</b></div>
+      </div>
+
+      <div class="yt-feature-grid">
+        <article class="yt-feature-card" data-feature-module="support_tickets">
+          <div class="yt-feature-head"><h3>🎫 Support Tickets</h3><button type="button" data-fc-refresh="tickets">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAdminTickets">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="admin_notes">
+          <div class="yt-feature-head"><h3>📝 Admin Notes</h3></div>
+          <label>Request<select id="fcNoteRequest"></select></label>
+          <label>Private Note<textarea id="fcNoteText" rows="3" placeholder="Internal admin note"></textarea></label>
+          <button class="yt-feature-primary" id="fcAddNote" type="button">Add Note</button>
+          <div class="yt-feature-list" id="fcAdminNotes"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="refunds">
+          <div class="yt-feature-head"><h3>↩ Refund / Cancel Requests</h3><button type="button" data-fc-refresh="refunds">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAdminRefunds">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="user_blocking">
+          <div class="yt-feature-head"><h3>🚫 User Block / Unblock</h3></div>
+          <div class="yt-feature-list" id="fcAdminUsers">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="announcements">
+          <div class="yt-feature-head"><h3>📢 Announcement / Maintenance</h3></div>
+          <label>Title<input id="fcAnnouncementTitle" placeholder="Important update"></label>
+          <label>Message<textarea id="fcAnnouncementMessage" rows="3"></textarea></label>
+          <div class="yt-feature-row">
+            <select id="fcAnnouncementTarget"><option value="all">All</option><option value="public">Public Website</option><option value="user">User Dashboard</option><option value="admin">Admin</option></select>
+            <label class="yt-feature-check"><input id="fcAnnouncementMaintenance" type="checkbox"> Maintenance</label>
+          </div>
+          <button class="yt-feature-primary" id="fcPublishAnnouncement" type="button">Publish</button>
+          <div class="yt-feature-list" id="fcAnnouncements"></div>
+        </article>
+
+
+        <article class="yt-feature-card" data-feature-module="documents">
+          <div class="yt-feature-head"><h3>📎 Document Management</h3><button type="button" data-fc-refresh="documents">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAdminDocuments">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="analytics">
+          <div class="yt-feature-head"><h3>📊 Advanced Analytics</h3><button type="button" data-fc-refresh="analytics">Refresh</button></div>
+          <div class="yt-feature-mini-stats" id="fcAnalytics">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="exports">
+          <div class="yt-feature-head"><h3>📤 Database Export</h3></div>
+          <p>Download CSV backup of operational data.</p>
+          <div class="yt-feature-actions">
+            <button type="button" data-fc-export="customers">Users CSV</button>
+            <button type="button" data-fc-export="service_requests">Requests CSV</button>
+            <button type="button" data-fc-export="payments">Payments CSV</button>
+            <button type="button" data-fc-export="support_tickets">Tickets CSV</button>
+          </div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="audit_log">
+          <div class="yt-feature-head"><h3>🛡 Audit / Security Log</h3><button type="button" data-fc-refresh="audit">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAuditLog">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="email_queue">
+          <div class="yt-feature-head"><h3>✉ Email Queue</h3><span class="yt-feature-badge">Provider Ready</span></div>
+          <p>Email events are queued here. Actual delivery activates when an email provider is connected.</p>
+          <div class="yt-feature-list" id="fcEmailQueue">Loading…</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-cms">
+      <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard content without changing the current layout automatically.</p></div></div>
+      
+      <div class="yt-feature-cms-box" data-feature-cms="admin">
+        <h3>🧩 Feature Controls</h3>
+        <p>Enable/disable related modules without changing the existing dashboard layout.</p>
+        <div class="yt-feature-toggle-grid" data-feature-toggle-grid></div>
+        <button type="button" class="yt-feature-primary" data-save-feature-settings>Save Feature Settings</button>
+        <span data-feature-settings-message></span>
+      </div>
+
+      <div id="adminCmsFull" class="yt-cms-root">
+<div class="yt-cms-pref-box" data-no-translate>
+  <h3>🌗 Appearance & Language</h3><p>Dark/Light mode and English, Hindi, Marathi controls for the complete website.</p>
+  <div class="yt-cms-pref-grid">
+    <label>Default Language<select data-pref="language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
+    <label>Default Theme<select data-pref="theme"><option value="light">Light Mode</option><option value="dark">Dark Mode</option></select></label>
+  </div>
+  <div class="yt-cms-pref-checks"><label><input type="checkbox" data-pref="showAdmin"> Show on Admin</label><label><input type="checkbox" data-pref="showUser"> Show on User</label><label><input type="checkbox" data-pref="showPublic"> Show on Public Website</label><label><input type="checkbox" data-pref="showAuth"> Show on Login / Register</label></div>
+  <button type="button" class="yt-cms-pref-save" data-save-prefs>Save Preferences</button><span class="yt-cms-pref-msg"></span>
+</div><div class="yt-cms-loading">Loading Admin CMS…</div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-website-cms">
+      <div class="yt-premium-section-head"><div><span>WEBSITE CMS</span><h2>Website CMS</h2><p>Manage the normal website, maintenance mode, pages, buttons, theme and SEO.</p></div></div>
+      
+      <div class="yt-feature-cms-box" data-feature-cms="website">
+        <h3>🌐 Website Feature Controls</h3>
+        <p>Control public announcements, maintenance banner and user-facing feature visibility.</p>
+        <div class="yt-feature-toggle-grid" data-feature-toggle-grid></div>
+        <button type="button" class="yt-feature-primary" data-save-feature-settings>Save Website Settings</button>
+        <span data-feature-settings-message></span>
+      </div>
+
+      <div id="websiteCmsFull" class="yt-cms-root">
+<div class="yt-cms-pref-box" data-no-translate>
+  <h3>🌗 Appearance & Language</h3><p>Dark/Light mode and English, Hindi, Marathi controls for the complete website.</p>
+  <div class="yt-cms-pref-grid">
+    <label>Default Language<select data-pref="language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
+    <label>Default Theme<select data-pref="theme"><option value="light">Light Mode</option><option value="dark">Dark Mode</option></select></label>
+  </div>
+  <div class="yt-cms-pref-checks"><label><input type="checkbox" data-pref="showAdmin"> Show on Admin</label><label><input type="checkbox" data-pref="showUser"> Show on User</label><label><input type="checkbox" data-pref="showPublic"> Show on Public Website</label><label><input type="checkbox" data-pref="showAuth"> Show on Login / Register</label></div>
+  <button type="button" class="yt-cms-pref-save" data-save-prefs>Save Preferences</button><span class="yt-cms-pref-msg"></span>
+</div><div class="yt-cms-loading">Loading Website CMS…</div></div>
+    </section>
+
+    <section class="yt-premium-view" id="view-editor">
+      <div class="yt-premium-section-head"><div><span>EDITOR</span><h2>Admin Editor</h2><p>Edit overview card labels saved on this admin browser.</p></div></div>
+      <div class="panel yt-premium-panel yt-admin-editor-form">
+        <label>Customers Card Label</label><input id="editLabelCustomers" value="Total Users / Customers">
+        <label>Channels Card Label</label><input id="editLabelChannels" value="Total YouTube Channels">
+        <label>Access Card Label</label><input id="editLabelAccess" value="Access Requests">
+        <label>Monetization Card Label</label><input id="editLabelMonetization" value="Monetization Cases">
+        <button id="saveAdminEditor" class="btn primary">Save Card Labels</button>
+        <button id="resetAdminEditor" class="btn">Reset Labels</button>
+        <p id="adminEditorMessage"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-settings">
+      <div class="yt-premium-section-head"><div><span>SETTINGS</span><h2>Settings</h2><p>Admin dashboard settings only.</p></div></div>
+      <div class="panel yt-premium-panel">
+        <button id="settingsRefreshAdmin" class="btn primary">Refresh Dashboard Data</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+
+<div id="editModal" class="yt-modal" hidden><div class="yt-modal-card">
+<button id="closeModal" class="yt-close">×</button><h2>Edit Video</h2>
+<input id="editVideoId" type="hidden">
+<label>Title</label><input id="editTitle" maxlength="100">
+<label>Description</label><textarea id="editDescription" rows="7"></textarea>
+<label>Tags</label><input id="editTags">
+<label>Video Category</label><select id="editCategory"><option value="1">Film & Animation</option>
+<option value="2">Autos & Vehicles</option>
+<option value="10">Music</option>
+<option value="15">Pets & Animals</option>
+<option value="17">Sports</option>
+<option value="19">Travel & Events</option>
+<option value="20">Gaming</option>
+<option value="22" selected>People & Blogs</option>
+<option value="23">Comedy</option>
+<option value="24">Entertainment</option>
+<option value="25">News & Politics</option>
+<option value="26">Howto & Style</option>
+<option value="27">Education</option>
+<option value="28">Science & Technology</option>
+<option value="29">Nonprofits & Activism</option></select>
+<label>Privacy</label><select id="editPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+<label>Thumbnail JPG/PNG</label><input id="thumbnailFile" type="file" accept="image/jpeg,image/png">
+<div class="yt-action-row"><button id="saveVideo" class="btn primary">Update Video</button><button id="setThumbnail" class="btn">Update Thumbnail</button><button id="deleteVideo" class="btn danger">Delete Video</button></div>
+<p id="editMessage"></p></div></div>
+
+<div id="playlistModal" class="yt-modal" hidden><div class="yt-modal-card">
+<button id="closePlaylistModal" class="yt-close">×</button><h2>Playlist Manager</h2>
+<input id="playlistId" type="hidden">
+<div id="playlistThumbBox" class="yt-playlist-thumb-box" hidden>
+  <img id="playlistThumbPreview" class="yt-playlist-thumb-preview" alt="Playlist thumbnail">
+  <div><b>Playlist Thumbnail Preview</b><p class="yt-note">YouTube playlist ka thumbnail playlist videos se automatically manage karta hai; custom playlist-thumbnail upload API available nahi hai.</p></div>
+</div>
+<label>Title</label><input id="playlistTitle">
+<label>Description</label><textarea id="playlistDescription" rows="6" placeholder="Playlist description"></textarea>
+<label>Privacy</label><select id="playlistPrivacy"><option value="public">Public</option><option value="unlisted">Unlisted</option><option value="private">Private</option></select>
+<div class="yt-action-row">
+  <button id="savePlaylist" class="btn primary">Save / Update Playlist</button>
+  <button id="openPlaylistStudio" class="btn">Open in YouTube Studio</button>
+  <button id="deletePlaylist" class="btn danger">Delete Playlist</button>
+</div>
+<p id="playlistMessage"></p></div></div>
+
+
+
+<script>
+document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
+  const appUrl=new URL("../index.html?install=1",location.href).href;
+  try{
+    if(navigator.share){
+      await navigator.share({title:"YT Creator Pro App",text:"YT Creator Pro app install link",url:appUrl});
+    }else{
+      await navigator.clipboard.writeText(appUrl);
+      alert("Normal website app link copied");
+    }
+  }catch(err){
+    if(err?.name!=="AbortError"){
+      try{await navigator.clipboard.writeText(appUrl);alert("Normal website app link copied");}catch(_){}
+    }
+  }
+});
+</script>
+
+<script src="../assets/js/cms-deep-catalog.js"></script>
+<script src="../assets/js/cms-youtube-api-catalog.js"></script>
+<script type="module" src="../assets/js/cms-engine.js"></script>
+<script type="module" src="../assets/js/cms-deep.js"></script>
+<script type="module" src="../assets/js/cms-deep-admin.js"></script>
+<script type="module" src="../assets/js/cms-admin-ui.js"></script>
+<script type="module" src="../assets/js/admin-auth.js"></script>
+<script type="module" src="../assets/js/manage-channel.js"></script>
+<script type="module" src="../assets/js/youtube-api-tools.js"></script>
+
+<script>
 (function(){
-  const params = new URLSearchParams(location.search);
-  if(params.get("install") !== "1") return;
-
-  const overlay = document.getElementById("ytInstallOverlay");
-  const closeBtn = document.getElementById("ytInstallClose");
-  const installBtn = document.getElementById("ytInstallNow");
-  let deferredPrompt = null;
-
-  const isStandalone = () =>
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-
-  const show = () => {
-    if(isStandalone()) return;
-    overlay.classList.add("yt-show");
-    overlay.setAttribute("aria-hidden","false");
-  };
-  const hide = () => {
-    overlay.classList.remove("yt-show");
-    overlay.setAttribute("aria-hidden","true");
-  };
-
-  // Suppress Chrome's small native install chip/banner.
-  // Show our modal only when the browser says the PWA is actually installable.
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    deferredPrompt = event;
-    show();
-  });
-
-  closeBtn.addEventListener("click", hide);
-
-  installBtn.addEventListener("click", async () => {
-    if(!deferredPrompt) return;
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch(e) {}
-    deferredPrompt = null;
-    hide();
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-    hide();
-  });
-
-  // If already running as installed app, never show popup.
-  if(isStandalone()) hide();
+  const freshLogin=sessionStorage.getItem("yt_admin_fresh_login")==="1";
+  if(freshLogin){
+    sessionStorage.removeItem("yt_admin_fresh_login");
+    sessionStorage.setItem("yt_admin_view","dashboard");
+  }
+  const rawSaved=freshLogin?"dashboard":(sessionStorage.getItem("yt_admin_view")||"dashboard");
+  const saved=rawSaved.startsWith("cms-custom:")?"cms":rawSaved;
+  if(typeof showPremiumAdminView==="function" && document.getElementById(`view-${saved}`)){
+    showPremiumAdminView(saved);
+  }else{
+    document.querySelectorAll(".yt-premium-view").forEach(v=>v.classList.remove("active"));
+    document.querySelectorAll(".yt-premium-nav-btn").forEach(b=>b.classList.remove("active"));
+    document.getElementById(`view-${saved}`)?.classList.add("active");
+    document.querySelector(`.yt-premium-nav-btn[data-view="${saved}"]`)?.classList.add("active");
+    const titles={
+      dashboard:"Dashboard",customers:"Users / Customers","user-requests":"User Requests",channels:"YouTube Channels",manage:"Manage Channel",
+      access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",reporting:"YouTube Reporting","live-streaming":"Live Streaming","live-chat":"Live Chat","embedded-player":"YouTube Embedded Player",oembed:"YouTube oEmbed",
+      copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS","website-cms":"Website CMS",
+      editor:"Admin Editor",settings:"Settings"
+    };
+    const title=document.getElementById("adminPageTitle");
+    if(title)title.textContent=titles[saved]||"Dashboard";
+  }
+  requestAnimationFrame(()=>document.documentElement.classList.remove("yt-admin-boot"));
 })();
 </script>
 
+<script src="../assets/js/theme-i18n.js"></script>
+<script type="module" src="../assets/js/notifications.js"></script>
+<script type="module" src="../assets/js/feature-center.js"></script>
 </body>
 </html>
