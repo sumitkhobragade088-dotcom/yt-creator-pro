@@ -60,6 +60,120 @@ Deno.serve(async req=>{
   const tr=await fetch(`${url}/rest/v1/youtube_oauth_tokens?customer_id=eq.${b.customer_id}&select=refresh_token&limit=1`,{headers:{apikey:service,Authorization:`Bearer ${service}`}});const ts=await tr.json();if(!ts?.length)return J({error:"YouTube token not found. Customer must reconnect."},404);
   const rr=await fetch("https://oauth2.googleapis.com/token",{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:new URLSearchParams({client_id:cid,client_secret:secret,refresh_token:ts[0].refresh_token,grant_type:"refresh_token"})});const rt=await rr.json();if(!rr.ok)return J({error:"Google refresh failed",details:(rt.error_description||rt.error)+" — Check GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET in Supabase Edge Function secrets; they must belong to the same Google OAuth Web Client used by the website."},400);const token=rt.access_token;
 
+
+  // ---------- YouTube Reporting API ----------
+  if(b.action==="reporting_types"){
+    const d=await gj("https://youtubereporting.googleapis.com/v1/reportTypes?includeSystemManaged=true",token);
+    return J({success:true,reportTypes:(d.reportTypes||[]).map((x:any)=>({id:x.id,name:x.name||x.id,systemManaged:!!x.systemManaged}))});
+  }
+  if(b.action==="reporting_list"){
+    const d=await gj("https://youtubereporting.googleapis.com/v1/jobs?pageSize=100",token);
+    return J({success:true,jobs:(d.jobs||[]).map((x:any)=>({id:x.id,name:x.name,reportTypeId:x.reportTypeId,createTime:x.createTime,expireTime:x.expireTime}))});
+  }
+  if(b.action==="reporting_create"){
+    if(!b.report_type_id||!b.name)return J({error:"Report type and job name required"},400);
+    const d=await gj("https://youtubereporting.googleapis.com/v1/jobs",token,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({reportTypeId:String(b.report_type_id),name:String(b.name)})});
+    return J({success:true,job:d});
+  }
+  if(b.action==="reporting_delete"){
+    if(!b.job_id)return J({error:"Reporting job ID missing"},400);
+    await gj(`https://youtubereporting.googleapis.com/v1/jobs/${encodeURIComponent(b.job_id)}`,token,{method:"DELETE"});
+    return J({success:true});
+  }
+  if(b.action==="reporting_reports"){
+    if(!b.job_id)return J({error:"Reporting job ID missing"},400);
+    const d=await gj(`https://youtubereporting.googleapis.com/v1/jobs/${encodeURIComponent(b.job_id)}/reports?pageSize=100`,token);
+    return J({success:true,reports:(d.reports||[]).map((x:any)=>({id:x.id,jobId:x.jobId,startTime:x.startTime,endTime:x.endTime,createTime:x.createTime,downloadUrl:x.downloadUrl}))});
+  }
+  if(b.action==="reporting_preview"){
+    const raw=String(b.download_url||"");
+    let u:URL;try{u=new URL(raw)}catch(_){return J({error:"Invalid report URL"},400)}
+    if(!["youtubereporting.googleapis.com","www.googleapis.com"].includes(u.hostname) && !u.hostname.endsWith(".googleapis.com"))return J({error:"Report URL not allowed"},400);
+    const r=await fetch(raw,{headers:H(token)});if(!r.ok)return J({error:"Report download failed",details:`HTTP ${r.status}`},400);
+    const text=await r.text();return J({success:true,text:text.slice(0,100000),truncated:text.length>100000});
+  }
+
+  // ---------- YouTube Live Streaming ----------
+  if(b.action==="live_list"){
+    const bd=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=id,snippet,status,contentDetails&broadcastStatus=all&mine=true&maxResults=50",token);
+    const sd=await gj("https://www.googleapis.com/youtube/v3/liveStreams?part=id,snippet,status,cdn&mine=true&maxResults=50",token);
+    return J({success:true,
+      broadcasts:(bd.items||[]).map((x:any)=>({id:x.id,title:x.snippet?.title||"",description:x.snippet?.description||"",scheduledStartTime:x.snippet?.scheduledStartTime||"",actualStartTime:x.snippet?.actualStartTime||"",actualEndTime:x.snippet?.actualEndTime||"",lifeCycleStatus:x.status?.lifeCycleStatus||"",privacyStatus:x.status?.privacyStatus||"",recordingStatus:x.status?.recordingStatus||"",liveChatId:x.snippet?.liveChatId||"",boundStreamId:x.contentDetails?.boundStreamId||"",enableAutoStart:!!x.contentDetails?.enableAutoStart,enableAutoStop:!!x.contentDetails?.enableAutoStop})),
+      streams:(sd.items||[]).map((x:any)=>({id:x.id,title:x.snippet?.title||"",description:x.snippet?.description||"",status:x.status?.streamStatus||"",healthStatus:x.status?.healthStatus?.status||"",resolution:x.cdn?.resolution||"variable",frameRate:x.cdn?.frameRate||"variable",ingestionType:x.cdn?.ingestionType||"rtmp",ingestionAddress:x.cdn?.ingestionInfo?.ingestionAddress||"",backupIngestionAddress:x.cdn?.ingestionInfo?.backupIngestionAddress||"",streamName:x.cdn?.ingestionInfo?.streamName||""}))});
+  }
+  if(b.action==="live_create_broadcast"){
+    if(!b.title||!b.scheduled_start_time)return J({error:"Title and scheduled start time required"},400);
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=snippet,status,contentDetails",token,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({snippet:{title:String(b.title),description:String(b.description||""),scheduledStartTime:String(b.scheduled_start_time)},status:{privacyStatus:String(b.privacy_status||"private")},contentDetails:{enableAutoStart:!!b.enable_auto_start,enableAutoStop:!!b.enable_auto_stop}})});
+    return J({success:true,broadcast:d});
+  }
+  if(b.action==="live_update_broadcast"){
+    if(!b.broadcast_id)return J({error:"Broadcast ID missing"},400);
+    const cur=await gj(`https://www.googleapis.com/youtube/v3/liveBroadcasts?part=snippet,status,contentDetails&id=${encodeURIComponent(b.broadcast_id)}`,token);const x=cur.items?.[0];if(!x)return J({error:"Broadcast not found"},404);
+    const body={id:x.id,snippet:{...x.snippet,title:String(b.title||x.snippet?.title||""),description:String(b.description??x.snippet?.description??""),scheduledStartTime:String(b.scheduled_start_time||x.snippet?.scheduledStartTime||"")},status:{...x.status,privacyStatus:String(b.privacy_status||x.status?.privacyStatus||"private")},contentDetails:{...x.contentDetails,enableAutoStart:!!b.enable_auto_start,enableAutoStop:!!b.enable_auto_stop}};
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=snippet,status,contentDetails",token,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return J({success:true,broadcast:d});
+  }
+  if(b.action==="live_delete_broadcast"){
+    if(!b.broadcast_id)return J({error:"Broadcast ID missing"},400);await gj(`https://www.googleapis.com/youtube/v3/liveBroadcasts?id=${encodeURIComponent(b.broadcast_id)}`,token,{method:"DELETE"});return J({success:true});
+  }
+  if(b.action==="live_transition"){
+    if(!b.broadcast_id||!["testing","live","complete"].includes(String(b.status)))return J({error:"Broadcast ID/status invalid"},400);
+    const d=await gj(`https://www.googleapis.com/youtube/v3/liveBroadcasts/transition?broadcastStatus=${encodeURIComponent(b.status)}&id=${encodeURIComponent(b.broadcast_id)}&part=status`,token,{method:"POST"});return J({success:true,broadcast:d});
+  }
+  if(b.action==="live_create_stream"){
+    if(!b.title)return J({error:"Stream title required"},400);
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveStreams?part=snippet,cdn,status",token,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({snippet:{title:String(b.title),description:String(b.description||"")},cdn:{frameRate:String(b.frame_rate||"variable"),ingestionType:String(b.ingestion_type||"rtmp"),resolution:String(b.resolution||"variable")}})});return J({success:true,stream:d});
+  }
+  if(b.action==="live_update_stream"){
+    if(!b.stream_id)return J({error:"Stream ID missing"},400);
+    const cur=await gj(`https://www.googleapis.com/youtube/v3/liveStreams?part=snippet,cdn&id=${encodeURIComponent(b.stream_id)}`,token);const x=cur.items?.[0];if(!x)return J({error:"Stream not found"},404);
+    const body={id:x.id,snippet:{...x.snippet,title:String(b.title||x.snippet?.title||""),description:String(b.description??x.snippet?.description??"")},cdn:{...x.cdn,frameRate:String(b.frame_rate||x.cdn?.frameRate||"variable"),ingestionType:String(x.cdn?.ingestionType||"rtmp"),resolution:String(b.resolution||x.cdn?.resolution||"variable")}};
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveStreams?part=snippet,cdn",token,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});return J({success:true,stream:d});
+  }
+  if(b.action==="live_delete_stream"){
+    if(!b.stream_id)return J({error:"Stream ID missing"},400);await gj(`https://www.googleapis.com/youtube/v3/liveStreams?id=${encodeURIComponent(b.stream_id)}`,token,{method:"DELETE"});return J({success:true});
+  }
+  if(b.action==="live_bind"){
+    if(!b.broadcast_id||!b.stream_id)return J({error:"Broadcast and stream IDs required"},400);
+    const d=await gj(`https://www.googleapis.com/youtube/v3/liveBroadcasts/bind?id=${encodeURIComponent(b.broadcast_id)}&part=id,contentDetails&streamId=${encodeURIComponent(b.stream_id)}`,token,{method:"POST"});return J({success:true,broadcast:d});
+  }
+
+  // ---------- YouTube Live Chat ----------
+  if(b.action==="chat_broadcasts"){
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=id,snippet,status&broadcastStatus=all&mine=true&maxResults=50",token);
+    return J({success:true,broadcasts:(d.items||[]).map((x:any)=>({id:x.id,title:x.snippet?.title||"",lifeCycleStatus:x.status?.lifeCycleStatus||"",scheduledStartTime:x.snippet?.scheduledStartTime||"",liveChatId:x.snippet?.liveChatId||""}))});
+  }
+  if(b.action==="chat_messages"){
+    if(!b.live_chat_id)return J({error:"Live chat ID missing"},400);
+    const u=new URL("https://www.googleapis.com/youtube/v3/liveChat/messages");u.searchParams.set("part","id,snippet,authorDetails");u.searchParams.set("liveChatId",String(b.live_chat_id));u.searchParams.set("maxResults","200");if(b.page_token)u.searchParams.set("pageToken",String(b.page_token));
+    const d=await gj(u.toString(),token);return J({success:true,nextPageToken:d.nextPageToken||"",pollingIntervalMillis:d.pollingIntervalMillis||5000,messages:(d.items||[]).map((x:any)=>({id:x.id,type:x.snippet?.type||"",text:x.snippet?.displayMessage||x.snippet?.textMessageDetails?.messageText||"",publishedAt:x.snippet?.publishedAt||"",authorName:x.authorDetails?.displayName||"",authorChannelId:x.authorDetails?.channelId||"",isChatOwner:!!x.authorDetails?.isChatOwner,isChatModerator:!!x.authorDetails?.isChatModerator,canDelete:true}))});
+  }
+  if(b.action==="chat_send"){
+    if(!b.live_chat_id||!b.text)return J({error:"Live chat ID and message required"},400);
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveChat/messages?part=snippet",token,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({snippet:{liveChatId:String(b.live_chat_id),type:"textMessageEvent",textMessageDetails:{messageText:String(b.text).slice(0,200)}}})});return J({success:true,message:d});
+  }
+  if(b.action==="chat_delete_message"){
+    if(!b.message_id)return J({error:"Message ID missing"},400);await gj(`https://www.googleapis.com/youtube/v3/liveChat/messages?id=${encodeURIComponent(b.message_id)}`,token,{method:"DELETE"});return J({success:true});
+  }
+  if(b.action==="chat_moderators"){
+    if(!b.live_chat_id)return J({error:"Live chat ID missing"},400);
+    const d=await gj(`https://www.googleapis.com/youtube/v3/liveChat/moderators?part=id,snippet&liveChatId=${encodeURIComponent(b.live_chat_id)}&maxResults=50`,token);return J({success:true,moderators:(d.items||[]).map((x:any)=>({id:x.id,channelId:x.snippet?.moderatorDetails?.channelId||"",displayName:x.snippet?.moderatorDetails?.displayName||""}))});
+  }
+  if(b.action==="chat_add_moderator"){
+    if(!b.live_chat_id||!b.channel_id)return J({error:"Live chat and moderator channel IDs required"},400);
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveChat/moderators?part=snippet",token,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({snippet:{liveChatId:String(b.live_chat_id),moderatorDetails:{channelId:String(b.channel_id)}}})});return J({success:true,moderator:d});
+  }
+  if(b.action==="chat_delete_moderator"){
+    if(!b.moderator_id)return J({error:"Moderator ID missing"},400);await gj(`https://www.googleapis.com/youtube/v3/liveChat/moderators?id=${encodeURIComponent(b.moderator_id)}`,token,{method:"DELETE"});return J({success:true});
+  }
+  if(b.action==="chat_ban"){
+    if(!b.live_chat_id||!b.channel_id)return J({error:"Live chat and user channel IDs required"},400);const secs=Number(b.duration_seconds||0);const banType=secs>0?"temporary":"permanent";
+    const details:any={type:banType,bannedUserDetails:{channelId:String(b.channel_id)}};if(secs>0)details.banDurationSeconds=Math.max(1,Math.floor(secs));
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveChat/bans?part=snippet",token,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({snippet:{liveChatId:String(b.live_chat_id),banDetails:details}})});return J({success:true,ban:d});
+  }
+  if(b.action==="chat_unban"){
+    if(!b.ban_id)return J({error:"Ban ID missing"},400);await gj(`https://www.googleapis.com/youtube/v3/liveChat/bans?id=${encodeURIComponent(b.ban_id)}`,token,{method:"DELETE"});return J({success:true});
+  }
+
   if(b.action==="monetization_analytics"){
     const now=new Date();
     const end=new Date(now.getTime()-86400000);

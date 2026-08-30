@@ -9,6 +9,7 @@
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/cms-control.css">
 <link rel="stylesheet" href="../assets/css/channel-content.css">
+<link rel="stylesheet" href="../assets/css/youtube-api-tools.css">
 <style>
 html.yt-admin-boot body{visibility:hidden!important}
 </style>
@@ -152,6 +153,9 @@ document.documentElement.classList.add("yt-admin-boot");
       <button class="yt-premium-nav-btn" data-view="monetization">💰 <span>Monetization Cases</span></button>
       <button class="yt-premium-nav-btn" data-view="adsense">₹ <span>AdSense</span></button>
       <button class="yt-premium-nav-btn" data-view="analytics">📊 <span>Analytics / Stats</span></button>
+      <button class="yt-premium-nav-btn" data-view="reporting">📑 <span>YouTube Reporting</span></button>
+      <button class="yt-premium-nav-btn" data-view="live-streaming">🔴 <span>Live Streaming</span></button>
+      <button class="yt-premium-nav-btn" data-view="live-chat">💬 <span>Live Chat</span></button>
       <button class="yt-premium-nav-btn" data-view="copyright">©️ <span>Copyright / Restrictions</span></button>
       <button class="yt-premium-nav-btn" data-view="services">🧰 <span>Services</span></button>
       <button class="yt-premium-nav-btn" data-view="payments">💳 <span>Payments / PayU</span></button>
@@ -628,6 +632,47 @@ document.documentElement.classList.add("yt-admin-boot");
       </div></div>
     </section>
 
+
+    <section class="yt-premium-view" id="view-reporting">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE REPORTING API</span><h2>YouTube Reporting</h2><p>Create and manage bulk YouTube Analytics reporting jobs and generated reports.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar"><label>Manager Access Granted Channel<select id="reportingCustomer"><option value="">Select channel…</option></select></label><button id="refreshReporting" class="btn primary" type="button">↻ Sync / Refresh</button><button id="loadReportTypes" class="btn" type="button">Load Report Types</button></div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>＋ New Reporting Job</h3><div class="yt-api-form"><label>Report Type</label><select id="reportTypeId"><option value="">Load report types first</option></select><label>Job Name</label><input id="reportJobName" placeholder="Monthly Channel Report"><div class="yt-api-actions"><button id="createReportJob" class="btn primary" type="button">Create Job</button></div><p class="yt-api-note">YouTube Reporting API supports create/list/delete jobs. Existing job definition is immutable; change it by deleting and creating a new job.</p></div></div>
+          <div class="yt-api-card"><h3>Existing Reporting Jobs</h3><div id="reportingJobs" class="yt-api-list"><div class="yt-api-empty">Select a channel.</div></div></div>
+        </div>
+        <div class="yt-api-card"><h3>Generated Reports</h3><div id="reportingReports" class="yt-api-list"><div class="yt-api-empty">Open a reporting job to see reports.</div></div><pre id="reportPreview" style="max-height:320px;overflow:auto;white-space:pre-wrap"></pre></div>
+        <p id="reportingStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-live-streaming">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE LIVE STREAMING</span><h2>Live Streaming</h2><p>Create, edit, bind, transition, complete and delete YouTube live broadcasts and streams.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar"><label>Manager Access Granted Channel<select id="liveCustomer"><option value="">Select channel…</option></select></label><button id="refreshLive" class="btn primary" type="button">↻ Sync / Refresh</button></div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>Broadcast • Existing / New</h3><div class="yt-api-form"><input id="broadcastId" type="hidden"><label>Title</label><input id="broadcastTitle" maxlength="100"><label>Description</label><textarea id="broadcastDescription" rows="4"></textarea><label>Scheduled Start</label><input id="broadcastStart" type="datetime-local"><label>Privacy</label><select id="broadcastPrivacy"><option value="private">Private</option><option value="unlisted">Unlisted</option><option value="public">Public</option></select><label><input id="broadcastAutoStart" type="checkbox"> Enable Auto Start</label><label><input id="broadcastAutoStop" type="checkbox"> Enable Auto Stop</label><div class="yt-api-actions"><button id="saveBroadcast" class="btn primary" type="button">Save / Update</button><button id="clearBroadcast" class="btn" type="button">New / Clear</button></div></div></div>
+          <div class="yt-api-card"><h3>Stream • Existing / New</h3><div class="yt-api-form"><input id="streamId" type="hidden"><label>Title</label><input id="streamTitle"><label>Description</label><textarea id="streamDescription" rows="3"></textarea><label>Resolution</label><select id="streamResolution"><option value="variable">Variable</option><option value="240p">240p</option><option value="360p">360p</option><option value="480p">480p</option><option value="720p">720p</option><option value="1080p">1080p</option><option value="1440p">1440p</option><option value="2160p">2160p</option></select><label>Frame Rate</label><select id="streamFrameRate"><option value="variable">Variable</option><option value="30fps">30fps</option><option value="60fps">60fps</option></select><div class="yt-api-actions"><button id="saveStream" class="btn primary" type="button">Save / Update</button><button id="clearStream" class="btn" type="button">New / Clear</button></div></div></div>
+        </div>
+        <div class="yt-api-card"><h3>Existing Broadcasts</h3><div id="broadcastList" class="yt-api-list"><div class="yt-api-empty">Select a channel.</div></div></div>
+        <div class="yt-api-card"><h3>Existing Streams</h3><div id="streamList" class="yt-api-list"><div class="yt-api-empty">Select a channel.</div></div></div>
+        <p id="liveStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-live-chat">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE LIVE CHAT</span><h2>Live Chat</h2><p>Read/send messages and use supported moderation controls for active or upcoming live chats.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar"><label>Manager Access Granted Channel<select id="chatCustomer"><option value="">Select channel…</option></select></label><button id="refreshChats" class="btn primary" type="button">↻ Sync Live Chats</button><label>Live Chat<select id="chatLiveId"><option value="">Select live chat…</option></select></label><button id="refreshMessages" class="btn" type="button">Refresh Messages</button></div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>Live Messages</h3><div id="chatMessages" class="yt-api-chat"><div class="yt-api-empty">Select a live chat.</div></div><div class="yt-api-form" style="margin-top:12px"><label>Send Message</label><textarea id="chatText" rows="3" maxlength="200"></textarea><button id="sendChatMessage" class="btn primary" type="button">Send Message</button></div></div>
+          <div class="yt-api-card"><h3>Moderators • Existing / New</h3><div class="yt-api-actions"><button id="loadModerators" class="btn" type="button">Load Moderators</button></div><div id="chatModerators" class="yt-api-list" style="margin-top:10px"><div class="yt-api-empty">Load moderators.</div></div><div class="yt-api-form" style="margin-top:12px"><label>Moderator Channel ID</label><input id="moderatorChannelId" placeholder="UC…"><button id="addModerator" class="btn primary" type="button">Add Moderator</button></div></div>
+          <div class="yt-api-card"><h3>Ban / Timeout</h3><div class="yt-api-form"><label>User Channel ID</label><input id="banChannelId" placeholder="UC…"><label>Timeout Seconds</label><input id="banDuration" type="number" min="0" value="300"><p class="yt-api-note">Use 0 for permanent ban; a positive value creates a temporary timeout.</p><button id="banUser" class="btn danger" type="button">Ban / Timeout</button><hr><label>Existing Ban ID</label><input id="banId"><button id="removeBan" class="btn" type="button">Remove Ban</button></div></div>
+        </div>
+        <p id="chatStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
     <section class="yt-premium-view" id="view-copyright">
       <div class="yt-premium-section-head"><div><span>COPYRIGHT</span><h2>Copyright / Restrictions</h2><p>Open each channel manager for API-visible restrictions and YouTube Studio copyright checks.</p></div></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
@@ -733,12 +778,14 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 </script>
 
 <script src="../assets/js/cms-deep-catalog.js"></script>
+<script src="../assets/js/cms-youtube-api-catalog.js"></script>
 <script type="module" src="../assets/js/cms-engine.js"></script>
 <script type="module" src="../assets/js/cms-deep.js"></script>
 <script type="module" src="../assets/js/cms-deep-admin.js"></script>
 <script type="module" src="../assets/js/cms-admin-ui.js"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
+<script type="module" src="../assets/js/youtube-api-tools.js"></script>
 
 <script>
 (function(){
@@ -758,7 +805,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
     document.querySelector(`.yt-premium-nav-btn[data-view="${saved}"]`)?.classList.add("active");
     const titles={
       dashboard:"Dashboard",customers:"Users / Customers","user-requests":"User Requests",channels:"YouTube Channels",manage:"Manage Channel",
-      access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",
+      access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",reporting:"YouTube Reporting","live-streaming":"Live Streaming","live-chat":"Live Chat",
       copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS","website-cms":"Website CMS",
       editor:"Admin Editor",settings:"Settings"
     };

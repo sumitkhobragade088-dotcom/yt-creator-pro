@@ -1,0 +1,29 @@
+YT Creator Pro — YouTube Reporting / Live Streaming / Live Chat setup
+
+1) Google Cloud Console → APIs & Services → Library
+   - YouTube Data API v3: ENABLED (Live Streaming + Live Chat use this API)
+   - YouTube Analytics API: ENABLED
+   - YouTube Reporting API: ENABLED
+
+2) OAuth scopes already requested by the website:
+   - https://www.googleapis.com/auth/youtube.force-ssl
+   - https://www.googleapis.com/auth/yt-analytics.readonly
+   - https://www.googleapis.com/auth/yt-analytics-monetary.readonly
+   Reconnect a channel once if Google needs to grant newly-required permissions.
+
+3) Deploy the updated Supabase Edge Function:
+   supabase/functions/youtube-manage/index.ts
+
+4) Admin Dashboard now has three separate pages/buttons:
+   - YouTube Reporting
+   - Live Streaming
+   - Live Chat
+
+5) Admin CMS A-Z deep editor catalog automatically includes all three new pages.
+
+Notes:
+- Reporting jobs support Create / Existing List / Reports / Delete / Sync. Google does not provide an update method for an existing reporting job; recreate the job to change its definition.
+- Live Broadcasts: Create / Edit / Update / Delete / Bind Stream / Go Live / Complete / Sync.
+- Live Streams: Create / Edit / Update / Delete / Sync.
+- Live Chat: List messages / Send / Delete message / Add-Remove moderator / Ban-Timeout / Remove ban, where YouTube allows it.
+- Existing dashboard theme/layout and existing channel upload/delete/thumbnail/revenue code were not replaced.
