@@ -184,6 +184,7 @@ document.documentElement.classList.add("yt-admin-boot");
         <p id="adminEmailView"></p>
       </div>
       <div class="yt-premium-header-actions">
+        <div class="yt-pref-controls" data-yt-i18n-controls></div>
         <a class="yt-premium-top-btn website" href="../index.html" target="_blank" rel="noopener noreferrer">🌐 Website</a>
         <button id="shareUserApp" class="yt-premium-top-btn share" type="button">📤 Share App</button>
         
@@ -718,11 +719,15 @@ document.documentElement.classList.add("yt-admin-boot");
     </section>
 
     <section class="yt-premium-view" id="view-cms">
+<div class="yt-cms-preference-card"><h3>Appearance & Language</h3><p>Control and preview the shared User/Admin website appearance and language preferences.</p><div class="yt-pref-controls" data-yt-i18n-controls></div></div>
+
       <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard content without changing the current layout automatically.</p></div></div>
       <div id="adminCmsFull" class="yt-cms-root"><div class="yt-cms-loading">Loading Admin CMS…</div></div>
     </section>
 
     <section class="yt-premium-view" id="view-website-cms">
+<div class="yt-cms-preference-card"><h3>Appearance & Language</h3><p>Control and preview the shared User/Admin website appearance and language preferences.</p><div class="yt-pref-controls" data-yt-i18n-controls></div></div>
+
       <div class="yt-premium-section-head"><div><span>WEBSITE CMS</span><h2>Website CMS</h2><p>Manage the normal website, maintenance mode, pages, buttons, theme and SEO.</p></div></div>
       <div id="websiteCmsFull" class="yt-cms-root"><div class="yt-cms-loading">Loading Website CMS…</div></div>
     </section>
@@ -852,5 +857,6 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 })();
 </script>
 
+<script src="../assets/js/theme-i18n.js"></script>
 </body>
 </html>
