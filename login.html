@@ -4,82 +4,62 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#ff0000">
-<title>Admin Login | YT Creator Pro</title>
-<link rel="stylesheet" href="../assets/css/style.css">
-  <link rel="icon" type="image/svg+xml" href="../assets/icons/favicon-admin.svg">
+<title>Login | YT Creator Pro</title>
+<link rel="stylesheet" href="assets/css/style.css">
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
 </head>
-<body class="yt-admin-login-page">
-  <main class="yt-login-shell">
-    <section class="yt-login-visual">
-      <div class="yt-login-brand-lockup">
-        <div class="yt-login-youtube-mark"><span class="yt-login-play">▶</span></div>
-        <div>
-          <span class="yt-login-kicker">YT CREATOR PRO</span>
-          <h1>YouTube Admin Control</h1>
-          <p>Secure creator operations dashboard</p>
-        </div>
+<body class="yt-user-auth-page">
+<header class="yt-user-auth-header">
+  <a class="yt-user-public-brand" href="index.html"><span class="yt-user-play-logo">▶</span><div><b>YT Creator Pro</b><small>Creator Support Portal</small></div></a>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="index.html#services">Services</a>
+    <a class="active" href="login.html">Login</a>
+    <a href="register.html">Register</a>
+  </nav>
+</header>
+
+<main class="yt-user-auth-shell">
+  <section class="yt-user-auth-visual">
+    <div class="yt-user-auth-monitor">
+      <div class="yt-user-auth-monitor-bar"><i></i><i></i><i></i></div>
+      <div class="yt-user-auth-monitor-screen">
+        <span>WELCOME BACK</span>
+        <h1>YT Creator Pro</h1>
+        <p>Secure YouTube Creator Support Portal</p>
+        <div>▶</div>
       </div>
+    </div>
+  </section>
 
-      <div class="yt-login-visual-copy">
-        <span>ADMIN ACCESS</span>
-        <h2>Manage channels with a clean YouTube-style workspace.</h2>
-        <p>Customers, access permissions, monetization, AdSense, content and analytics — all from one secure admin panel.</p>
+  <section class="yt-user-auth-card-wrap">
+    <form class="yt-user-auth-card" id="loginForm">
+      <div class="yt-user-auth-switch">
+        <a class="active" href="login.html">Login</a>
+        <a href="register.html">Register</a>
       </div>
-
-      <div class="yt-login-feature-row">
-        <div><b>🔐</b><span>Secure Login</span></div>
-        <div><b>📺</b><span>Channel Control</span></div>
-        <div><b>📊</b><span>Analytics</span></div>
-      </div>
-    </section>
-
-    <section class="yt-login-card-wrap">
-      <form class="yt-login-card" id="adminLoginForm">
-        <div class="yt-login-card-top">
-          <div class="yt-login-card-icon">🔒</div>
-          <div>
-            <span>ADMIN PANEL</span>
-            <h2>Sign in to continue</h2>
-          </div>
-        </div>
-
-        <p class="yt-login-subtext">Authorized administrator access only.</p>
-
-        <label for="adminEmail">Admin Email</label>
-        <div class="yt-login-input-wrap">
-          <span>✉</span>
-          <input id="adminEmail" type="email" required value="sumitkhobragade088@gmail.com" placeholder="Admin Email" autocomplete="username">
-        </div>
-
-        <label for="adminPassword">Password</label>
-        <div class="yt-login-input-wrap">
-          <span>●</span>
-          <input id="adminPassword" type="password" required placeholder="Admin Password" autocomplete="current-password">
-          <button id="toggleAdminPassword" class="yt-password-toggle" type="button" aria-label="Show password">👁</button>
-        </div>
-
-        <button class="yt-login-submit" type="submit"><span>▶</span> Login to Admin</button>
-        <div id="adminMessage" class="message yt-login-message"></div>
-
-        <div class="yt-login-footer"><span>YT Creator Pro</span></div>
-      </form>
-    </section>
-  </main>
-
+      <div class="yt-user-auth-heading"><span>SECURE USER ACCESS</span><h1>Login</h1><p>Use your YT Creator Pro website account.</p></div>
+      <label>Email ID</label>
+      <div class="yt-user-auth-input"><span>✉</span><input id="email" type="email" required placeholder="Email ID"></div>
+      <label>Password</label>
+      <div class="yt-user-auth-input"><span>●</span><input id="password" type="password" required placeholder="Website Password"><button class="yt-user-eye" type="button" data-eye="password">👁</button></div>
+      <div class="hint">Use the YT Creator Pro website password, not your Gmail password.</div>
+      <button class="yt-user-auth-submit" type="submit">▶ Login</button>
+      <div id="message" class="message"></div>
+      <div class="yt-user-auth-links"><a href="register.html">Create account</a><a href="index.html">Home</a></div>
+    </form>
+  </section>
+</main>
 <script>
-document.addEventListener("DOMContentLoaded",()=>{
-  const btn=document.getElementById("toggleAdminPassword");
-  const input=document.getElementById("adminPassword");
-  if(btn&&input){
-    btn.addEventListener("click",()=>{
-      const show=input.type==="password";
-      input.type=show?"text":"password";
-      btn.textContent=show?"🙈":"👁";
-      btn.setAttribute("aria-label",show?"Hide password":"Show password");
-    });
-  }
+document.addEventListener("click",e=>{
+  const b=e.target.closest("[data-eye]"); if(!b)return;
+  const i=document.getElementById(b.dataset.eye); if(!i)return;
+  i.type=i.type==="password"?"text":"password";
+  b.textContent=i.type==="password"?"👁":"🙈";
 });
 </script>
-<script type="module" src="../assets/js/admin-auth.js"></script>
-</body>
-</html>
+<script src="assets/js/cms-deep-catalog.js"></script>
+<script type="module" src="assets/js/cms-engine.js"></script>
+<script type="module" src="assets/js/cms-deep.js"></script>
+<script type="module" src="assets/js/auth.js"></script>
+</body></html>
