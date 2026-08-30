@@ -34,14 +34,30 @@ function base64url(buffer) {
     .replace(/=+$/g, "");
 }
 
+function setOAuthCookie(name, value) {
+  const secure = location.protocol === "https:" ? "; Secure" : "";
+  const domain = (location.hostname === "khobragade.online" || location.hostname === "www.khobragade.online")
+    ? "; Domain=.khobragade.online"
+    : "";
+  document.cookie = `${name}=${encodeURIComponent(value)}; Max-Age=900; Path=/; SameSite=Lax${secure}${domain}`;
+}
+
+function saveOAuthSession(verifier, state, redirectUri) {
+  sessionStorage.setItem("yt_pkce_verifier", verifier);
+  sessionStorage.setItem("yt_oauth_state", state);
+  sessionStorage.setItem("yt_oauth_redirect_uri", redirectUri);
+  // Cookie fallback keeps OAuth state/PKCE available when www -> non-www changes origin.
+  setOAuthCookie("yt_pkce_verifier", verifier);
+  setOAuthCookie("yt_oauth_state", state);
+  setOAuthCookie("yt_oauth_redirect_uri", redirectUri);
+}
+
 window.connectYouTube = async function () {
   const verifier = randomString(96);
   const state = randomString(32);
   const challenge = base64url(await sha256(verifier));
 
-  sessionStorage.setItem("yt_pkce_verifier", verifier);
-  sessionStorage.setItem("yt_oauth_state", state);
-  sessionStorage.setItem("yt_oauth_redirect_uri", REDIRECT_URI);
+  saveOAuthSession(verifier, state, REDIRECT_URI);
 
   const params = new URLSearchParams({
     client_id: CLIENT_ID,

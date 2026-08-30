@@ -13,13 +13,41 @@ function show(text, ok=false) {
   box.className = ok ? "message ok" : "message";
 }
 
+function getCookie(name) {
+  const prefix = name + "=";
+  for (const part of document.cookie.split(";")) {
+    const item = part.trim();
+    if (item.startsWith(prefix)) return decodeURIComponent(item.slice(prefix.length));
+  }
+  return null;
+}
+
+function clearOAuthCookie(name) {
+  const secure = location.protocol === "https:" ? "; Secure" : "";
+  const domain = (location.hostname === "khobragade.online" || location.hostname === "www.khobragade.online")
+    ? "; Domain=.khobragade.online"
+    : "";
+  document.cookie = `${name}=; Max-Age=0; Path=/; SameSite=Lax${secure}${domain}`;
+}
+
+function readOAuthValue(name) {
+  return sessionStorage.getItem(name) || getCookie(name);
+}
+
+function clearOAuthSession() {
+  ["yt_pkce_verifier", "yt_oauth_state", "yt_oauth_redirect_uri"].forEach((name) => {
+    sessionStorage.removeItem(name);
+    clearOAuthCookie(name);
+  });
+}
+
 async function run() {
   const error = params.get("error");
   const code = params.get("code");
   const state = params.get("state");
-  const expectedState = sessionStorage.getItem("yt_oauth_state");
-  const verifier = sessionStorage.getItem("yt_pkce_verifier");
-  const redirectUri = sessionStorage.getItem("yt_oauth_redirect_uri")
+  const expectedState = readOAuthValue("yt_oauth_state");
+  const verifier = readOAuthValue("yt_pkce_verifier");
+  const redirectUri = readOAuthValue("yt_oauth_redirect_uri")
     || ((location.hostname === "khobragade.online" || location.hostname === "www.khobragade.online")
       ? "https://khobragade.online/google-callback.html"
       : "https://sumitkhobragade088-dotcom.github.io/yt-creator-pro/google-callback.html");
@@ -93,9 +121,7 @@ async function run() {
     return;
   }
 
-  sessionStorage.removeItem("yt_pkce_verifier");
-  sessionStorage.removeItem("yt_oauth_state");
-  sessionStorage.removeItem("yt_oauth_redirect_uri");
+  clearOAuthSession();
 
   const c = result.channel || {};
   title.textContent = "YouTube Connected ✅";
