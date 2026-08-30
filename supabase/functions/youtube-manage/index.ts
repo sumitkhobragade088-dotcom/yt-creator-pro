@@ -20,9 +20,22 @@ Deno.serve(async req=>{
     const admins=await ar.json();
     if(!admins?.length)return J({error:"Admin access required",details:"Logged-in account is not authorized for channel management."},403);
   }
-  const b=await req.json();if(!b.customer_id)return J({error:"Customer missing"},400);
+  const b=await req.json();
 
+  // Public YouTube oEmbed metadata, still protected by Admin login above. No channel token is required.
+  if(b.action==="oembed_fetch"){
+    const raw=String(b.url||"").trim();if(!raw)return J({error:"YouTube URL required"},400);
+    let u:URL;try{u=new URL(raw)}catch(_){return J({error:"Invalid YouTube URL"},400)}
+    const host=u.hostname.toLowerCase().replace(/^www\./,"");
+    const allowed=host==="youtube.com"||host==="youtu.be"||host==="music.youtube.com"||host==="m.youtube.com";
+    if(!allowed)return J({error:"Only YouTube URLs are allowed"},400);
+    const oe=new URL("https://www.youtube.com/oembed");oe.searchParams.set("url",raw);oe.searchParams.set("format","json");
+    const rr=await fetch(oe.toString(),{headers:{Accept:"application/json"}});let d:any={};try{d=await rr.json()}catch{}
+    if(!rr.ok)return J({error:"YouTube oEmbed request failed",details:d?.error||d?.message||`HTTP ${rr.status}`},400);
+    return J({success:true,oembed:d,fetchedAt:new Date().toISOString()});
+  }
 
+  if(!b.customer_id)return J({error:"Customer missing"},400);
 
   if(b.action==="get_manager_access"){
     const ar=await fetch(`${url}/rest/v1/channel_access?customer_id=eq.${encodeURIComponent(b.customer_id)}&select=manager_access&limit=1`,{

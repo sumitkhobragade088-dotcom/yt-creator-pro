@@ -1,0 +1,22 @@
+YT CREATOR PRO — YOUTUBE API MODULES
+
+Admin Dashboard modules:
+1. YouTube Reporting
+2. Live Streaming
+3. Live Chat
+4. YouTube Embedded Player
+5. YouTube oEmbed
+
+Google Cloud:
+- YouTube Data API v3: enabled
+- YouTube Analytics API: enabled
+- YouTube Reporting API: enabled
+- YouTube Embedded Player API / IFrame Player access: enabled as configured
+- YouTube oEmbed: public oEmbed endpoint used by the secured Admin backend action
+
+Deployment requirement:
+- Deploy supabase/functions/youtube-manage/index.ts after uploading this version.
+- Existing OAuth/Data/Analytics/upload/delete/thumbnail functions are preserved.
+
+Admin CMS:
+All five module views are included in cms-youtube-api-catalog.js so their page elements are discoverable by the Admin CMS deep editor.

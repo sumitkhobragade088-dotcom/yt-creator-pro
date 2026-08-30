@@ -10,7 +10,7 @@
     }
     return parts.join(' > ');
   }
-  for(const view of ['reporting','live-streaming','live-chat']){
+  for(const view of ['reporting','live-streaming','live-chat','embedded-player','oembed']){
     const sec=document.getElementById('view-'+view);if(!sec)continue;
     const els=[sec,...sec.querySelectorAll('*')].filter(e=>!['SCRIPT','STYLE','OPTION'].includes(e.tagName));
     for(const e of els){

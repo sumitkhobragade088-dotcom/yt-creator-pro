@@ -471,12 +471,15 @@ const premiumViewTitles={
   reporting:"YouTube Reporting",
   "live-streaming":"Live Streaming",
   "live-chat":"Live Chat",
+  "embedded-player":"YouTube Embedded Player",
+  oembed:"YouTube oEmbed",
   copyright:"Copyright / Restrictions",
   services:"Services",
   payments:"Payments / PayU",
   "service-charge":"Service Charge",
   history:"History",
   cms:"Admin Dashboard CMS",
+  "website-cms":"Website CMS",
   editor:"Admin Editor",
   settings:"Settings"
 };

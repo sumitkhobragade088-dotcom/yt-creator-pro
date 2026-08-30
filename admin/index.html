@@ -149,13 +149,15 @@ document.documentElement.classList.add("yt-admin-boot");
       <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
       <button class="yt-premium-nav-btn" data-view="manage">🎛️ <span>Manage Channel</span></button>
-      <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
+      <button class="yt-premium-nav-btn" data-view="analytics">📊 <span>Analytics / Stats</span></button>
       <button class="yt-premium-nav-btn" data-view="monetization">💰 <span>Monetization Cases</span></button>
       <button class="yt-premium-nav-btn" data-view="adsense">₹ <span>AdSense</span></button>
-      <button class="yt-premium-nav-btn" data-view="analytics">📊 <span>Analytics / Stats</span></button>
       <button class="yt-premium-nav-btn" data-view="reporting">📑 <span>YouTube Reporting</span></button>
       <button class="yt-premium-nav-btn" data-view="live-streaming">🔴 <span>Live Streaming</span></button>
       <button class="yt-premium-nav-btn" data-view="live-chat">💬 <span>Live Chat</span></button>
+      <button class="yt-premium-nav-btn" data-view="embedded-player">▶️ <span>Embedded Player</span></button>
+      <button class="yt-premium-nav-btn" data-view="oembed">🔗 <span>YouTube oEmbed</span></button>
+      <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="copyright">©️ <span>Copyright / Restrictions</span></button>
       <button class="yt-premium-nav-btn" data-view="services">🧰 <span>Services</span></button>
       <button class="yt-premium-nav-btn" data-view="payments">💳 <span>Payments / PayU</span></button>
@@ -673,6 +675,40 @@ document.documentElement.classList.add("yt-admin-boot");
       </div>
     </section>
 
+
+    <section class="yt-premium-view" id="view-embedded-player">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE EMBEDDED PLAYER</span><h2>YouTube Embedded Player</h2><p>Load channel videos and preview/control them inside the Admin Dashboard.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar">
+          <label>Manager Access Granted Channel<select id="embeddedCustomer"><option value="">Select channel…</option></select></label>
+          <button id="refreshEmbeddedVideos" class="btn primary" type="button">↻ Sync Videos</button>
+          <label>Video ID or YouTube URL<input id="embeddedVideoInput" placeholder="Video ID or https://youtu.be/…"></label>
+          <button id="loadEmbeddedVideo" class="btn" type="button">Load Player</button>
+        </div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>Player</h3><div class="yt-api-player-wrap"><div id="embeddedPlayerPlaceholder" class="yt-api-player-placeholder">Select a video to preview.</div><div id="embeddedPlayer"></div></div><div class="yt-api-actions" style="margin-top:12px"><button id="embeddedPlay" class="btn primary" type="button">▶ Play</button><button id="embeddedPause" class="btn" type="button">⏸ Pause</button><button id="embeddedStop" class="btn" type="button">⏹ Stop</button></div><div id="embeddedVideoMeta" class="yt-api-meta"></div></div>
+          <div class="yt-api-card"><h3>Channel Videos</h3><div id="embeddedVideoList" class="yt-api-list"><div class="yt-api-empty">Select a channel and sync videos.</div></div></div>
+        </div>
+        <p id="embeddedStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
+    <section class="yt-premium-view" id="view-oembed">
+      <div class="yt-premium-section-head"><div><span>YOUTUBE OEMBED</span><h2>YouTube oEmbed</h2><p>Read official embed metadata and preview any valid public YouTube video URL.</p></div></div>
+      <div class="yt-api-tools">
+        <div class="panel yt-premium-panel yt-api-toolbar">
+          <label>YouTube Video URL<input id="oembedUrl" placeholder="https://www.youtube.com/watch?v=…"></label>
+          <button id="fetchOembed" class="btn primary" type="button">Fetch oEmbed Data</button>
+          <button id="clearOembed" class="btn" type="button">New / Clear</button>
+        </div>
+        <div class="yt-api-grid">
+          <div class="yt-api-card"><h3>oEmbed Data</h3><div id="oembedData" class="yt-api-meta"><div class="yt-api-empty">Enter a public YouTube URL.</div></div></div>
+          <div class="yt-api-card"><h3>Preview</h3><div id="oembedPreview" class="yt-api-player-wrap"><div class="yt-api-player-placeholder">Preview will appear here.</div></div></div>
+        </div>
+        <p id="oembedStatus" class="yt-api-status"></p>
+      </div>
+    </section>
+
     <section class="yt-premium-view" id="view-copyright">
       <div class="yt-premium-section-head"><div><span>COPYRIGHT</span><h2>Copyright / Restrictions</h2><p>Open each channel manager for API-visible restrictions and YouTube Studio copyright checks.</p></div></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
@@ -805,7 +841,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
     document.querySelector(`.yt-premium-nav-btn[data-view="${saved}"]`)?.classList.add("active");
     const titles={
       dashboard:"Dashboard",customers:"Users / Customers","user-requests":"User Requests",channels:"YouTube Channels",manage:"Manage Channel",
-      access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",reporting:"YouTube Reporting","live-streaming":"Live Streaming","live-chat":"Live Chat",
+      access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",reporting:"YouTube Reporting","live-streaming":"Live Streaming","live-chat":"Live Chat","embedded-player":"YouTube Embedded Player",oembed:"YouTube oEmbed",
       copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS","website-cms":"Website CMS",
       editor:"Admin Editor",settings:"Settings"
     };
