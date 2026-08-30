@@ -181,6 +181,7 @@ document.documentElement.classList.add("yt-user-boot");
 }
 </style>
 
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
 </head>
 
 <body id="creatorDashboard" class="yt-user-dashboard-page">
@@ -201,6 +202,7 @@ document.documentElement.classList.add("yt-user-boot");
       <button data-user-view="services">🛠️ <span>Services</span></button>
       <button data-user-view="requests">📋 <span>My Requests</span></button>
       <button data-user-view="payments">💳 <span>Payments</span></button>
+      <button data-user-view="support">🧭 <span>Support & Activity</span></button>
       <button data-user-view="channel">📺 <span>YouTube Channel</span></button>
       <button data-user-view="access">🔐 <span>Channel Access</span></button>
       <button data-user-view="monetization">💰 <span>Monetization</span></button>
@@ -230,7 +232,10 @@ document.documentElement.classList.add("yt-user-boot");
         <button id="installUserDashboardApp" class="yt-user-install-btn" type="button">📱 Install App</button>
       </div>
       <div class="yt-demo-user-account">
-        <div class="yt-demo-bell">🔔</div>
+        <div class="yt-notification-wrap" data-notification-role="user">
+          <button class="yt-notification-bell" type="button" aria-label="Notifications">🔔<span class="yt-notification-count" hidden>0</span></button>
+          <div class="yt-notification-panel" hidden><div class="yt-notification-head"><b>Notifications</b><button type="button" data-notification-read-all>Mark all read</button></div><div class="yt-notification-list">Loading…</div></div>
+        </div>
         <div class="yt-demo-avatar">YT</div>
         <div><b id="userNameTop">Creator</b><small id="userEmail">Member Account</small></div>
       </div>
@@ -307,6 +312,70 @@ document.documentElement.classList.add("yt-user-boot");
       <div id="userPaymentResultNew" class="yt-payment-result" hidden></div>
       <div class="yt-demo-content-card">
         <div id="userPaymentsList">No payments yet.</div>
+      </div>
+    </section>
+
+
+    <section class="yt-user-view" id="user-view-support">
+      <div class="yt-demo-content-card">
+        <span class="yt-demo-section-kicker">SUPPORT CENTER</span>
+        <h2>Support & Activity</h2>
+        <p>Tickets, documents, request timeline, receipts, refunds, notification preferences and activity history.</p>
+      </div>
+
+      <div class="yt-feature-grid yt-feature-user-grid">
+        <article class="yt-feature-card" data-feature-module="support_tickets">
+          <div class="yt-feature-head"><h3>🎫 Support Ticket</h3></div>
+          <label>Subject<input id="fcTicketSubject" placeholder="How can we help?"></label>
+          <label>Message<textarea id="fcTicketMessage" rows="3"></textarea></label>
+          <button class="yt-feature-primary" id="fcCreateTicket" type="button">Create Ticket</button>
+          <div class="yt-feature-list" id="fcUserTickets"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="documents">
+          <div class="yt-feature-head"><h3>📎 Document Upload</h3></div>
+          <label>Request<select id="fcDocumentRequest"></select></label>
+          <label>Document<input id="fcDocumentFile" type="file" accept=".jpg,.jpeg,.png,.pdf"></label>
+          <button class="yt-feature-primary" id="fcUploadDocument" type="button">Upload Document</button>
+          <div class="yt-feature-list" id="fcUserDocuments"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="timeline">
+          <div class="yt-feature-head"><h3>🧭 Application Timeline</h3></div>
+          <label>Request<select id="fcTimelineRequest"></select></label>
+          <div class="yt-feature-list yt-feature-timeline" id="fcTimeline"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="receipts">
+          <div class="yt-feature-head"><h3>🧾 Payment Receipts</h3></div>
+          <div class="yt-feature-list" id="fcReceipts">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="refunds">
+          <div class="yt-feature-head"><h3>↩ Refund / Cancel Request</h3></div>
+          <label>Type<select id="fcRefundType"><option value="refund">Refund</option><option value="cancel">Cancel Request</option></select></label>
+          <label>Payment<select id="fcRefundPayment"></select></label>
+          <label>Reason<textarea id="fcRefundReason" rows="3"></textarea></label>
+          <button class="yt-feature-primary" id="fcCreateRefund" type="button">Submit Request</button>
+          <div class="yt-feature-list" id="fcUserRefunds"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="notification_preferences">
+          <div class="yt-feature-head"><h3>🔔 Notification Preferences</h3></div>
+          <div class="yt-feature-toggle-grid" id="fcUserPrefs">
+            <label><input type="checkbox" data-pref-key="request_updates" checked> Request updates</label>
+            <label><input type="checkbox" data-pref-key="payment_updates" checked> Payment updates</label>
+            <label><input type="checkbox" data-pref-key="support_updates" checked> Support updates</label>
+            <label><input type="checkbox" data-pref-key="announcements" checked> Announcements</label>
+            <label><input type="checkbox" data-pref-key="email_enabled"> Email queue</label>
+          </div>
+          <button class="yt-feature-primary" id="fcSaveUserPrefs" type="button">Save Preferences</button>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="activity_logs">
+          <div class="yt-feature-head"><h3>🕘 My Activity</h3><button type="button" data-fc-refresh="activity">Refresh</button></div>
+          <div class="yt-feature-list" id="fcUserActivity">Loading…</div>
+        </article>
       </div>
     </section>
 
@@ -456,6 +525,7 @@ const userViewTitles={
   services:"Services",
   requests:"My Requests",
   payments:"Payments",
+  support:"Support & Activity",
   channel:"YouTube Channel",
   access:"Channel Access",
   monetization:"Monetization",
@@ -527,7 +597,7 @@ if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").
     document.getElementById(`user-view-${saved}`)?.classList.add("active");
     document.querySelectorAll(`[data-user-view="${saved}"]`).forEach(b=>b.classList.add("active"));
     const titles={
-      dashboard:"Dashboard",services:"Services",requests:"My Requests",payments:"Payments",channel:"YouTube Channel",
+      dashboard:"Dashboard",services:"Services",requests:"My Requests",payments:"Payments",support:"Support & Activity",channel:"YouTube Channel",
       access:"Channel Access",monetization:"Monetization",adsense:"AdSense",profile:"My Profile"
     };
     const title=document.getElementById("userDashboardTitle");
@@ -538,4 +608,6 @@ if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").
 </script>
 
 <script src="assets/js/theme-i18n.js"></script>
+<script type="module" src="assets/js/notifications.js"></script>
+<script type="module" src="assets/js/feature-center.js"></script>
 </body>
