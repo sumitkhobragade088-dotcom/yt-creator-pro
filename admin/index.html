@@ -184,7 +184,10 @@ document.documentElement.classList.add("yt-admin-boot");
         <p id="adminEmailView"></p>
       </div>
       <div class="yt-premium-header-actions">
-        <div class="yt-pref-controls" data-yt-i18n-controls></div>
+        <div class="yt-pref-controls" data-yt-pref-area="admin">
+  <button class="yt-theme-toggle" type="button" aria-label="Dark Mode" title="Dark Mode"><span class="yt-theme-icon">🌙</span><span class="yt-theme-text">Dark</span></button>
+  <label class="yt-lang-control" title="Language"><span>🌐</span><select class="yt-lang-select" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
+</div>
         <a class="yt-premium-top-btn website" href="../index.html" target="_blank" rel="noopener noreferrer">🌐 Website</a>
         <button id="shareUserApp" class="yt-premium-top-btn share" type="button">📤 Share App</button>
         
@@ -719,17 +722,31 @@ document.documentElement.classList.add("yt-admin-boot");
     </section>
 
     <section class="yt-premium-view" id="view-cms">
-<div class="yt-cms-preference-card"><h3>Appearance & Language</h3><p>Control and preview the shared User/Admin website appearance and language preferences.</p><div class="yt-pref-controls" data-yt-i18n-controls></div></div>
-
       <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard content without changing the current layout automatically.</p></div></div>
-      <div id="adminCmsFull" class="yt-cms-root"><div class="yt-cms-loading">Loading Admin CMS…</div></div>
+      <div id="adminCmsFull" class="yt-cms-root">
+<div class="yt-cms-pref-box" data-no-translate>
+  <h3>🌗 Appearance & Language</h3><p>Dark/Light mode and English, Hindi, Marathi controls for the complete website.</p>
+  <div class="yt-cms-pref-grid">
+    <label>Default Language<select data-pref="language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
+    <label>Default Theme<select data-pref="theme"><option value="light">Light Mode</option><option value="dark">Dark Mode</option></select></label>
+  </div>
+  <div class="yt-cms-pref-checks"><label><input type="checkbox" data-pref="showAdmin"> Show on Admin</label><label><input type="checkbox" data-pref="showUser"> Show on User</label><label><input type="checkbox" data-pref="showPublic"> Show on Public Website</label><label><input type="checkbox" data-pref="showAuth"> Show on Login / Register</label></div>
+  <button type="button" class="yt-cms-pref-save" data-save-prefs>Save Preferences</button><span class="yt-cms-pref-msg"></span>
+</div><div class="yt-cms-loading">Loading Admin CMS…</div></div>
     </section>
 
     <section class="yt-premium-view" id="view-website-cms">
-<div class="yt-cms-preference-card"><h3>Appearance & Language</h3><p>Control and preview the shared User/Admin website appearance and language preferences.</p><div class="yt-pref-controls" data-yt-i18n-controls></div></div>
-
       <div class="yt-premium-section-head"><div><span>WEBSITE CMS</span><h2>Website CMS</h2><p>Manage the normal website, maintenance mode, pages, buttons, theme and SEO.</p></div></div>
-      <div id="websiteCmsFull" class="yt-cms-root"><div class="yt-cms-loading">Loading Website CMS…</div></div>
+      <div id="websiteCmsFull" class="yt-cms-root">
+<div class="yt-cms-pref-box" data-no-translate>
+  <h3>🌗 Appearance & Language</h3><p>Dark/Light mode and English, Hindi, Marathi controls for the complete website.</p>
+  <div class="yt-cms-pref-grid">
+    <label>Default Language<select data-pref="language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
+    <label>Default Theme<select data-pref="theme"><option value="light">Light Mode</option><option value="dark">Dark Mode</option></select></label>
+  </div>
+  <div class="yt-cms-pref-checks"><label><input type="checkbox" data-pref="showAdmin"> Show on Admin</label><label><input type="checkbox" data-pref="showUser"> Show on User</label><label><input type="checkbox" data-pref="showPublic"> Show on Public Website</label><label><input type="checkbox" data-pref="showAuth"> Show on Login / Register</label></div>
+  <button type="button" class="yt-cms-pref-save" data-save-prefs>Save Preferences</button><span class="yt-cms-pref-msg"></span>
+</div><div class="yt-cms-loading">Loading Website CMS…</div></div>
     </section>
 
     <section class="yt-premium-view" id="view-editor">

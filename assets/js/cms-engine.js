@@ -6,6 +6,7 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&
 const slugify=v=>String(v||'page').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||('page-'+Date.now());
 
 const DEFAULTS={
+  preferences:{defaultLanguage:'en',defaultTheme:'light',showAdmin:true,showUser:true,showPublic:true,showAuth:true},
   admin_cms:{nav:{},hidden:[],order:[],pages:{},buttons:{},blocks:{},customPages:[],customButtons:[]},
   admin_theme:{enabled:false,activeThemeId:'',themes:[],sidebar:'',primary:'',surface:'',text:'',radius:''},
   website_cms:{nav:{},hidden:[],order:[],sections:{},cards:{},buttons:{},customPages:[],customButtons:[],customSections:[],brand:{name:'',tagline:''},footer:'',media:{logoUrl:'',heroImageUrl:''}},
