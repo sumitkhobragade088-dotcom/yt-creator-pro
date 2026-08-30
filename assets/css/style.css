@@ -966,3 +966,86 @@ html[data-yt-theme="dark"] body.yt-user-dashboard-page .yt-lang-control{backgrou
 .yt-notification-empty{padding:24px;text-align:center;color:#64748b}
 html[data-yt-theme="dark"] .yt-notification-bell,html[data-yt-theme="dark"] .yt-notification-panel,html[data-yt-theme="dark"] .yt-notification-item{background:#111827;color:#e5e7eb;border-color:#334155}
 html[data-yt-theme="dark"] .yt-notification-item.unread{background:#172554}html[data-yt-theme="dark"] .yt-notification-item span{color:#cbd5e1}
+
+
+/* ===== User Dashboard top controls - professional alignment only ===== */
+body.yt-user-dashboard-page .yt-demo-user-header-actions{
+  display:flex;
+  align-items:center;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:nowrap;
+}
+body.yt-user-dashboard-page .yt-pref-controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:nowrap;
+}
+body.yt-user-dashboard-page .yt-theme-toggle,
+body.yt-user-dashboard-page .yt-lang-control,
+body.yt-user-dashboard-page .yt-user-install-btn{
+  height:42px;
+  min-height:42px;
+  box-sizing:border-box;
+  border-radius:12px;
+  padding:0 14px;
+  font-size:13px;
+  font-weight:900;
+  line-height:1;
+  letter-spacing:.1px;
+  box-shadow:0 5px 14px rgba(15,23,42,.10);
+  transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
+}
+body.yt-user-dashboard-page .yt-theme-toggle{
+  border:1px solid #cbd5e1;
+  background:linear-gradient(135deg,#ffffff,#f8fafc);
+  color:#172033;
+}
+body.yt-user-dashboard-page .yt-lang-control{
+  border:1px solid #bfdbfe;
+  background:linear-gradient(135deg,#eff6ff,#ecfeff);
+  color:#0f3d66;
+}
+body.yt-user-dashboard-page .yt-lang-control select{
+  height:100%;
+  min-width:86px;
+}
+body.yt-user-dashboard-page .yt-user-install-btn{
+  margin:0;
+  border:1px solid #ef4444;
+  background:linear-gradient(135deg,#ef4444,#dc2626);
+  color:#fff;
+}
+body.yt-user-dashboard-page .yt-theme-toggle:hover,
+body.yt-user-dashboard-page .yt-lang-control:hover,
+body.yt-user-dashboard-page .yt-user-install-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(15,23,42,.15);
+}
+html[data-yt-theme="dark"] body.yt-user-dashboard-page .yt-theme-toggle{
+  background:linear-gradient(135deg,#172033,#0f172a)!important;
+  color:#fff!important;
+  border-color:#475569!important;
+}
+html[data-yt-theme="dark"] body.yt-user-dashboard-page .yt-lang-control{
+  background:linear-gradient(135deg,#172554,#164e63)!important;
+  color:#fff!important;
+  border-color:#475569!important;
+}
+@media(max-width:760px){
+  body.yt-user-dashboard-page .yt-demo-user-header-actions{
+    gap:7px;
+    flex-wrap:wrap;
+  }
+  body.yt-user-dashboard-page .yt-pref-controls{gap:7px}
+  body.yt-user-dashboard-page .yt-theme-toggle,
+  body.yt-user-dashboard-page .yt-lang-control,
+  body.yt-user-dashboard-page .yt-user-install-btn{
+    height:38px;
+    min-height:38px;
+    padding:0 10px;
+    font-size:12px;
+  }
+  body.yt-user-dashboard-page .yt-lang-control select{min-width:70px;max-width:82px}
+}
