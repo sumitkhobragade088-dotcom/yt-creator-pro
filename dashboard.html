@@ -223,6 +223,10 @@ document.documentElement.classList.add("yt-user-boot");
         <h1 id="userDashboardTitle">Dashboard</h1>
       </div>
       <div class="yt-demo-user-header-actions">
+        <div class="yt-notification-wrap" data-notification-role="user">
+          <button class="yt-notification-bell" type="button" aria-label="Notifications">🔔<span class="yt-notification-count" hidden>0</span></button>
+          <div class="yt-notification-panel" hidden><div class="yt-notification-head"><b>Notifications</b><button type="button" data-notification-read-all>Mark all read</button></div><div class="yt-notification-list">Loading…</div></div>
+        </div>
         <div class="yt-pref-controls" data-yt-pref-area="user">
   <button class="yt-theme-toggle" type="button" aria-label="Dark Mode" title="Dark Mode"><span class="yt-theme-icon">🌙</span><span class="yt-theme-text">Dark</span></button>
   <label class="yt-lang-control" title="Language"><span>🌐</span><select class="yt-lang-select" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
@@ -538,4 +542,5 @@ if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").
 </script>
 
 <script src="assets/js/theme-i18n.js"></script>
+<script type="module" src="assets/js/notifications.js"></script>
 </body>

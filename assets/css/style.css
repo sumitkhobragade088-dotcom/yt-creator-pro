@@ -952,3 +952,17 @@ html[data-yt-theme="dark"] body.yt-premium-admin-page .yt-lang-control,
 html[data-yt-theme="dark"] body.yt-user-dashboard-page .yt-theme-toggle,
 html[data-yt-theme="dark"] body.yt-user-dashboard-page .yt-lang-control{background:#0f172a!important;color:#f8fafc!important;border-color:#475569!important}
 @media(max-width:760px){.yt-theme-text{display:none}.yt-theme-toggle,.yt-lang-control{padding:7px 8px}.yt-lang-control select{max-width:90px}.yt-cms-pref-grid{grid-template-columns:1fr}}
+
+/* ===== Dashboard Notifications (isolated) ===== */
+.yt-notification-wrap{position:relative;display:inline-flex;align-items:center}
+.yt-notification-bell{position:relative;width:42px;height:42px;border:1px solid #d9e0ea;border-radius:12px;background:#fff;cursor:pointer;font-size:20px;display:grid;place-items:center}
+.yt-notification-count{position:absolute;right:-5px;top:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#dc2626;color:#fff;font-size:11px;font-weight:900;line-height:20px;text-align:center}
+.yt-notification-panel{position:absolute;right:0;top:50px;width:min(360px,88vw);max-height:440px;overflow:hidden;border:1px solid #dbe2ec;border-radius:15px;background:#fff;box-shadow:0 18px 45px rgba(15,23,42,.18);z-index:10000}
+.yt-notification-head{display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-bottom:1px solid #e8edf3}
+.yt-notification-head button{border:0;background:transparent;color:#2563eb;font-weight:800;cursor:pointer}
+.yt-notification-list{max-height:380px;overflow:auto}
+.yt-notification-item{width:100%;display:grid;gap:4px;text-align:left;border:0;border-bottom:1px solid #edf1f5;background:#fff;padding:12px 14px;cursor:pointer;color:#172033}
+.yt-notification-item.unread{background:#eff6ff}.yt-notification-item b{font-size:14px}.yt-notification-item span{font-size:13px;color:#475569}.yt-notification-item small{font-size:11px;color:#94a3b8}
+.yt-notification-empty{padding:24px;text-align:center;color:#64748b}
+html[data-yt-theme="dark"] .yt-notification-bell,html[data-yt-theme="dark"] .yt-notification-panel,html[data-yt-theme="dark"] .yt-notification-item{background:#111827;color:#e5e7eb;border-color:#334155}
+html[data-yt-theme="dark"] .yt-notification-item.unread{background:#172554}html[data-yt-theme="dark"] .yt-notification-item span{color:#cbd5e1}
