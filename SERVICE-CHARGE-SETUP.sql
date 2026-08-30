@@ -44,8 +44,17 @@ insert into public.service_charges(service_name,description,charge,is_active,sor
 values
  ('Channel Management','Channel setup and management support',0,true,10),
  ('Monetization Help','Eligibility and monetization assistance',0,true,20),
- ('AdSense Assistance','AdSense setup and support',0,true,30)
-on conflict (service_name) do nothing;
+ ('AdSense Assistance','AdSense setup and support',0,true,30),
+ ('YouTube Reporting Setup','Set up YouTube Reporting for an access-granted channel, including reporting jobs, generated report access, dates/status and reporting configuration.',0,true,40),
+ ('YouTube Live Streaming Setup','Set up and configure YouTube Live Streaming for an eligible access-granted channel, including broadcasts, streams, scheduling, binding and live controls.',0,true,41),
+ ('YouTube Live Chat Setup / Moderation','Configure YouTube Live Chat management for an eligible live-enabled channel, including messages, moderators, timeout, ban and unban controls.',0,true,42),
+ ('YouTube Embedded Player Setup','Set up YouTube Embedded Player for channel videos with player preview and supported playback controls.',0,true,43),
+ ('YouTube oEmbed Setup','Set up YouTube oEmbed URL metadata and preview support for public YouTube videos, Shorts and live URLs.',0,true,44)
+on conflict (service_name) do update
+set description = excluded.description,
+    is_active = excluded.is_active,
+    sort_order = excluded.sort_order,
+    updated_at = now();
 
 create index if not exists service_charges_active_sort_idx
 on public.service_charges(is_active,sort_order);
