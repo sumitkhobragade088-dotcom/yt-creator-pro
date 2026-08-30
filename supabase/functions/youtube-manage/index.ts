@@ -108,7 +108,7 @@ Deno.serve(async req=>{
 
   // ---------- YouTube Live Streaming ----------
   if(b.action==="live_list"){
-    const bd=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=id,snippet,status,contentDetails&broadcastStatus=all&mine=true&maxResults=50",token);
+    const bd=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=id,snippet,status,contentDetails&mine=true&maxResults=50",token);
     const sd=await gj("https://www.googleapis.com/youtube/v3/liveStreams?part=id,snippet,status,cdn&mine=true&maxResults=50",token);
     return J({success:true,
       broadcasts:(bd.items||[]).map((x:any)=>({id:x.id,title:x.snippet?.title||"",description:x.snippet?.description||"",scheduledStartTime:x.snippet?.scheduledStartTime||"",actualStartTime:x.snippet?.actualStartTime||"",actualEndTime:x.snippet?.actualEndTime||"",lifeCycleStatus:x.status?.lifeCycleStatus||"",privacyStatus:x.status?.privacyStatus||"",recordingStatus:x.status?.recordingStatus||"",liveChatId:x.snippet?.liveChatId||"",boundStreamId:x.contentDetails?.boundStreamId||"",enableAutoStart:!!x.contentDetails?.enableAutoStart,enableAutoStop:!!x.contentDetails?.enableAutoStop})),
@@ -152,7 +152,7 @@ Deno.serve(async req=>{
 
   // ---------- YouTube Live Chat ----------
   if(b.action==="chat_broadcasts"){
-    const d=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=id,snippet,status&broadcastStatus=all&mine=true&maxResults=50",token);
+    const d=await gj("https://www.googleapis.com/youtube/v3/liveBroadcasts?part=id,snippet,status&mine=true&maxResults=50",token);
     return J({success:true,broadcasts:(d.items||[]).map((x:any)=>({id:x.id,title:x.snippet?.title||"",lifeCycleStatus:x.status?.lifeCycleStatus||"",scheduledStartTime:x.snippet?.scheduledStartTime||"",liveChatId:x.snippet?.liveChatId||""}))});
   }
   if(b.action==="chat_messages"){
