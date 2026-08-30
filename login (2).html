@@ -1,0 +1,85 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ff0000">
+<title>Admin Login | YT Creator Pro</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<meta name="robots" content="noindex,nofollow,noarchive">
+</head>
+<body class="yt-admin-login-page">
+  <main class="yt-login-shell">
+    <section class="yt-login-visual">
+      <div class="yt-login-brand-lockup">
+        <div class="yt-login-youtube-mark"><span class="yt-login-play">▶</span></div>
+        <div>
+          <span class="yt-login-kicker">YT CREATOR PRO</span>
+          <h1>YouTube Admin Control</h1>
+          <p>Secure creator operations dashboard</p>
+        </div>
+      </div>
+
+      <div class="yt-login-visual-copy">
+        <span>ADMIN ACCESS</span>
+        <h2>Manage channels with a clean YouTube-style workspace.</h2>
+        <p>Customers, access permissions, monetization, AdSense, content and analytics — all from one secure admin panel.</p>
+      </div>
+
+      <div class="yt-login-feature-row">
+        <div><b>🔐</b><span>Secure Login</span></div>
+        <div><b>📺</b><span>Channel Control</span></div>
+        <div><b>📊</b><span>Analytics</span></div>
+      </div>
+    </section>
+
+    <section class="yt-login-card-wrap">
+      <form class="yt-login-card" id="adminLoginForm">
+        <div class="yt-login-card-top">
+          <div class="yt-login-card-icon">🔒</div>
+          <div>
+            <span>ADMIN PANEL</span>
+            <h2>Sign in to continue</h2>
+          </div>
+        </div>
+
+        <p class="yt-login-subtext">Authorized administrator access only.</p>
+
+        <label for="adminEmail">Admin Email</label>
+        <div class="yt-login-input-wrap">
+          <span>✉</span>
+          <input id="adminEmail" type="email" required value="sumitkhobragade088@gmail.com" placeholder="Admin Email" autocomplete="username">
+        </div>
+
+        <label for="adminPassword">Password</label>
+        <div class="yt-login-input-wrap">
+          <span>●</span>
+          <input id="adminPassword" type="password" required placeholder="Admin Password" autocomplete="current-password">
+          <button id="toggleAdminPassword" class="yt-password-toggle" type="button" aria-label="Show password">👁</button>
+        </div>
+
+        <button class="yt-login-submit" type="submit"><span>▶</span> Login to Admin</button>
+        <div id="adminMessage" class="message yt-login-message"></div>
+
+        <div class="yt-login-footer"><span>YT Creator Pro</span></div>
+      </form>
+    </section>
+  </main>
+
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const btn=document.getElementById("toggleAdminPassword");
+  const input=document.getElementById("adminPassword");
+  if(btn&&input){
+    btn.addEventListener("click",()=>{
+      const show=input.type==="password";
+      input.type=show?"text":"password";
+      btn.textContent=show?"🙈":"👁";
+      btn.setAttribute("aria-label",show?"Hide password":"Show password");
+    });
+  }
+});
+</script>
+<script type="module" src="../assets/js/admin-auth.js"></script>
+</body>
+</html>

@@ -1,4 +1,9 @@
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /dashboard.html
+Disallow: /login.html
+Disallow: /register.html
+Disallow: /google-callback.html
+
 Sitemap: https://khobragade.online/sitemap.xml
