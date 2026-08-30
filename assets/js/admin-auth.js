@@ -422,12 +422,17 @@ if($("saveServiceCharge")) $("saveServiceCharge").addEventListener("click",async
   if(row.charge<0)return $("serviceChargeMessage").textContent="Charge invalid.";
   $("saveServiceCharge").disabled=true;
   try{
-    const q=id?supabase.from("service_charges").update(row).eq("id",id):supabase.from("service_charges").insert(row);
+    const q=id
+      ? supabase.from("service_charges").update({...row,updated_at:new Date().toISOString()}).eq("id",id).select("id,service_name,charge,is_active")
+      : supabase.from("service_charges").insert(row).select("id,service_name,charge,is_active");
     const res=await withTimeout(q,8000,id?"Update service":"Add service");
     if(res?.error)throw res.error;
-    $("serviceChargeMessage").textContent=id?"Service updated ✅":"Service added ✅";
-    resetServiceChargeForm();
+    if(id && (!Array.isArray(res?.data) || res.data.length===0)){
+      throw new Error("Service update was blocked by database permission. Run SERVICE-CHARGE-UPDATE-FIX.sql in Supabase SQL Editor.");
+    }
     await loadServiceCharges();
+    resetServiceChargeForm();
+    $("serviceChargeMessage").textContent=id?"Service updated ✅":"Service added ✅";
   }catch(e){$("serviceChargeMessage").textContent=e?.message||"Save failed.";}
   finally{$("saveServiceCharge").disabled=false;}
 });
