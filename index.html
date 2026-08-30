@@ -10,6 +10,17 @@
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/cms-control.css">
   <link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
+
+<style id="yt-install-popup-style">
+#ytInstallOverlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.60)}
+#ytInstallOverlay.yt-show{display:flex}
+#ytInstallModal{position:relative;width:min(90vw,360px);padding:42px 22px 22px;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.32);text-align:center}
+#ytInstallClose{position:absolute;top:8px;right:10px;width:36px;height:36px;border:0;background:transparent;color:#222;font-size:30px;line-height:32px;cursor:pointer}
+#ytInstallNow{width:100%;border:0;border-radius:12px;padding:15px 18px;background:#16a34a;color:#fff;font-size:17px;font-weight:800;cursor:pointer}
+#ytInstallNow:active{transform:scale(.98)}
+@media (prefers-color-scheme:dark){#ytInstallModal{background:#171717}#ytInstallClose{color:#fff}}
+</style>
+
 </head>
 <body class="yt-user-home-page">
 <div id="ytPublicAnnouncementHost"></div>
@@ -125,5 +136,64 @@ if("serviceWorker" in navigator){
 <script type="module" src="assets/js/cms-deep.js"></script>
 <script type="module" src="assets/js/auth.js"></script>
 <script type="module" src="assets/js/public-features.js"></script>
+
+<div id="ytInstallOverlay" aria-hidden="true">
+  <div id="ytInstallModal" role="dialog" aria-modal="true" aria-label="Install YT Creator Pro">
+    <button id="ytInstallClose" type="button" aria-label="Close">&times;</button>
+    <button id="ytInstallNow" type="button">Install Now</button>
+  </div>
+</div>
+<script id="yt-install-popup-script">
+(function(){
+  const params = new URLSearchParams(location.search);
+  if(params.get("install") !== "1") return;
+
+  const overlay = document.getElementById("ytInstallOverlay");
+  const closeBtn = document.getElementById("ytInstallClose");
+  const installBtn = document.getElementById("ytInstallNow");
+  let deferredPrompt = null;
+
+  const isStandalone = () =>
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true;
+
+  const show = () => {
+    if(isStandalone()) return;
+    overlay.classList.add("yt-show");
+    overlay.setAttribute("aria-hidden","false");
+  };
+  const hide = () => {
+    overlay.classList.remove("yt-show");
+    overlay.setAttribute("aria-hidden","true");
+  };
+
+  // Suppress Chrome's small native install chip/banner.
+  // Show our modal only when the browser says the PWA is actually installable.
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    show();
+  });
+
+  closeBtn.addEventListener("click", hide);
+
+  installBtn.addEventListener("click", async () => {
+    if(!deferredPrompt) return;
+    deferredPrompt.prompt();
+    try { await deferredPrompt.userChoice; } catch(e) {}
+    deferredPrompt = null;
+    hide();
+  });
+
+  window.addEventListener("appinstalled", () => {
+    deferredPrompt = null;
+    hide();
+  });
+
+  // If already running as installed app, never show popup.
+  if(isStandalone()) hide();
+})();
+</script>
+
 </body>
 </html>
