@@ -504,7 +504,6 @@ const premiumViewTitles={
   payments:"Payments / PayU",
   "service-charge":"Service Charge",
   history:"History",
-  operations:"Operations Center",
   cms:"Admin Dashboard CMS",
   "website-cms":"Website CMS",
   editor:"Admin Editor",
