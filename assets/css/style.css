@@ -896,3 +896,25 @@ html.yt-user-view-restoring .yt-demo-user-main{visibility:hidden!important}
   .yt-user-home-actions{flex-wrap:wrap}
   .yt-user-red-btn,.yt-user-outline-btn{min-width:145px}
 }
+
+
+/* Service Charge page: compact professional summary cards + inline table editing */
+#view-service-charge .yt-service-charge-top{grid-template-columns:minmax(0,1.65fr) minmax(220px,.65fr);align-items:start;gap:16px}
+#view-service-charge .yt-charge-stats{display:grid;grid-template-columns:1fr;gap:10px;align-content:start}
+#view-service-charge .yt-charge-stat-card{position:relative;overflow:hidden;min-height:86px;padding:14px 16px;border-radius:15px;border:1px solid rgba(15,23,42,.08);box-shadow:0 8px 22px rgba(15,23,42,.07)}
+#view-service-charge .yt-charge-stat-card:before{content:"";position:absolute;inset:0 auto 0 0;width:5px;background:currentColor}
+#view-service-charge .yt-charge-stat-card small{margin-bottom:4px;font-size:11px;letter-spacing:.02em}
+#view-service-charge .yt-charge-stat-card b{font-size:25px;line-height:1}
+#view-service-charge .yt-charge-total{background:linear-gradient(135deg,#eef4ff,#f7f9ff);color:#3b5ccc}
+#view-service-charge .yt-charge-active{background:linear-gradient(135deg,#ecfdf3,#f6fffa);color:#067647}
+#view-service-charge .yt-charge-inactive{background:linear-gradient(135deg,#fff1f3,#fff8f8);color:#c01048}
+#view-service-charge .yt-charge-stat-card small,#view-service-charge .yt-charge-stat-card b{color:inherit}
+#view-service-charge .yt-charge-inline-input{width:108px;min-width:92px;padding:8px 9px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;font-weight:700;color:#172033}
+#view-service-charge .yt-charge-inline-input:focus{outline:2px solid rgba(79,70,229,.16);border-color:#6c63ff}
+#view-service-charge .yt-charge-inline-status{min-width:104px;padding:8px 28px 8px 9px;border:1px solid #d0d5dd;border-radius:9px;background:#fff;font-weight:700;color:#344054}
+#view-service-charge .yt-current-charge{white-space:nowrap;color:#172033}
+#view-service-charge .yt-charge-table-actions{gap:6px;flex-wrap:nowrap}
+#view-service-charge .yt-charge-table-actions .btn{padding:8px 10px;border-radius:9px;font-size:12px;white-space:nowrap}
+#view-service-charge .yt-charge-update{min-width:68px}
+@media(max-width:900px){#view-service-charge .yt-service-charge-top{grid-template-columns:1fr}#view-service-charge .yt-charge-stats{grid-template-columns:repeat(3,1fr)}#view-service-charge .yt-charge-stat-card{min-height:78px}}
+@media(max-width:620px){#view-service-charge .yt-charge-stats{grid-template-columns:1fr}#view-service-charge .yt-charge-table-actions{flex-wrap:wrap}}

@@ -385,13 +385,14 @@ async function loadServiceCharges(){
   setText("chargeActiveServices",active);
   setText("chargeInactiveServices",serviceChargeRows.length-active);
   const body=$("serviceChargeBody"); if(!body)return;
-  body.innerHTML=serviceChargeRows.length?serviceChargeRows.map(r=>`<tr>
+  body.innerHTML=serviceChargeRows.length?serviceChargeRows.map(r=>`<tr data-charge-row="${esc(r.id)}">
     <td><b>${esc(r.service_name)}</b></td>
     <td>${esc(r.description||"-")}</td>
-    <td>${adminMoney(r.charge)}</td>
-    <td>${r.is_active?'<span class="yt-status-chip good">Active</span>':'<span class="yt-status-chip bad">Inactive</span>'}</td>
-    <td><button class="btn" data-edit-charge="${esc(r.id)}">Edit</button> <button class="btn danger" data-delete-charge="${esc(r.id)}">Delete</button></td>
-  </tr>`).join(""):'<tr><td colspan="5">No services yet.</td></tr>';
+    <td><b class="yt-current-charge">${adminMoney(r.charge)}</b></td>
+    <td><input class="yt-charge-inline-input" data-new-charge="${esc(r.id)}" type="number" min="0" step="0.01" value="${Number(r.charge||0)}" aria-label="New charge for ${esc(r.service_name)}"></td>
+    <td><select class="yt-charge-inline-status" data-charge-status="${esc(r.id)}" aria-label="Status for ${esc(r.service_name)}"><option value="true" ${r.is_active?'selected':''}>Active</option><option value="false" ${!r.is_active?'selected':''}>Inactive</option></select></td>
+    <td><div class="yt-charge-table-actions"><button class="btn yt-charge-edit" data-edit-charge="${esc(r.id)}">Edit</button><button class="btn danger yt-charge-delete" data-delete-charge="${esc(r.id)}">Delete</button><button class="btn primary yt-charge-update" data-update-charge="${esc(r.id)}">Update</button></div></td>
+  </tr>`).join(""):'<tr><td colspan="6">No services yet.</td></tr>';
 
   body.querySelectorAll("[data-edit-charge]").forEach(btn=>btn.addEventListener("click",()=>{
     const r=serviceChargeRows.find(x=>x.id===btn.dataset.editCharge); if(!r)return;
@@ -399,6 +400,26 @@ async function loadServiceCharges(){
     $("chargeServiceId").value=r.id;$("chargeServiceName").value=r.service_name||"";
     $("chargeServiceDescription").value=r.description||"";$("chargeServiceAmount").value=Number(r.charge||0);
     $("chargeServiceActive").checked=!!r.is_active;$("saveServiceCharge").textContent="Update Service";
+    const inline=body.querySelector(`[data-new-charge="${CSS.escape(r.id)}"]`);
+    if(inline){inline.focus();inline.select();}
+  }));
+  body.querySelectorAll("[data-update-charge]").forEach(btn=>btn.addEventListener("click",async()=>{
+    const id=btn.dataset.updateCharge;
+    const amountInput=body.querySelector(`[data-new-charge="${CSS.escape(id)}"]`);
+    const statusInput=body.querySelector(`[data-charge-status="${CSS.escape(id)}"]`);
+    const amount=Number(amountInput?.value||0);
+    if(!Number.isFinite(amount)||amount<0){alert("Please enter a valid new charge.");return;}
+    const oldText=btn.textContent;btn.disabled=true;btn.textContent="Updating...";
+    try{
+      const res=await withTimeout(
+        supabase.from("service_charges").update({charge:amount,is_active:statusInput?.value==="true",updated_at:new Date().toISOString()}).eq("id",id).select("id,charge,is_active"),
+        8000,"Update service charge"
+      );
+      if(res?.error)throw res.error;
+      if(!Array.isArray(res?.data)||res.data.length===0)throw new Error("Service update was blocked by database permission.");
+      btn.textContent="Updated ✓";
+      await loadServiceCharges();
+    }catch(e){alert(e?.message||"Update failed.");btn.disabled=false;btn.textContent=oldText;}
   }));
   body.querySelectorAll("[data-delete-charge]").forEach(btn=>btn.addEventListener("click",async()=>{
     if(!confirm("Delete this service?"))return;
