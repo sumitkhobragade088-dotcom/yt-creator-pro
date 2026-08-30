@@ -9,21 +9,8 @@
 <meta name="description" content="Professional YouTube creator support for channel management, monetization guidance, AdSense assistance and secure Google-authorized access.">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/cms-control.css">
-  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
-
-<style id="yt-install-popup-style">
-#ytInstallOverlay{position:fixed;inset:0;z-index:2147483647;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(0,0,0,.60)}
-#ytInstallOverlay.yt-show{display:flex}
-#ytInstallModal{position:relative;width:min(90vw,360px);padding:42px 22px 22px;border-radius:20px;background:#fff;box-shadow:0 24px 70px rgba(0,0,0,.32);text-align:center}
-#ytInstallClose{position:absolute;top:8px;right:10px;width:36px;height:36px;border:0;background:transparent;color:#222;font-size:30px;line-height:32px;cursor:pointer}
-#ytInstallNow{width:100%;border:0;border-radius:12px;padding:15px 18px;background:#16a34a;color:#fff;font-size:17px;font-weight:800;cursor:pointer}
-#ytInstallNow:active{transform:scale(.98)}
-@media (prefers-color-scheme:dark){#ytInstallModal{background:#171717}#ytInstallClose{color:#fff}}
-</style>
-
 </head>
 <body class="yt-user-home-page">
-<div id="ytPublicAnnouncementHost"></div>
 
 <header class="yt-user-public-header">
   <a class="yt-user-public-brand" href="index.html">
@@ -71,48 +58,11 @@
   <section id="services" class="yt-user-public-section">
     <div class="yt-user-section-title"><span>CREATOR SERVICES</span><h2>Everything You Need to Move Forward</h2><p>Focused support for the most important parts of your YouTube creator journey.</p></div>
     <div class="yt-user-service-grid">
-
-          <article class="service-card">
-            <div class="service-icon">📺</div>
-            <h3>Channel Management</h3>
-            <p>Manage authorized channel details, content and essential creator operations.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">💰</div>
-            <h3>Monetization Help</h3>
-            <p>Clear monetization guidance, eligibility support and application case tracking.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">₹</div>
-            <h3>AdSense Assistance</h3>
-            <p>Professional AdSense guidance for setup, access and verification workflows.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">📊</div>
-            <h3>YouTube Reporting Setup</h3>
-            <p>Set up authorized YouTube reporting and analytics workflows for creator data.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">🔴</div>
-            <h3>YouTube Live Streaming Setup</h3>
-            <p>Professional setup support for YouTube live streaming and authorized live workflows.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">💬</div>
-            <h3>YouTube Live Chat Setup / Moderation</h3>
-            <p>Configure live chat access, moderation tools and safer creator-community workflows.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">▶️</div>
-            <h3>YouTube Embedded Player Setup</h3>
-            <p>Set up YouTube embedded player integrations for supported websites and applications.</p>
-          </article>
-          <article class="service-card">
-            <div class="service-icon">🔗</div>
-            <h3>YouTube oEmbed Setup</h3>
-            <p>Configure YouTube oEmbed integration for clean and reliable video embedding.</p>
-          </article>
-        </div>
+      <article><b>📺</b><h3>Channel Management</h3><p>Manage authorized channel details, content and essential creator operations.</p></article>
+      <article><b>💰</b><h3>Monetization Help</h3><p>Clear monetization guidance, eligibility support and application case tracking.</p></article>
+      <article><b>₹</b><h3>AdSense Assistance</h3><p>Professional AdSense guidance for setup, access and verification workflows.</p></article>
+      <article><b>🎬</b><h3>Video Management</h3><p>Safely manage authorized videos, metadata, thumbnails and content updates.</p></article>
+    </div>
   </section>
 <section id="monetization" class="yt-user-public-section">
     <div class="yt-user-section-title"><span>SIMPLE PROCESS</span><h2>From Channel Review to Completion</h2><p>A clear, secure workflow designed to keep every step easy to understand.</p></div>
@@ -135,65 +85,5 @@ if("serviceWorker" in navigator){
 <script type="module" src="assets/js/cms-engine.js"></script>
 <script type="module" src="assets/js/cms-deep.js"></script>
 <script type="module" src="assets/js/auth.js"></script>
-<script type="module" src="assets/js/public-features.js"></script>
-
-<div id="ytInstallOverlay" aria-hidden="true">
-  <div id="ytInstallModal" role="dialog" aria-modal="true" aria-label="Install YT Creator Pro">
-    <button id="ytInstallClose" type="button" aria-label="Close">&times;</button>
-    <button id="ytInstallNow" type="button">Install Now</button>
-  </div>
-</div>
-<script id="yt-install-popup-script">
-(function(){
-  const params = new URLSearchParams(location.search);
-  if(params.get("install") !== "1") return;
-
-  const overlay = document.getElementById("ytInstallOverlay");
-  const closeBtn = document.getElementById("ytInstallClose");
-  const installBtn = document.getElementById("ytInstallNow");
-  let deferredPrompt = null;
-
-  const isStandalone = () =>
-    window.matchMedia("(display-mode: standalone)").matches ||
-    window.navigator.standalone === true;
-
-  const show = () => {
-    if(isStandalone()) return;
-    overlay.classList.add("yt-show");
-    overlay.setAttribute("aria-hidden","false");
-  };
-  const hide = () => {
-    overlay.classList.remove("yt-show");
-    overlay.setAttribute("aria-hidden","true");
-  };
-
-  // Suppress Chrome's small native install chip/banner.
-  // Show our modal only when the browser says the PWA is actually installable.
-  window.addEventListener("beforeinstallprompt", (event) => {
-    event.preventDefault();
-    deferredPrompt = event;
-    show();
-  });
-
-  closeBtn.addEventListener("click", hide);
-
-  installBtn.addEventListener("click", async () => {
-    if(!deferredPrompt) return;
-    deferredPrompt.prompt();
-    try { await deferredPrompt.userChoice; } catch(e) {}
-    deferredPrompt = null;
-    hide();
-  });
-
-  window.addEventListener("appinstalled", () => {
-    deferredPrompt = null;
-    hide();
-  });
-
-  // If already running as installed app, never show popup.
-  if(isStandalone()) hide();
-})();
-</script>
-
 </body>
 </html>
