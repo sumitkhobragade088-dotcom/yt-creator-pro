@@ -163,6 +163,7 @@ document.documentElement.classList.add("yt-admin-boot");
       <button class="yt-premium-nav-btn" data-view="payments">💳 <span>Payments / PayU</span></button>
       <button class="yt-premium-nav-btn" data-view="service-charge">₹ <span>Service Charge</span></button>
       <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
+      <button class="yt-premium-nav-btn" data-view="operations">🧭 <span>Operations Center</span></button>
       <button class="yt-premium-nav-btn" data-view="cms">🧩 <span>Admin Dashboard CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="website-cms">🌐 <span>Website CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="editor">✏️ <span>Admin Editor</span></button>
@@ -725,8 +726,101 @@ document.documentElement.classList.add("yt-admin-boot");
       </div></div>
     </section>
 
+
+    <section class="yt-premium-view" id="view-operations">
+      <div class="yt-premium-section-head">
+        <div><span>OPERATIONS</span><h2>Operations Center</h2><p>Support, documents, refunds, user controls, announcements, analytics, exports and audit tools.</p></div>
+      </div>
+
+      <div class="yt-feature-stats">
+        <div><small>Open Tickets</small><b id="fcOpenTickets">0</b></div>
+        <div><small>Refund Requests</small><b id="fcRefunds">0</b></div>
+        <div><small>Documents</small><b id="fcDocuments">0</b></div>
+        <div><small>Revenue</small><b id="fcRevenue">₹0</b></div>
+      </div>
+
+      <div class="yt-feature-grid">
+        <article class="yt-feature-card" data-feature-module="support_tickets">
+          <div class="yt-feature-head"><h3>🎫 Support Tickets</h3><button type="button" data-fc-refresh="tickets">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAdminTickets">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="admin_notes">
+          <div class="yt-feature-head"><h3>📝 Admin Notes</h3></div>
+          <label>Request<select id="fcNoteRequest"></select></label>
+          <label>Private Note<textarea id="fcNoteText" rows="3" placeholder="Internal admin note"></textarea></label>
+          <button class="yt-feature-primary" id="fcAddNote" type="button">Add Note</button>
+          <div class="yt-feature-list" id="fcAdminNotes"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="refunds">
+          <div class="yt-feature-head"><h3>↩ Refund / Cancel Requests</h3><button type="button" data-fc-refresh="refunds">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAdminRefunds">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="user_blocking">
+          <div class="yt-feature-head"><h3>🚫 User Block / Unblock</h3></div>
+          <div class="yt-feature-list" id="fcAdminUsers">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="announcements">
+          <div class="yt-feature-head"><h3>📢 Announcement / Maintenance</h3></div>
+          <label>Title<input id="fcAnnouncementTitle" placeholder="Important update"></label>
+          <label>Message<textarea id="fcAnnouncementMessage" rows="3"></textarea></label>
+          <div class="yt-feature-row">
+            <select id="fcAnnouncementTarget"><option value="all">All</option><option value="public">Public Website</option><option value="user">User Dashboard</option><option value="admin">Admin</option></select>
+            <label class="yt-feature-check"><input id="fcAnnouncementMaintenance" type="checkbox"> Maintenance</label>
+          </div>
+          <button class="yt-feature-primary" id="fcPublishAnnouncement" type="button">Publish</button>
+          <div class="yt-feature-list" id="fcAnnouncements"></div>
+        </article>
+
+
+        <article class="yt-feature-card" data-feature-module="documents">
+          <div class="yt-feature-head"><h3>📎 Document Management</h3><button type="button" data-fc-refresh="documents">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAdminDocuments">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="analytics">
+          <div class="yt-feature-head"><h3>📊 Advanced Analytics</h3><button type="button" data-fc-refresh="analytics">Refresh</button></div>
+          <div class="yt-feature-mini-stats" id="fcAnalytics">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="exports">
+          <div class="yt-feature-head"><h3>📤 Database Export</h3></div>
+          <p>Download CSV backup of operational data.</p>
+          <div class="yt-feature-actions">
+            <button type="button" data-fc-export="customers">Users CSV</button>
+            <button type="button" data-fc-export="service_requests">Requests CSV</button>
+            <button type="button" data-fc-export="payments">Payments CSV</button>
+            <button type="button" data-fc-export="support_tickets">Tickets CSV</button>
+          </div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="audit_log">
+          <div class="yt-feature-head"><h3>🛡 Audit / Security Log</h3><button type="button" data-fc-refresh="audit">Refresh</button></div>
+          <div class="yt-feature-list" id="fcAuditLog">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="email_queue">
+          <div class="yt-feature-head"><h3>✉ Email Queue</h3><span class="yt-feature-badge">Provider Ready</span></div>
+          <p>Email events are queued here. Actual delivery activates when an email provider is connected.</p>
+          <div class="yt-feature-list" id="fcEmailQueue">Loading…</div>
+        </article>
+      </div>
+    </section>
+
     <section class="yt-premium-view" id="view-cms">
       <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard content without changing the current layout automatically.</p></div></div>
+      
+      <div class="yt-feature-cms-box" data-feature-cms="admin">
+        <h3>🧩 Feature Controls</h3>
+        <p>Enable/disable related modules without changing the existing dashboard layout.</p>
+        <div class="yt-feature-toggle-grid" data-feature-toggle-grid></div>
+        <button type="button" class="yt-feature-primary" data-save-feature-settings>Save Feature Settings</button>
+        <span data-feature-settings-message></span>
+      </div>
+
       <div id="adminCmsFull" class="yt-cms-root">
 <div class="yt-cms-pref-box" data-no-translate>
   <h3>🌗 Appearance & Language</h3><p>Dark/Light mode and English, Hindi, Marathi controls for the complete website.</p>
@@ -741,6 +835,15 @@ document.documentElement.classList.add("yt-admin-boot");
 
     <section class="yt-premium-view" id="view-website-cms">
       <div class="yt-premium-section-head"><div><span>WEBSITE CMS</span><h2>Website CMS</h2><p>Manage the normal website, maintenance mode, pages, buttons, theme and SEO.</p></div></div>
+      
+      <div class="yt-feature-cms-box" data-feature-cms="website">
+        <h3>🌐 Website Feature Controls</h3>
+        <p>Control public announcements, maintenance banner and user-facing feature visibility.</p>
+        <div class="yt-feature-toggle-grid" data-feature-toggle-grid></div>
+        <button type="button" class="yt-feature-primary" data-save-feature-settings>Save Website Settings</button>
+        <span data-feature-settings-message></span>
+      </div>
+
       <div id="websiteCmsFull" class="yt-cms-root">
 <div class="yt-cms-pref-box" data-no-translate>
   <h3>🌗 Appearance & Language</h3><p>Dark/Light mode and English, Hindi, Marathi controls for the complete website.</p>
@@ -880,5 +983,6 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 
 <script src="../assets/js/theme-i18n.js"></script>
 <script type="module" src="../assets/js/notifications.js"></script>
+<script type="module" src="../assets/js/feature-center.js"></script>
 </body>
 </html>

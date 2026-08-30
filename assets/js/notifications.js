@@ -32,7 +32,19 @@ if(wrap){
   async function load(){
     const {data,error}=await query();
     if(error){console.error("Notifications",error);list.textContent="Notifications unavailable.";return;}
-    const rows=data||[], unread=rows.filter(x=>!x.is_read).length;
+    let rows=data||[];
+    if(role==="user"&&customerId){
+      const {data:pref}=await supabase.from("user_notification_preferences").select("request_updates,payment_updates,support_updates,announcements").eq("customer_id",customerId).maybeSingle();
+      if(pref) rows=rows.filter(x=>{
+        const k=String(x.kind||"info");
+        if(k==="request")return pref.request_updates!==false;
+        if(k==="payment")return pref.payment_updates!==false;
+        if(k==="support")return pref.support_updates!==false;
+        if(k==="announcement")return pref.announcements!==false;
+        return true;
+      });
+    }
+    const unread=rows.filter(x=>!x.is_read).length;
     count.textContent=String(unread); count.hidden=unread===0;
     list.innerHTML=rows.length?rows.map(n=>`<button type="button" class="yt-notification-item${n.is_read?"":" unread"}" data-notification-id="${esc(n.id)}"><b>${esc(n.title)}</b><span>${esc(n.message||"")}</span><small>${esc(when(n.created_at))}</small></button>`).join(""):'<div class="yt-notification-empty">No notifications yet.</div>';
     list.querySelectorAll("[data-notification-id]").forEach(btn=>btn.addEventListener("click",async()=>{
