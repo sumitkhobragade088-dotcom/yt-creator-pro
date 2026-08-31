@@ -8,7 +8,7 @@ const slugify=v=>String(v||'page').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-
 const DEFAULTS={
   admin_cms:{nav:{},hidden:[],order:[],pages:{},buttons:{},blocks:{},customPages:[],customButtons:[]},
   admin_theme:{enabled:false,activeThemeId:'',themes:[],sidebar:'',primary:'',surface:'',text:'',radius:''},
-  website_cms:{nav:{},hidden:[],order:[],sections:{},cards:{},buttons:{},customPages:[],customButtons:[],customSections:[],brand:{name:'',tagline:''},footer:'',media:{logoUrl:'',heroImageUrl:''},contact:{hidden:false,kicker:'CONTACT & SUPPORT',title:'How Can We Help?',subtitle:'Contact YT Creator Pro for service, payment or creator-support questions.',email:'',phone:'',whatsapp:'',hours:'',helpText:'Tell us what you need help with. We will use your configured email application to send the message.',safetyNote:'Never share your password, OTP, recovery code or other sensitive Google/YouTube account information.'}},
+  website_cms:{nav:{},hidden:[],order:[],sections:{},cards:{},buttons:{},customPages:[],customButtons:[],customSections:[],brand:{name:'',tagline:''},footer:'',media:{logoUrl:'',heroImageUrl:''}},
   website_theme:{enabled:false,activeThemeId:'',themes:[],primary:'',surface:'',text:'',radius:''},
   maintenance:{enabled:false,title:'YT Creator Pro is being updated',message:'New improvements are being added. Please check back shortly.',reopen:'',status:'UPDATE IN PROGRESS'},
   seo:{title:'YT Creator Pro | Secure • Professional • Creator-Focused',description:'Professional YouTube creator support for channel management, monetization guidance, AdSense assistance and secure Google-authorized access.',keywords:'YT Creator Pro, YouTube creator support, channel management, monetization help, AdSense assistance',googleVerification:'',pages:{}}
@@ -29,9 +29,18 @@ async function read(key){
   try{const v=JSON.parse(localStorage.getItem('ytcms_'+key)||'null');if(v)return mergeDeep(clone(DEFAULTS[key]||{}),v)}catch(_){ }
   return clone(DEFAULTS[key]||{});
 }
-async function write(key,value){
-  const {data:{user}}=await supabase.auth.getUser();
+async function currentAdminUser(){
+  // Admin dashboard already trusts the persisted Supabase session. Reuse the
+  // same source here so CMS writes do not fail because getUser() needs an
+  // extra network round-trip. Database RLS still remains the final authority.
+  const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+  if(sessionError) throw sessionError;
+  const user=sessionData?.session?.user||null;
   if(String(user?.email||'').toLowerCase()!==ADMIN_EMAIL) throw new Error('Admin authorization required');
+  return user;
+}
+async function write(key,value){
+  await currentAdminUser();
   const {error}=await supabase.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'});
   if(error) throw error;
   localStorage.setItem('ytcms_'+key,JSON.stringify(value));
@@ -39,8 +48,7 @@ async function write(key,value){
 }
 async function uploadMedia(file){
   if(!file) throw new Error('Choose an image first');
-  const {data:{user}}=await supabase.auth.getUser();
-  if(String(user?.email||'').toLowerCase()!==ADMIN_EMAIL) throw new Error('Admin authorization required');
+  await currentAdminUser();
   const ext=(file.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'');
   const path=`cms/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
   const {error}=await supabase.storage.from('yt-cms-media').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
@@ -100,17 +108,6 @@ async function applyAdmin(){
     }
   }
   for(const [view,v] of Object.entries(c.pages||{})){const sec=document.getElementById('view-'+view);if(!sec)continue;sec.hidden=!!v.hidden;if(v.title){const h=sec.querySelector('.yt-premium-section-head h2,.yt-premium-hero h2');if(h)h.textContent=v.title}if(v.subtitle){const p=sec.querySelector('.yt-premium-section-head p,.yt-premium-hero p');if(p)p.textContent=v.subtitle}}
-
-  if(page==='contact.html'){
-    const v=c.contact||{};if(v.hidden){location.replace('index.html');return}
-    const set=(sel,val)=>{const e=document.querySelector(sel);if(e&&val)e.textContent=val};
-    set('[data-contact=\"kicker\"]',v.kicker);set('[data-contact=\"title\"]',v.title);set('[data-contact=\"subtitle\"]',v.subtitle);set('[data-contact=\"hours\"]',v.hours||'Support hours can be managed from Website CMS.');set('[data-contact=\"helpText\"]',v.helpText);set('[data-contact=\"safetyNote\"]',v.safetyNote);
-    set('[data-contact=\"emailText\"]',v.email||'Email address can be managed from Website CMS.');set('[data-contact=\"phoneText\"]',v.phone||'Phone number can be managed from Website CMS.');set('[data-contact=\"whatsappText\"]',v.whatsapp||'WhatsApp number can be managed from Website CMS.');
-    const bind=(kind,href,ok)=>{const a=document.querySelector(`[data-contact-link=\"${kind}\"]`);if(!a)return;if(ok){a.href=href;a.removeAttribute('aria-disabled')}else{a.href='#';a.setAttribute('aria-disabled','true')}};
-    bind('email',v.email?'mailto:'+v.email:'',!!v.email);bind('phone',v.phone?'tel:'+v.phone.replace(/[^+\d]/g,''):'',!!v.phone);const wa=String(v.whatsapp||'').replace(/\D/g,'');bind('whatsapp',wa?'https://wa.me/'+wa:'',!!wa);
-    const form=document.getElementById('ytContactForm');if(form)form.addEventListener('submit',e=>{e.preventDefault();const m=document.getElementById('contactFormMsg');if(!v.email){if(m)m.textContent='Contact email is not configured yet.';return}const name=document.getElementById('contactName').value.trim(),reply=document.getElementById('contactReply').value.trim(),subject=document.getElementById('contactSubject').value.trim(),message=document.getElementById('contactMessage').value.trim();location.href='mailto:'+encodeURIComponent(v.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent('Name: '+name+'\nReply: '+reply+'\n\n'+message)});
-  }
-
   for(const [id,v] of Object.entries(c.buttons||{})){const el=document.getElementById(id);if(!el)continue;if(v.label)el.textContent=v.label;el.hidden=!!v.hidden;if(v.href&&el.tagName==='A')el.href=v.href;if(el.tagName==='A'&&v.newTab!==undefined){el.target=v.newTab?'_blank':'_self';if(v.newTab)el.rel='noopener noreferrer'}}
   for(const [key,v] of Object.entries(c.blocks||{})){const el=document.querySelector(`[data-cms-block-key="${CSS.escape(key)}"]`);if(el){el.hidden=!!v.hidden;if(v.order!==undefined)el.style.order=String(v.order)}}
   for(const x of (c.customButtons||[]).filter(v=>!v.hidden).sort((a,b)=>(a.order??999)-(b.order??999))){if(document.querySelector(`[data-cms-admin-btn="${x.id}"]`))continue;const host=document.querySelector(x.host||'.yt-premium-header-actions')||document.querySelector('.yt-premium-header-actions');if(!host)continue;const a=document.createElement(x.href?'a':'button');a.className='yt-premium-top-btn';a.dataset.cmsAdminBtn=x.id;a.textContent=x.label||'New Button';a.style.order=String(x.order??999);if(x.href){a.href=x.href;a.target=x.newTab?'_blank':'_self';if(x.newTab)a.rel='noopener noreferrer'}host.appendChild(a)}
@@ -139,17 +136,6 @@ async function applyWebsite(){
       const main=document.querySelector('.yt-user-public-main');for(const x of (c.customSections||[]).filter(v=>!v.hidden).sort((a,b)=>(a.order??999)-(b.order??999))){if(!main||main.querySelector(`[data-cms-section="${x.id}"]`))continue;const sec=document.createElement('section');sec.className='yt-user-public-section';sec.dataset.cmsSection=x.id;sec.style.order=String(x.order??999);sec.innerHTML=`<div class="yt-user-section-title"><span>${esc(x.kicker||'NEW')}</span><h2>${esc(x.title)}</h2><p>${esc(x.content||'')}</p></div>`;main.appendChild(sec)}
     }
   }
-
-  if(page==='contact.html'){
-    const v=c.contact||{};if(v.hidden){location.replace('index.html');return}
-    const set=(sel,val)=>{const e=document.querySelector(sel);if(e&&val)e.textContent=val};
-    set('[data-contact=\"kicker\"]',v.kicker);set('[data-contact=\"title\"]',v.title);set('[data-contact=\"subtitle\"]',v.subtitle);set('[data-contact=\"hours\"]',v.hours||'Support hours can be managed from Website CMS.');set('[data-contact=\"helpText\"]',v.helpText);set('[data-contact=\"safetyNote\"]',v.safetyNote);
-    set('[data-contact=\"emailText\"]',v.email||'Email address can be managed from Website CMS.');set('[data-contact=\"phoneText\"]',v.phone||'Phone number can be managed from Website CMS.');set('[data-contact=\"whatsappText\"]',v.whatsapp||'WhatsApp number can be managed from Website CMS.');
-    const bind=(kind,href,ok)=>{const a=document.querySelector(`[data-contact-link=\"${kind}\"]`);if(!a)return;if(ok){a.href=href;a.removeAttribute('aria-disabled')}else{a.href='#';a.setAttribute('aria-disabled','true')}};
-    bind('email',v.email?'mailto:'+v.email:'',!!v.email);bind('phone',v.phone?'tel:'+v.phone.replace(/[^+\d]/g,''):'',!!v.phone);const wa=String(v.whatsapp||'').replace(/\D/g,'');bind('whatsapp',wa?'https://wa.me/'+wa:'',!!wa);
-    const form=document.getElementById('ytContactForm');if(form)form.addEventListener('submit',e=>{e.preventDefault();const m=document.getElementById('contactFormMsg');if(!v.email){if(m)m.textContent='Contact email is not configured yet.';return}const name=document.getElementById('contactName').value.trim(),reply=document.getElementById('contactReply').value.trim(),subject=document.getElementById('contactSubject').value.trim(),message=document.getElementById('contactMessage').value.trim();location.href='mailto:'+encodeURIComponent(v.email)+'?subject='+encodeURIComponent(subject)+'&body='+encodeURIComponent('Name: '+name+'\nReply: '+reply+'\n\n'+message)});
-  }
-
   for(const [id,v] of Object.entries(c.buttons||{})){const el=document.getElementById(id);if(!el)continue;if(v.label)el.textContent=v.label;el.hidden=!!v.hidden;if(v.href&&el.tagName==='A')el.href=v.href;if(el.tagName==='A'&&v.newTab!==undefined){el.target=v.newTab?'_blank':'_self';if(v.newTab)el.rel='noopener noreferrer'}}
   const pageSeo=seo.pages?.[virtualSlug||page]||{};document.title=pageSeo.title||seo.title||document.title;const desc=pageSeo.description||seo.description;setMeta('description',desc);setMeta('keywords',pageSeo.keywords||seo.keywords);if(seo.googleVerification)setMeta('google-site-verification',seo.googleVerification);setMeta('og:title',document.title,'property');setMeta('og:description',desc,'property');setMeta('og:type','website','property');let canonical=document.querySelector('link[rel=\"canonical\"]');if(!canonical){canonical=document.createElement('link');canonical.rel='canonical';document.head.appendChild(canonical)}canonical.href=location.href.split('#')[0];
 }
