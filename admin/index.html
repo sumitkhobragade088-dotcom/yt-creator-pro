@@ -8,6 +8,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="../assets/css/style.css">
 <link rel="stylesheet" href="../assets/css/cms-control.css">
+<link rel="stylesheet" href="../assets/css/cms-professional.css">
 <link rel="stylesheet" href="../assets/css/channel-content.css">
 <link rel="stylesheet" href="../assets/css/youtube-api-tools.css">
 <style>
@@ -165,6 +166,7 @@ document.documentElement.classList.add("yt-admin-boot");
       <button class="yt-premium-nav-btn" data-view="service-charge">₹ <span>Service Charge</span></button>
       <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
       <button class="yt-premium-nav-btn" data-view="operations">🧭 <span>Operations Center</span></button>
+      <button class="yt-premium-nav-btn" data-view="public-notifications">🔔 <span>Notifications</span></button>
       <button class="yt-premium-nav-btn" data-view="cms">🧩 <span>Admin Dashboard CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="website-cms">🌐 <span>Website CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="editor">✏️ <span>Admin Editor</span></button>
@@ -811,6 +813,47 @@ document.documentElement.classList.add("yt-admin-boot");
       </div>
     </section>
 
+    <section class="yt-premium-view" id="view-public-notifications">
+      <div class="yt-premium-section-head"><div><span>NOTIFICATIONS</span><h2>Public Website Notifications</h2><p>Create, preview, publish and manage notifications shown automatically on the normal website.</p></div></div>
+      <div class="yt-feature-grid" style="grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr)">
+        <article class="yt-feature-card">
+          <div class="yt-feature-head"><h3>🔔 Create / Edit Notification</h3><button type="button" id="pnResetBtn">New</button></div>
+          <label>Title<input id="pnTitle" placeholder="Important update"></label>
+          <label>Description<textarea id="pnDescription" rows="4" placeholder="Write the notification message"></textarea></label>
+          <div class="yt-feature-row">
+            <label>Type<select id="pnType"><option value="normal">Normal Notice</option><option value="breaking">Breaking News</option><option value="popup">Popup</option></select></label>
+            <label>Priority<select id="pnPriority"><option value="low">Low</option><option value="normal" selected>Normal</option><option value="high">High</option><option value="urgent">Urgent</option></select></label>
+          </div>
+          <div class="yt-feature-row">
+            <label>Status<select id="pnStatus"><option value="published" selected>Published</option><option value="draft">Draft</option></select></label>
+            <label>Audience<select id="pnAudience"><option value="public" selected>Public Website</option><option value="all">All Public</option></select></label>
+          </div>
+          <div class="yt-feature-row">
+            <label>Action Label<input id="pnActionLabel" placeholder="Open / Read More"></label>
+            <label>Target<select id="pnTarget"><option value="_self">Same Page (_self)</option><option value="_blank">New Tab (_blank)</option></select></label>
+          </div>
+          <label>Action / Link URL<input id="pnActionUrl" placeholder="https://..."></label>
+          <label>Image URL (optional)<input id="pnImageUrl" placeholder="https://..."></label>
+          <div class="yt-feature-row">
+            <label>Start Date / Time<input id="pnStartAt" type="datetime-local"></label>
+            <label>End Date / Time<input id="pnEndAt" type="datetime-local"></label>
+          </div>
+          <div class="yt-feature-head" style="margin-top:12px"><h3>Live Preview</h3></div>
+          <div id="pnLivePreview" class="yt-pro-notification-preview"></div>
+          <button class="yt-feature-primary" id="pnPublishBtn" type="button" style="margin-top:12px">Publish Notification</button>
+        </article>
+        <article class="yt-feature-card">
+          <div class="yt-feature-head"><h3>Existing Notifications</h3><button type="button" id="pnRefresh">Refresh</button></div>
+          <div class="yt-feature-mini-stats">
+            <div><b id="pnTotal">0</b><span>Total</span></div><div><b id="pnPublished">0</b><span>Published</span></div><div><b id="pnDraft">0</b><span>Draft</span></div>
+          </div>
+          <div class="yt-feature-row" style="margin-top:12px"><input id="pnSearch" placeholder="Search notification"><select id="pnFilter"><option value="all">All Status</option><option value="published">Published</option><option value="draft">Draft</option></select></div>
+          <div class="yt-feature-row" style="margin-top:10px"><button type="button" id="pnPublishAll">Publish All</button><button type="button" id="pnDeleteAll">Delete All</button></div>
+          <div class="yt-feature-list" id="pnExisting" style="margin-top:12px">Loading…</div>
+        </article>
+      </div>
+    </section>
+
     <section class="yt-premium-view" id="view-cms">
       <div class="yt-premium-section-head"><div><span>CMS</span><h2>Admin Dashboard CMS</h2><p>Manage Admin Dashboard content without changing the current layout automatically.</p></div></div>
       
@@ -949,6 +992,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/cms-deep.js"></script>
 <script type="module" src="../assets/js/cms-deep-admin.js"></script>
 <script type="module" src="../assets/js/cms-admin-ui.js"></script>
+<script type="module" src="../assets/js/cms-professional.js"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>
@@ -972,7 +1016,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
     const titles={
       dashboard:"Dashboard",customers:"Users / Customers","user-requests":"User Requests",channels:"YouTube Channels",manage:"Manage Channel",
       access:"Access Requests",monetization:"Monetization Cases",adsense:"AdSense",analytics:"Analytics / Stats",reporting:"YouTube Reporting","live-streaming":"Live Streaming","live-chat":"Live Chat","embedded-player":"YouTube Embedded Player",oembed:"YouTube oEmbed",
-      copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History",cms:"Admin Dashboard CMS","website-cms":"Website CMS",
+      copyright:"Copyright / Restrictions",services:"Services",payments:"Payments / PayU","service-charge":"Service Charge",history:"History","public-notifications":"Notifications",cms:"Admin Dashboard CMS","website-cms":"Website CMS",
       editor:"Admin Editor",settings:"Settings"
     };
     const title=document.getElementById("adminPageTitle");
@@ -984,6 +1028,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 
 <script src="../assets/js/theme-i18n.js"></script>
 <script type="module" src="../assets/js/notifications.js"></script>
+<script type="module" src="../assets/js/admin-public-notifications.js"></script>
 <script type="module" src="../assets/js/feature-center.js"></script>
 </body>
 </html>

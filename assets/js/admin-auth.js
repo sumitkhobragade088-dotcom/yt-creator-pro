@@ -505,6 +505,7 @@ const premiumViewTitles={
   "service-charge":"Service Charge",
   history:"History",
   operations:"Operations Center",
+  "public-notifications":"Notifications",
   cms:"Admin Dashboard CMS",
   "website-cms":"Website CMS",
   editor:"Admin Editor",
