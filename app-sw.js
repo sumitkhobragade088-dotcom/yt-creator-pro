@@ -1,5 +1,5 @@
-const CACHE='yt-user-app-v10-install-green';
-const CORE=['./','index.html','login.html','register.html','dashboard.html','page.html','assets/css/style.css','assets/css/cms-control.css','assets/js/auth.js','assets/js/cms-engine.js','assets/js/cms-deep-catalog.js','assets/js/cms-deep.js','manifest.webmanifest','icon-192.png','icon-512.png'];
+const CACHE='yt-user-app-v11-contact';
+const CORE=['./','index.html','contact.html','login.html','register.html','dashboard.html','page.html','assets/css/style.css','assets/css/cms-control.css','assets/js/auth.js','assets/js/cms-engine.js','assets/js/cms-deep-catalog.js','assets/js/cms-deep.js','manifest.webmanifest','icon-192.png','icon-512.png'];
 
 self.addEventListener('install',e=>{
   self.skipWaiting();
