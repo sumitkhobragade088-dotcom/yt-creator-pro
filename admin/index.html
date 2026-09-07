@@ -985,6 +985,15 @@ document.documentElement.classList.add("yt-admin-boot");
       <p>Click a role to see its purpose. Assign an existing authorized admin/staff account to one role.</p>
       <div id="acsRoleCards" class="acs-role-cards"></div>
       <div id="acsRoleInfo" class="acs-role-info">Select a role above.</div>
+      <div class="acs-staff-create-box">
+        <div><h4>➕ Create / Invite Staff Account</h4><p>Invite a new staff member by email. The account is created through Supabase Auth; role access is applied after the invite is accepted.</p></div>
+        <input id="acsStaffName" maxlength="80" placeholder="Staff name">
+        <input id="acsStaffEmail" type="email" maxlength="254" placeholder="Staff email">
+        <select id="acsStaffRole">${ROLES.map(([k,l])=>`<option value="${k}">${l.replace(/^[^ ]+ /,'')}</option>`).join('')}</select>
+        <button id="acsCreateStaff" class="btn primary">Send Invite</button>
+        <span id="acsStaffMsg"></span>
+        <div class="acs-warning">⚠️ <b>Warning:</b> Staff ko sirf trusted email par invite karein. Super Admin role dene par full control milta hai. Invite accept hone ke baad hi login access milega.</div>
+      </div>
       <div class="acs-assign-box">
         <select id="acsAdminUserSelect"><option value="">Select admin/staff account…</option></select>
         <select id="acsNewRole">${ROLES.map(([k,l])=>`<option value="${k}">${l.replace(/^[^ ]+ /,'')}</option>`).join('')}</select>

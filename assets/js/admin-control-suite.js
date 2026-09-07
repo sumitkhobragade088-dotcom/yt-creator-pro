@@ -102,6 +102,24 @@ async function downloadCsv(){
   const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='payments-report.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
+async function createStaff(){
+  const name=$('acsStaffName')?.value.trim(), email=$('acsStaffEmail')?.value.trim().toLowerCase(), role=$('acsStaffRole')?.value;
+  if(!name || name.length<2) return setMsg('acsStaffMsg','Staff name is required.');
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email||'')) return setMsg('acsStaffMsg','Enter a valid staff email.');
+  if(role==='super_admin' && !confirmDanger('WARNING: Super Admin has full control, including roles, audit deletion, permanent trash deletion and system settings. Continue?')) return;
+  if(!confirmDanger(`Send a staff invitation to ${email} as ${role.replaceAll('_',' ')}?`)) return;
+  setMsg('acsStaffMsg','Sending secure invitation…');
+  try{
+    const {data,error}=await supabase.functions.invoke('create-admin-staff',{body:{name,email,role}});
+    if(error) throw error;
+    if(data?.error) throw new Error(data.error);
+    setMsg('acsStaffMsg','Invitation sent. Staff must accept the email before login.',true);
+    $('acsStaffName').value=''; $('acsStaffEmail').value='';
+    await log('staff_invited','admin_role_assignments',data?.user_id||null,{email,role});
+    await loadRoles();
+  }catch(e){setMsg('acsStaffMsg',e.message||'Staff invitation failed.')}
+}
+
 export async function initAdminControlSuite(){
   // The parent Admin Dashboard already performs authentication/protection.
   // Do NOT gate initialization on a second admin_users lookup: that lookup can

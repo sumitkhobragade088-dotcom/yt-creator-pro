@@ -22,6 +22,28 @@ as $$
   select exists(select 1 from public.admin_users a where a.user_id=auth.uid());
 $$;
 
+-- ---------- Staff account metadata ----------
+create table if not exists public.admin_staff_profiles(
+  user_id uuid primary key references public.admin_users(user_id) on delete cascade,
+  full_name text not null default '',
+  invited_email text not null,
+  invite_status text not null default 'invited' check(invite_status in('invited','active','disabled')),
+  invited_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+alter table public.admin_staff_profiles enable row level security;
+drop policy if exists "acs staff profile admin" on public.admin_staff_profiles;
+create policy "acs staff profile admin" on public.admin_staff_profiles for all to authenticated using(public.yt_is_admin()) with check(public.yt_is_admin());
+
+create or replace function public.admin_staff_list()
+returns table(user_id uuid,email text,full_name text,invite_status text,role text,invited_at timestamptz)
+language sql security definer set search_path=public as $$
+ select p.user_id,u.email,p.full_name,p.invite_status,coalesce(a.role,'operator'),p.invited_at
+ from public.admin_staff_profiles p join auth.users u on u.id=p.user_id
+ left join public.admin_role_assignments a on a.admin_user_id=p.user_id
+ where public.yt_is_super_admin() order by p.invited_at desc;
+$$;
+
 -- ---------- 4) Application workflow ----------
 create table if not exists public.application_status_history(
   id uuid primary key default gen_random_uuid(),
