@@ -182,7 +182,9 @@ document.documentElement.classList.add("yt-user-boot");
 </style>
 
   <link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
-</head>
+<style>
+.yt-service-select-hidden{display:none!important}.yt-professional-service-selector{padding:22px!important}.yt-service-selector-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}.yt-service-selector-head label{display:block;font-weight:900;font-size:15px}.yt-service-selector-head small{display:block;color:#667085;margin-top:4px}.yt-service-selector-head span{font-weight:800}.yt-user-service-checklist{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-height:360px;overflow:auto;padding:4px}.yt-user-service-check{display:flex;align-items:center;gap:11px;border:1px solid #e4e8f0;border-radius:12px;padding:13px;cursor:pointer;background:#fff}.yt-user-service-check:hover{background:#f7f9fc}.yt-user-service-check input{width:18px;height:18px;accent-color:#e11d48}.yt-user-service-check .svc-main{min-width:0}.yt-user-service-check .svc-name{font-weight:800;display:block}.yt-user-service-check .svc-desc{display:block;color:#667085;font-size:12px;margin-top:3px}.yt-user-service-check .svc-price{margin-left:auto;font-weight:900;white-space:nowrap}.yt-service-selector-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}.yt-service-total{margin-left:auto;text-align:right}.yt-service-total small{display:block;color:#667085}.yt-service-total b{font-size:20px}.yt-service-empty{padding:18px;text-align:center;color:#667085;border:1px dashed #d8dee9;border-radius:12px}.yt-service-selector-actions button{border:1px solid #d9deea;background:#fff;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer}.yt-service-selector-actions button:hover{background:#f5f7fb}@media(max-width:760px){.yt-user-service-checklist{grid-template-columns:1fr}.yt-service-total{margin-left:0}}
+</style></head>
 
 <body id="creatorDashboard" class="yt-user-dashboard-page">
 <div class="yt-demo-user-shell">
@@ -282,14 +284,12 @@ document.documentElement.classList.add("yt-user-boot");
       <div class="yt-demo-section-head">
         <div><span>SERVICES</span><h2>Creator Services</h2><p>Select one or more services and submit a new request.</p></div>
       </div>
-      <div class="yt-demo-content-card yt-demo-service-submit">
-        <label>Selected Services <span id="userServiceSelectedCount">0</span></label>
-        <select id="userServiceType" multiple size="7" aria-label="Select multiple services">
-          <option value="">Select Service</option>
-        </select>
-        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button id="selectAllUserServices" type="button">Select All Services</button><small class="yt-service-multi-help">Select one or more services.</small></div>
-        <div class="yt-service-total"><span>Total</span><b id="userServiceTotal">₹0.00</b></div>
-        <button id="submitUserServiceRequest" class="yt-user-red-btn" type="button">Submit Request</button>
+      <div class="yt-demo-content-card yt-demo-service-submit yt-professional-service-selector">
+        <div class="yt-service-selector-head"><div><label>Choose Services</label><small>Select any number of services you need.</small></div><span id="userServiceSelectedCount">0 selected</span></div>
+        <select id="userServiceType" multiple aria-label="Select multiple services" class="yt-service-select-hidden"><option value="">Select Service</option></select>
+        <div id="userServiceOptions" class="yt-user-service-checklist"><div class="yt-service-empty">Loading available services…</div></div>
+        <div class="yt-service-selector-actions"><button id="selectAllUserServices" type="button">☑ Select All</button><button id="clearAllUserServices" type="button">Clear All</button><div class="yt-service-total"><small>Total</small><b id="userServiceTotalAmount">₹0.00</b></div></div>
+        <button id="submitUserServiceRequest" class="yt-user-red-btn" type="button">Continue with Selected Services</button>
         <p id="userServiceRequestMessage"></p>
       </div>
       <div class="yt-demo-service-cards" id="userServiceCatalog">
@@ -568,7 +568,8 @@ document.addEventListener("DOMContentLoaded",()=>{
 <script src="assets/js/cms-deep-catalog.js"></script>
 <script type="module" src="assets/js/cms-engine.js"></script>
 <script type="module" src="assets/js/cms-deep.js"></script>
-<script type="module" src="assets/js/auth.js?v=4point2"></script>
+<script type="module" src="assets/js/auth.js"></script>
+<script type="module" src="assets/js/service-payment-flow.js"></script>
 <script type="module" src="assets/js/google-youtube.js"></script>
 <script>
 let dashboardInstallPrompt=null;
