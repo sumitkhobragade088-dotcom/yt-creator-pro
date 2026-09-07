@@ -248,7 +248,7 @@ async function loadServices() {
   }
 
   const rows = cachedServices || [];
-  select.innerHTML = '<option value="">Select Service</option>' + rows.map(s =>
+  select.innerHTML = rows.map(s =>
     `<option value="${esc(s.service_name)}">${esc(s.service_name)} — ${money(s.charge)}</option>`
   ).join("");
   catalog.innerHTML = rows.length ? rows.map(s => `
@@ -257,11 +257,24 @@ async function loadServices() {
       <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge)}</strong></small>
     </button>`).join("") : '<div class="yt-service-loading">No active services available.</div>';
 
+  const selectAll = $("selectAllUserServices");
+  selectAll?.addEventListener("click", () => {
+    [...select.options].forEach(o => o.selected = true);
+    catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.add("selected"));
+  });
+
   catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
     btn.addEventListener("click", () => {
-      select.value = btn.dataset.servicePick || "";
-      catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
-      btn.classList.add("selected");
+      const name = btn.dataset.servicePick || "";
+      if (select.multiple) {
+        const opt = [...select.options].find(o => o.value === name);
+        if (opt) opt.selected = !opt.selected;
+        btn.classList.toggle("selected", !!opt?.selected);
+      } else {
+        select.value = name;
+        catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
+        btn.classList.add("selected");
+      }
     });
   });
 }
@@ -307,18 +320,23 @@ async function submitServiceAndPay() {
   const btn = $("submitUserServiceRequest");
   const select = $("userServiceType");
   const message = $("userServiceRequestMessage");
-  const service_type = select?.value || "";
-  if (!service_type || !dashboardCustomer) return;
+  const selected = select ? [...select.selectedOptions].map(o => o.value).filter(Boolean) : [];
+  if (!selected.length || !dashboardCustomer) {
+    if (message) message.textContent = "Please select at least one service.";
+    return;
+  }
 
-  const charge = Number(serviceChargeMap.get(service_type) || 0);
-  if (charge <= 0) {
-    if (message) message.textContent = "Admin ne is service ka payment charge set nahi kiya.";
+  const missing = selected.filter(name => Number(serviceChargeMap.get(name) || 0) <= 0);
+  if (missing.length) {
+    if (message) message.textContent = `Charge not configured for: ${missing.join(", ")}`;
     return;
   }
 
   btn.disabled = true;
-  if (message) message.textContent = "Preparing payment...";
+  if (message) message.textContent = `Preparing payment for ${selected.length} service${selected.length > 1 ? "s" : ""}...`;
   try {
+    // One request contains the selected services; the DB trigger creates one invoice for their combined charge.
+    const service_type = selected.join(" | ");
     const res = await timeout(
       supabase.from("service_requests").insert({
         customer_id: dashboardCustomer.id,

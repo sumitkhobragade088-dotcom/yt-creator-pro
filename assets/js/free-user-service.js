@@ -22,7 +22,7 @@ async function loadCustomers(){
 async function loadChannels(customerId){
   const csel=$("freeServiceChannel"),ssel=$("freeServiceType"),btn=$("grantFreeService");
   if(!csel||!ssel)return;
-  channels=[]; csel.disabled=true; ssel.disabled=true; btn.disabled=true;
+  channels=[]; csel.disabled=true; ssel.disabled=true; btn.disabled=true; const allBtn=$("selectAllFreeServices"); if(allBtn) allBtn.disabled=true;
   csel.innerHTML='<option value="">Loading channels…</option>'; ssel.innerHTML='<option value="">Select channel first…</option>';
   if(!customerId)return;
   const {data,error}=await supabase.from("channel_access").select("id,customer_id,channel_name,channel_id,google_connected,manager_access").eq("customer_id",customerId).order("updated_at",{ascending:false});
@@ -39,23 +39,26 @@ async function loadServices(){
 function fillServices(){
   const ssel=$("freeServiceType"),csel=$("freeServiceChannel"),btn=$("grantFreeService");
   if(!ssel)return;
-  ssel.innerHTML='<option value="">Select service…</option>'+services.map(s=>`<option value="${esc(s.service_name)}">${esc(s.service_name)} — FREE</option>`).join("");
+  ssel.innerHTML=services.map(s=>`<option value="${esc(s.service_name)}">${esc(s.service_name)} — FREE</option>`).join("");
   ssel.disabled=!csel?.value;
-  btn.disabled=!(csel?.value&&ssel.value&&$("freeServiceCustomer")?.value);
+  const allBtn=$("selectAllFreeServices"); if(allBtn) allBtn.disabled=!csel?.value;
+  btn.disabled=!(csel?.value&&ssel.selectedOptions?.length&&$("freeServiceCustomer")?.value);
 }
 async function grant(){
-  const customer_id=$("freeServiceCustomer")?.value,channel_access_id=$("freeServiceChannel")?.value,service_type=$("freeServiceType")?.value,duration=$("freeServiceDuration")?.value||"unlimited",btn=$("grantFreeService");
-  if(!customer_id||!channel_access_id||!service_type)return;
-  btn.disabled=true; msg("Granting free service…");
+  const customer_id=$("freeServiceCustomer")?.value,channel_access_id=$("freeServiceChannel")?.value,ssel=$("freeServiceType"),duration=$("freeServiceDuration")?.value||"unlimited",btn=$("grantFreeService");
+  const service_types=ssel?[...ssel.selectedOptions].map(o=>o.value).filter(Boolean):[];
+  if(!customer_id||!channel_access_id||!service_types.length)return;
+  btn.disabled=true; msg(`Granting ${service_types.length} free service${service_types.length>1?"s":""}…`);
   const channel=channels.find(x=>x.id===channel_access_id);
   let expires_at=null;
   if(duration!=="unlimited"){const d=new Date();d.setDate(d.getDate()+Number(duration));expires_at=d.toISOString();}
   const {data:{user}}=await supabase.auth.getUser();
-  const {data,error}=await supabase.from("free_service_grants").insert({customer_id,channel_access_id,service_type,status:"active",expires_at,granted_by:user.id}).select("id").single();
+  const rows=service_types.map(service_type=>({customer_id,channel_access_id,service_type,status:"active",expires_at,granted_by:user.id}));
+  const {data,error}=await supabase.from("free_service_grants").insert(rows).select("id,service_type");
   if(error){msg(error.message);btn.disabled=false;return;}
-  await supabase.from("activity_logs").insert({actor_type:"admin",customer_id,action:"free_service_granted",target_type:"free_service_grant",target_id:data?.id||null,details:{service_type,channel_name:channel?.channel_name||"",expires_at}});
-  msg("Free service granted successfully.",true); await loadGrants();
-  $("freeServiceType").value=""; btn.disabled=false;
+  await Promise.all((data||[]).map(r=>supabase.from("activity_logs").insert({actor_type:"admin",customer_id,action:"free_service_granted",target_type:"free_service_grant",target_id:r.id||null,details:{service_type:r.service_type,channel_name:channel?.channel_name||"",expires_at}})));
+  msg(`${(data||[]).length} free service${(data||[]).length>1?"s":""} granted successfully.`,true); await loadGrants();
+  [...ssel.options].forEach(o=>o.selected=false); btn.disabled=false;
 }
 async function loadGrants(){
   const body=$("freeServiceGrantsBody");if(!body)return;
@@ -69,7 +72,11 @@ function bind(){
   $("freeServiceChannel")?.addEventListener("change",fillServices);
   $("freeServiceType")?.addEventListener("change",fillServices);
   $("grantFreeService")?.addEventListener("click",grant);
-  $("clearFreeService")?.addEventListener("click",()=>{["freeServiceCustomer","freeServiceChannel","freeServiceType"].forEach(id=>{const e=$(id);if(e)e.value="";});const c=$("freeServiceChannel"),s=$("freeServiceType"),b=$("grantFreeService");if(c){c.innerHTML='<option value="">Select customer first…</option>';c.disabled=true;}if(s){s.innerHTML='<option value="">Select channel first…</option>';s.disabled=true;}if(b)b.disabled=true;msg("");});
+  $("selectAllFreeServices")?.addEventListener("click",()=>{
+    const s=$("freeServiceType"); if(!s||s.disabled)return;
+    [...s.options].forEach(o=>o.selected=true); fillServices();
+  });
+  $("clearFreeService")?.addEventListener("click",()=>{["freeServiceCustomer","freeServiceChannel","freeServiceType"].forEach(id=>{const e=$(id);if(e){if(e.multiple)[...e.options].forEach(o=>o.selected=false);else e.value="";}});const c=$("freeServiceChannel"),s=$("freeServiceType"),b=$("grantFreeService");if(c){c.innerHTML='<option value="">Select customer first…</option>';c.disabled=true;}if(s){s.innerHTML='<option value="">Select channel first…</option>';s.disabled=true;}if(b)b.disabled=true;msg("");});
   $("refreshFreeServiceGrants")?.addEventListener("click",loadGrants);
 }
 async function init(){bind();await loadCustomers();await loadServices();await loadGrants();}

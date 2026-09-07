@@ -49,8 +49,9 @@ async function submitAndPay(){
   const btn=$("submitPaidServiceRequest");
   const select=$("userServiceType");
   const msg=$("userServiceRequestMessage");
-  const service=select?.value || "";
-  if(!service){ if(msg) msg.textContent="Please select a service."; return; }
+  const selected=select?[...select.selectedOptions].map(o=>o.value).filter(Boolean):[];
+  if(!selected.length){ if(msg) msg.textContent="Please select at least one service."; return; }
+  const service=selected.join(" | ");
 
   const customer=await currentCustomer();
   if(!customer){ if(msg) msg.textContent="Customer profile not found."; return; }

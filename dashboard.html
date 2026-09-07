@@ -280,13 +280,14 @@ document.documentElement.classList.add("yt-user-boot");
 
     <section class="yt-user-view" id="user-view-services">
       <div class="yt-demo-section-head">
-        <div><span>SERVICES</span><h2>Creator Services</h2><p>Select a service and submit a new request.</p></div>
+        <div><span>SERVICES</span><h2>Creator Services</h2><p>Select one or more services and submit a new request.</p></div>
       </div>
       <div class="yt-demo-content-card yt-demo-service-submit">
-        <label>Selected Service</label>
-        <select id="userServiceType">
+        <label>Selected Services</label>
+        <select id="userServiceType" multiple size="7" aria-label="Select multiple services">
           <option value="">Select Service</option>
         </select>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><button id="selectAllUserServices" type="button">Select All Services</button><small class="yt-service-multi-help">Select one or more services.</small></div>
         <button id="submitUserServiceRequest" class="yt-user-red-btn" type="button">Submit Request</button>
         <p id="userServiceRequestMessage"></p>
       </div>
