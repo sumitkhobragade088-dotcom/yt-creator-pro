@@ -2,7 +2,7 @@
 -- Features: Application workflow, Roles/Permissions, Audit Log, Revenue reports,
 -- Global Search, Trash/Restore, System Health.
 -- IMPORTANT: This migration matches the project's actual admin_users schema:
--- public.admin_users(user_id uuid). It does NOT assume id/email columns on admin_users.
+-- public.admin_users(id uuid, email text, created_at timestamptz).
 
 create extension if not exists pgcrypto;
 
@@ -12,19 +12,19 @@ returns boolean
 language sql stable security definer set search_path=public
 as $$
   select lower(coalesce(auth.jwt()->>'email','')) = 'sumitkhobragade088@gmail.com'
-    and exists(select 1 from public.admin_users a where a.user_id=auth.uid());
+    and exists(select 1 from public.admin_users a where a.id=auth.uid());
 $$;
 
 create or replace function public.yt_is_admin()
 returns boolean
 language sql stable security definer set search_path=public
 as $$
-  select exists(select 1 from public.admin_users a where a.user_id=auth.uid());
+  select exists(select 1 from public.admin_users a where a.id=auth.uid());
 $$;
 
 -- ---------- Staff account metadata ----------
 create table if not exists public.admin_staff_profiles(
-  user_id uuid primary key references public.admin_users(user_id) on delete cascade,
+  user_id uuid primary key references public.admin_users(id) on delete cascade,
   full_name text not null default '',
   invited_email text not null,
   invite_status text not null default 'invited' check(invite_status in('invited','active','disabled')),
@@ -84,7 +84,7 @@ where h.request_id=p_request_id order by h.changed_at desc limit 200 $$;
 -- ---------- 5) Roles and permissions ----------
 create table if not exists public.admin_role_assignments(
   id uuid primary key default gen_random_uuid(),
-  admin_user_id uuid not null unique references public.admin_users(user_id) on delete cascade,
+  admin_user_id uuid not null unique references public.admin_users(id) on delete cascade,
   role text not null default 'operator' check(role in('super_admin','manager','operator','support')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -114,8 +114,8 @@ or (r.role='support' and p.permission_key in('applications','search','users'))
 on conflict do nothing;
 
 insert into public.admin_role_assignments(admin_user_id,role)
-select a.user_id,'super_admin' from public.admin_users a
-join auth.users u on u.id=a.user_id
+select a.id,'super_admin' from public.admin_users a
+join auth.users u on u.id=a.id
 where lower(u.email)='sumitkhobragade088@gmail.com'
 on conflict(admin_user_id) do update set role='super_admin',updated_at=now();
 
@@ -152,7 +152,7 @@ create or replace function public.admin_assign_role(p_user_id uuid,p_role text)
 returns jsonb language plpgsql security definer set search_path=public as $$
 begin
   if not public.yt_is_super_admin() then raise exception 'Only Super Admin can assign roles'; end if;
-  if not exists(select 1 from public.admin_users where user_id=p_user_id) then raise exception 'Account is not an authorized admin/staff account'; end if;
+  if not exists(select 1 from public.admin_users where id=p_user_id) then raise exception 'Account is not an authorized admin/staff account'; end if;
   if p_role not in('super_admin','manager','operator','support') then raise exception 'Invalid role'; end if;
   insert into public.admin_role_assignments(admin_user_id,role) values(p_user_id,p_role)
   on conflict(admin_user_id) do update set role=excluded.role,updated_at=now();

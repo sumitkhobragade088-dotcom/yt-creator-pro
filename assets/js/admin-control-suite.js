@@ -19,24 +19,66 @@ async function log(action,targetType,targetId,details={}){
 function setMsg(id,msg,good=false){ const e=$(id); if(e){e.textContent=msg;e.className=good?'good-text':'error-text';} }
 
 async function loadRoles(){
-  const [roles,perms,assign]=await Promise.all([
+  const [roles,perms,assign,users]=await Promise.all([
     supabase.from('admin_role_assignments').select('id,admin_user_id,role,created_at').order('created_at'),
     supabase.from('admin_permissions').select('permission_key,label').order('permission_key'),
+    supabase.from('admin_role_assignments').select('id,admin_user_id,role,created_at').order('created_at'),
     supabase.from('admin_users').select('id,email').order('email')
   ]);
   const body=$('acsRolesBody'); if(!body)return;
-  if(roles.error||perms.error||assign.error){body.innerHTML='<tr><td colspan="4">Role tables are not installed. Run the supplied SQL first.</td></tr>';return;}
-  const emails=new Map((assign.data||[]).map(u=>[u.id,u.email]));
-  body.innerHTML=(roles.data||[]).map(r=>`<tr><td>${esc(emails.get(r.admin_user_id)||r.admin_user_id)}</td><td><select data-role-id="${r.id}">${['super_admin','manager','operator','support'].map(x=>`<option ${x===r.role?'selected':''}>${x}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><button class="btn primary" data-save-role="${r.id}">Save</button></td></tr>`).join('')||'<tr><td colspan="4">No admin roles found.</td></tr>';
-  body.querySelectorAll('[data-save-role]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.saveRole;const role=body.querySelector(`[data-role-id="${id}"]`).value;const {error}=await supabase.from('admin_role_assignments').update({role}).eq('id',id);if(error)return alert(error.message);await log('role_updated','admin_role_assignments',id,{role});await loadRoles();});
+  if(roles.error||perms.error||assign.error||users.error){
+    body.innerHTML=`<tr><td colspan="4">${esc((roles.error||perms.error||assign.error||users.error)?.message||'Role data could not be loaded.')}</td></tr>`;return;
+  }
+  const emails=new Map((users.data||[]).map(u=>[u.id,u.email]));
+  body.innerHTML=(roles.data||[]).map(r=>`<tr><td>${esc(emails.get(r.admin_user_id)||r.admin_user_id)}</td><td><select data-role-id="${r.id}">${['super_admin','manager','operator','support'].map(x=>`<option value="${x}" ${x===r.role?'selected':''}>${x.replaceAll('_',' ')}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><button class="btn primary" data-save-role="${r.id}">Save</button></td></tr>`).join('')||'<tr><td colspan="4">No staff roles assigned yet.</td></tr>';
+  body.querySelectorAll('[data-save-role]').forEach(btn=>btn.onclick=async()=>{
+    const id=btn.dataset.saveRole, role=body.querySelector(`[data-role-id="${id}"]`).value;
+    if(role==='super_admin' && !confirmDanger('WARNING: Super Admin has full control. Continue?')) return;
+    const {error}=await supabase.rpc('admin_set_role',{p_assignment_id:id,p_role:role});
+    if(error)return alert(error.message);
+    await log('role_updated','admin_role_assignments',id,{role}); await loadRoles();
+  });
   const p=$('acsPermissionList'); if(p)p.innerHTML=(perms.data||[]).map(x=>`<span class="acs-pill">${esc(x.label||x.permission_key)}</span>`).join('');
+  const cards=$('acsRoleCards');
+  if(cards){
+    const info={super_admin:['👑','Super Admin','Full control: staff, permissions, CMS, applications, revenue, audit and destructive actions.'],manager:['🧑‍💼','Manager','Manage applications, services, CMS and operational work; no Super Admin permission control.'],operator:['👨‍💻','Operator','Process applications and operational tasks with limited access.'],support:['🎧','Support','View applications, search and help users without destructive controls.']};
+    cards.innerHTML=Object.entries(info).map(([k,v])=>`<button type="button" class="acs-role-card" data-role-card="${k}"><span>${v[0]}</span><b>${v[1]}</b><small>${v[2]}</small></button>`).join('');
+    cards.querySelectorAll('[data-role-card]').forEach(c=>c.onclick=()=>{
+      cards.querySelectorAll('[data-role-card]').forEach(x=>x.classList.toggle('active',x===c));
+      const d=info[c.dataset.roleCard]; const el=$('acsRoleInfo'); if(el)el.innerHTML=`<b>${d[0]} ${d[1]}</b><br><span>${d[2]}</span>`;
+      const sel=$('acsStaffRole'); if(sel)sel.value=c.dataset.roleCard;
+    });
+  }
+  const assignSelect=$('acsAdminUserSelect');
+  if(assignSelect){
+    const assigned=new Map((roles.data||[]).map(r=>[r.admin_user_id,r.role]));
+    assignSelect.innerHTML='<option value="">Select admin/staff account…</option>'+(users.data||[]).map(u=>`<option value="${u.id}">${esc(u.email)}${assigned.has(u.id)?` — ${esc(assigned.get(u.id))}`:''}</option>`).join('');
+  }
   const pe=$('acsPermissionEditor'); if(pe){
-    const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['super_admin','manager','operator','support'];
-    const rp=(await supabase.from('admin_role_permissions').select('role,permission_key')).data||[]; const existing=new Set(rp.map(x=>x.role+'|'+x.permission_key));
-    pe.innerHTML=rolesList.map(role=>`<div class="acs-role-perm"><b>${role}</b>${allPerms.map(k=>`<label><input type="checkbox" data-rp-role="${role}" data-rp-key="${k}" ${existing.has(role+'|'+k)?'checked':''}> ${esc(k)}</label>`).join('')}</div>`).join('');
-    pe.querySelectorAll('[data-rp-role]').forEach(ch=>ch.addEventListener('change',async()=>{const role=ch.dataset.rpRole,key=ch.dataset.rpKey;if(ch.checked){const {error}=await supabase.from('admin_role_permissions').upsert({role,permission_key:key});if(error){ch.checked=false;alert(error.message);}}else{const {error}=await supabase.from('admin_role_permissions').delete().eq('role',role).eq('permission_key',key);if(error){ch.checked=true;alert(error.message);}}}));
+    const allPerms=(perms.data||[]).map(x=>x.permission_key), rolesList=['super_admin','manager','operator','support'];
+    const {data:rp}=await supabase.from('admin_role_permissions').select('role,permission_key');
+    const existing=new Set((rp||[]).map(x=>x.role+'|'+x.permission_key));
+    pe.innerHTML=rolesList.map(role=>`<div class="acs-role-perm"><b>${role.replaceAll('_',' ')}</b>${allPerms.map(k=>`<label><input type="checkbox" data-rp-role="${role}" data-rp-key="${k}" ${existing.has(role+'|'+k)?'checked':''}> ${esc(k)}</label>`).join('')}</div>`).join('');
+    pe.querySelectorAll('[data-rp-role]').forEach(ch=>ch.addEventListener('change',async()=>{
+      const role=ch.dataset.rpRole,key=ch.dataset.rpKey;
+      const {error}=await supabase.rpc('admin_set_role_permission',{p_role:role,p_permission_key:key,p_enabled:ch.checked});
+      if(error){ch.checked=!ch.checked;alert(error.message);}
+    }));
   }
 }
+
+async function assignRole(){
+  const userId=$('acsAdminUserSelect')?.value, role=$('acsNewRole')?.value;
+  if(!userId)return setMsg('acsRoleMsg','Select an admin/staff account first.');
+  if(role==='super_admin' && !confirmDanger('WARNING: Super Admin has full control. Continue?')) return;
+  if(!confirmDanger(`Assign ${role.replaceAll('_',' ')} role to this account?`)) return;
+  setMsg('acsRoleMsg','Saving role…');
+  const {error}=await supabase.rpc('admin_assign_role',{p_user_id:userId,p_role:role});
+  if(error)return setMsg('acsRoleMsg',error.message);
+  setMsg('acsRoleMsg','Role assigned successfully.',true); await log('role_assigned','admin_role_assignments',userId,{role}); await loadRoles();
+}
+
+function confirmDanger(message){ return window.confirm(`⚠️ WARNING\n\n${message}\n\nThis action changes administrator access. Continue?`); }
 
 async function loadApplications(){
   const body=$('acsApplicationsBody'); if(!body)return;
@@ -142,6 +184,8 @@ export async function initAdminControlSuite(){
   bind($('acsRevenueRefresh'),'click',loadRevenue);
   bind($('acsRevenueCsv'),'click',downloadCsv);
   bind($('acsHealthRefresh'),'click',healthCheck);
+  bind($('acsCreateStaff'),'click',createStaff);
+  bind($('acsAssignRole'),'click',assignRole);
 
   document.querySelectorAll('[data-acs-tab]').forEach(b=>{
     if(b.dataset.acsBound==='1') return;
