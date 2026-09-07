@@ -7,36 +7,41 @@ Deno.serve(async req=>{
   if(req.method==='OPTIONS') return new Response('ok',{headers:cors});
   try{
     const url=Deno.env.get('SUPABASE_URL')!, anon=Deno.env.get('SUPABASE_ANON_KEY')!, service=Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    if(!service) return json({error:'SUPABASE_SERVICE_ROLE_KEY is not configured.'},500);
     const auth=createClient(url,anon,{global:{headers:{Authorization:req.headers.get('Authorization')||''}}});
     const {data:{user},error:ue}=await auth.auth.getUser();
     if(ue||!user) return json({error:'Authentication required.'},401);
-
     const admin=createClient(url,service);
-    const {data:me,error:meErr}=await admin.from('admin_users').select('id,email').eq('id',user.id).maybeSingle();
-    if(meErr||!me) return json({error:'You are not an authorized admin.'},403);
-    const {data:myRole}=await admin.from('admin_role_assignments').select('role').eq('admin_user_id',user.id).maybeSingle();
-    if(myRole?.role!=='super_admin' && (user.email||'').toLowerCase()!=='sumitkhobragade088@gmail.com') return json({error:'Only Super Admin can create staff accounts.'},403);
+
+    const {data:caller}=await admin.from('admin_users').select('id,email').eq('id',user.id).maybeSingle();
+    if(!caller) return json({error:'Only Super Admin can create staff accounts.'},403);
+    const {data:callerRole}=await admin.from('admin_staff_roles').select('role,status').eq('admin_id',user.id).maybeSingle();
+    if(callerRole?.role!=='super_admin' || callerRole?.status!=='active') return json({error:'Only an active Super Admin can create staff accounts.'},403);
 
     const body=await req.json();
     const name=String(body.name||'').trim();
     const email=String(body.email||'').trim().toLowerCase();
     const role=String(body.role||'operator');
+    const password=String(body.password||'');
     if(name.length<2) return json({error:'Valid staff name is required.'},400);
     if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json({error:'Valid staff email is required.'},400);
-    if(!['manager','operator','support'].includes(role)) return json({error:'Staff role must be Manager, Operator or Support.'},400);
+    if(!['manager','operator','support'].includes(role)) return json({error:'Only Manager, Operator or Support can be created as staff.'},400);
+    if(password.length<8) return json({error:'Temporary password must be at least 8 characters.'},400);
 
-    const {data:existing}=await admin.from('admin_users').select('id,email').ilike('email',email).maybeSingle();
-    if(existing) return json({error:'This email is already an authorized admin/staff account.'},409);
+    const {data:existing}=await admin.auth.admin.listUsers({page:1,perPage:1000});
+    if((existing?.users||[]).some(u=>(u.email||'').toLowerCase()===email)) return json({error:'An account with this email already exists. Use role assignment instead.'},409);
 
-    const {data:inv,error:ie}=await admin.auth.admin.inviteUserByEmail(email,{data:{full_name:name,staff_role:role}});
-    if(ie||!inv?.user) return json({error:ie?.message||'Unable to create invitation.'},400);
-    const uid=inv.user.id;
+    const {data:created,error:ce}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:name,staff_role:role}});
+    if(ce||!created?.user) return json({error:ce?.message||'Unable to create Auth account.'},400);
+    const uid=created.user.id;
 
-    const {error:ae}=await admin.from('admin_users').insert({id:uid,email});
-    if(ae) return json({error:`Invitation created but admin authorization failed: ${ae.message}`},500);
-    const {error:re}=await admin.from('admin_role_assignments').insert({admin_user_id:uid,role});
-    if(re){ await admin.from('admin_users').delete().eq('id',uid); return json({error:`Invitation created but role assignment failed: ${re.message}`},500); }
+    const {error:ae}=await admin.from('admin_users').upsert({id:uid,email},{onConflict:'id'});
+    if(ae){ await admin.auth.admin.deleteUser(uid); return json({error:`Staff authorization failed: ${ae.message}`},500); }
+    const {error:re}=await admin.from('admin_staff_roles').upsert({admin_id:uid,role,status:'active',updated_at:new Date().toISOString()},{onConflict:'admin_id'});
+    if(re){ await admin.from('admin_users').delete().eq('id',uid); await admin.auth.admin.deleteUser(uid); return json({error:`Role assignment failed: ${re.message}`},500); }
+    const {error:pe}=await admin.from('admin_staff_profiles').upsert({admin_id:uid,full_name:name,invited_email:email,invite_status:'active',updated_at:new Date().toISOString()},{onConflict:'admin_id'});
+    if(pe){ /* Keep account authorized even if optional profile metadata fails. */ }
 
-    return json({ok:true,user_id:uid,email,role,name});
+    return json({ok:true,user_id:uid,email,role});
   }catch(e){ return json({error:e instanceof Error?e.message:'Unexpected server error.'},500); }
 });

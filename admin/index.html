@@ -986,21 +986,22 @@ document.documentElement.classList.add("yt-admin-boot");
       <div id="acsRoleCards" class="acs-role-cards"></div>
       <div id="acsRoleInfo" class="acs-role-info">Select a role above.</div>
       <div class="acs-staff-create-box">
-        <div><h4>➕ Create / Invite Staff Account</h4><p>Invite a new staff member by email. The account is created through Supabase Auth; role access is applied after the invite is accepted.</p></div>
-        <input id="acsStaffName" maxlength="80" placeholder="Staff name">
-        <input id="acsStaffEmail" type="email" maxlength="254" placeholder="Staff email">
-        <select id="acsStaffRole">${ROLES.map(([k,l])=>`<option value="${k}">${l.replace(/^[^ ]+ /,'')}</option>`).join('')}</select>
-        <button id="acsCreateStaff" class="btn primary">Send Invite</button>
+        <div><h4>➕ Create Staff Account</h4><p>Super Admin directly creates a staff login. Staff will use the normal Admin Login page with this email and temporary password.</p></div>
+        <input id="acsStaffName" maxlength="80" placeholder="Staff name" autocomplete="name">
+        <input id="acsStaffEmail" type="email" maxlength="254" placeholder="Staff email" autocomplete="email">
+        <select id="acsStaffRole" aria-label="Staff role"><option value="manager">Manager</option><option value="operator" selected>Operator</option><option value="support">Support</option></select>
+        <input id="acsStaffPassword" type="password" minlength="8" maxlength="72" placeholder="Temporary password" autocomplete="new-password">
+        <button id="acsCreateStaff" class="btn primary">Create Staff</button>
         <span id="acsStaffMsg"></span>
-        <div class="acs-warning">⚠️ <b>Warning:</b> Staff ko sirf trusted email par invite karein. Super Admin role dene par full control milta hai. Invite accept hone ke baad hi login access milega.</div>
+        <div class="acs-warning">⚠️ <b>Warning:</b> Staff account directly create hoga. Temporary password trusted staff ko securely dein. <b>Super Admin create nahi kiya ja sakta</b>; aapka Super Admin account protected rahega.</div>
       </div>
       <div class="acs-assign-box">
         <select id="acsAdminUserSelect"><option value="">Select admin/staff account…</option></select>
-        <select id="acsNewRole">${ROLES.map(([k,l])=>`<option value="${k}">${l.replace(/^[^ ]+ /,'')}</option>`).join('')}</select>
+        <select id="acsNewRole" aria-label="New role"><option value="manager">Manager</option><option value="operator">Operator</option><option value="support">Support</option></select>
         <button id="acsAssignRole" class="btn primary">Assign Role</button>
         <span id="acsRoleMsg"></span>
       </div>
-      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Admin / Staff</th><th>Current Role</th><th>Created</th><th>Action</th></tr></thead><tbody id="acsRolesBody"><tr><td colspan="4">Loading…</td></tr></tbody></table></div>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Admin / Staff</th><th>Role</th><th>Activity</th><th>Created</th><th>Action</th></tr></thead><tbody id="acsRolesBody"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
       <h4>Permission Matrix</h4><div id="acsPermissionEditor" class="acs-permission-editor"></div>
     </div>
   </div>

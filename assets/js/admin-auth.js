@@ -39,7 +39,13 @@ function showMessage(text, ok=false) {
 }
 
 async function isAdmin(user) {
-  return !!user && String(user.email||"").toLowerCase() === ADMIN_EMAIL.toLowerCase();
+  if(!user?.id) return false;
+  try{
+    const {data,error}=await supabase.from('admin_users').select('id').eq('id',user.id).maybeSingle();
+    if(error || !data) return false;
+    const {data:staff}=await supabase.from('admin_staff_roles').select('role,status').eq('admin_id',user.id).maybeSingle();
+    return !staff || ['active'].includes(staff.status||'active');
+  }catch(_){ return false; }
 }
 
 const form = $("adminLoginForm");
