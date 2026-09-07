@@ -12,11 +12,16 @@ async function currentCustomer(){
   const { data } = await supabase.from("customers").select("id").eq("user_id",user.id).maybeSingle();
   return data || null;
 }
-function selected(){return [...($("userServiceType")?.selectedOptions||[])].map(o=>o.value).filter(Boolean);}
+function selected(){
+  const box=$("userServiceOptions");
+  const checked=box ? [...box.querySelectorAll('input[data-user-service]:checked')].map(i=>i.value).filter(Boolean) : [];
+  if(checked.length) return checked;
+  return [...($("userServiceType")?.selectedOptions||[])].map(o=>o.value).filter(Boolean);
+}
 function syncUserServiceUI(){
   const sel=$("userServiceType"),box=$("userServiceOptions");if(!sel||!box)return;
   const chosen=new Set(selected()); let total=0;
-  userServices.forEach(s=>{if(chosen.has(s.service_name))total+=Number(s.charge||0);});
+  userServices.forEach(s=>{if(chosen.has(s.service_name))total+=Number(s.charge ?? 0);});
   box.querySelectorAll('input[data-user-service]').forEach(i=>i.checked=chosen.has(i.value));
   if($("userServiceSelectedCount"))$("userServiceSelectedCount").textContent=`${chosen.size} selected`;
   if($("userServiceTotalAmount"))$("userServiceTotalAmount").textContent=money(total);
@@ -81,7 +86,17 @@ async function loadPaidRequestsAndPayments(){
   const params=new URLSearchParams(location.search),result=params.get("payment");if(result){const success=result==="success";sessionStorage.setItem("yt_user_view",success?"requests":"payments");if(typeof window.openUserView==="function")window.openUserView(success?"requests":"payments");const box=$("userPaymentResultNew");if(box){box.hidden=false;box.className=`yt-payment-result ${success?"success":"failed"}`;box.textContent=success?"Payment successful ✅ Request My Requests me add ho gaya.":"Payment complete nahi hua. Yahan se Retry / Pay Again karein.";}history.replaceState({},"","dashboard.html");}
 }
 $("submitUserServiceRequest")?.addEventListener("click",submitAndPay);
-$("selectAllUserServices")?.addEventListener("click",()=>{const s=$("userServiceType");if(!s)return;[...s.options].forEach(o=>o.selected=true);syncUserServiceUI();});
-$("clearAllUserServices")?.addEventListener("click",()=>{const s=$("userServiceType");if(!s)return;[...s.options].forEach(o=>o.selected=false);syncUserServiceUI();});
+$("selectAllUserServices")?.addEventListener("click",()=>{
+  const s=$("userServiceType");
+  if(s)[...s.options].forEach(o=>o.selected=true);
+  $("userServiceOptions")?.querySelectorAll('input[data-user-service]').forEach(i=>i.checked=true);
+  syncUserServiceUI();
+});
+$("clearAllUserServices")?.addEventListener("click",()=>{
+  const s=$("userServiceType");
+  if(s)[...s.options].forEach(o=>o.selected=false);
+  $("userServiceOptions")?.querySelectorAll('input[data-user-service]').forEach(i=>i.checked=false);
+  syncUserServiceUI();
+});
 loadUserServices();
 loadPaidRequestsAndPayments();

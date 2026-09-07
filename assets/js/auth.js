@@ -469,18 +469,19 @@ async function loadRequestsAndPayments() {
 }
 
 function loadUserViewData(name) {
-  if (name === "services") loadServices();
+  // Service selection/payment is owned by assets/js/service-payment-flow.js.
+  // Do not reload the legacy service catalog here: doing so races with the
+  // checkbox selector and can overwrite the user's selected services.
   if (["requests","payments","monetization","adsense"].includes(name)) loadRequestsAndPayments();
 }
 
-document.getElementById("userServiceType")?.addEventListener("change",updateUserServiceTotal);
+// Service checkbox state and total are handled by service-payment-flow.js.
 document.addEventListener("click",(e)=>{
   const b=e.target.closest?.("[data-user-view]");
   if (b) loadUserViewData(b.dataset.userView);
 });
 
-const submitBtn = $("submitUserServiceRequest");
-if (submitBtn) submitBtn.addEventListener("click", submitServiceAndPay);
+// Submit handler is handled by service-payment-flow.js.
 
 
 function setProfileEditing(enabled){

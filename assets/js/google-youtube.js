@@ -1,6 +1,6 @@
 import { supabase } from "./supabase.js";
 
-const CLIENT_ID = "699096777627-on3eo7fsl0n2qij6il47vi0itkbbumpf.apps.googleusercontent.com";
+const CLIENT_ID = "699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com";
 function getYouTubeRedirectUri() {
   if (location.hostname === "khobragade.online" || location.hostname === "www.khobragade.online") {
     return "https://khobragade.online/google-callback.html";
