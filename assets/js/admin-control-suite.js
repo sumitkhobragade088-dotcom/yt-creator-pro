@@ -27,8 +27,15 @@ async function loadRoles(){
   const body=$('acsRolesBody'); if(!body)return;
   if(roles.error||perms.error||assign.error){body.innerHTML='<tr><td colspan="4">Role tables are not installed. Run the supplied SQL first.</td></tr>';return;}
   const emails=new Map((assign.data||[]).map(u=>[u.id,u.email]));
-  body.innerHTML=(roles.data||[]).map(r=>`<tr><td>${esc(emails.get(r.admin_user_id)||r.admin_user_id)}</td><td><select data-role-id="${r.id}">${['super_admin','manager','operator','support'].map(x=>`<option ${x===r.role?'selected':''}>${x}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><button class="btn primary" data-save-role="${r.id}">Save</button></td></tr>`).join('')||'<tr><td colspan="4">No admin roles found.</td></tr>';
+  body.innerHTML=(roles.data||[]).map(r=>`<tr><td>${esc(emails.get(r.admin_user_id)||r.admin_user_id)}</td><td><select data-role-id="${r.id}">${['super_admin','manager','operator','support'].map(x=>`<option ${x===r.role?'selected':''}>${x}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><button class="btn primary" data-save-role="${r.id}">Save</button> <button class="btn danger" data-delete-role="${r.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="4">No admin roles found.</td></tr>';
   body.querySelectorAll('[data-save-role]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.saveRole;const role=body.querySelector(`[data-role-id="${id}"]`).value;const {error}=await supabase.from('admin_role_assignments').update({role}).eq('id',id);if(error)return alert(error.message);await log('role_updated','admin_role_assignments',id,{role});await loadRoles();});
+  body.querySelectorAll('[data-delete-role]').forEach(btn=>btn.onclick=async()=>{
+    if(!confirm('Delete this role assignment? This cannot be undone.'))return;
+    const {error}=await supabase.from('admin_role_assignments').delete().eq('id',btn.dataset.deleteRole);
+    if(error)return alert(error.message);
+    await log('role_deleted','admin_role_assignments',btn.dataset.deleteRole);
+    await loadRoles();
+  });
   const p=$('acsPermissionList'); if(p)p.innerHTML=(perms.data||[]).map(x=>`<span class="acs-pill">${esc(x.label||x.permission_key)}</span>`).join('');
   const pe=$('acsPermissionEditor'); if(pe){
     const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['super_admin','manager','operator','support'];
@@ -41,7 +48,7 @@ async function loadRoles(){
 async function loadApplications(){
   const body=$('acsApplicationsBody'); if(!body)return;
   const {data,error}=await supabase.from('service_requests').select('*').order('created_at',{ascending:false}).limit(100);
-  if(error){body.innerHTML=`<tr><td colspan="6">${esc(error.message)}</td></tr>`;return;}
+  if(error){body.innerHTML=`<tr><td colspan="7">${esc(error.message)}</td></tr>`;return;}
   body.innerHTML=(data||[]).map(r=>`<tr><td>${esc(r.id).slice(0,8)}…</td><td>${esc(r.service_type||r.service_name||'-')}</td><td><select data-status="${r.id}">${['pending','under_review','documents_required','approved','rejected','completed','payment_pending'].map(s=>`<option value="${s}" ${String(r.status||'').toLowerCase()===s?'selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><input data-note="${r.id}" placeholder="Admin note"></td><td><button class="btn primary" data-save-app="${r.id}">Save</button> <button class="btn" data-history-app="${r.id}">History</button> <button class="btn danger" data-trash-app="${r.id}">Trash</button></td></tr>`).join('')||'<tr><td colspan="6">No applications.</td></tr>';
   body.querySelectorAll('[data-history-app]').forEach(btn=>btn.onclick=async()=>{const {data,error}=await supabase.from('application_status_history').select('old_status,new_status,note,changed_at').eq('request_id',btn.dataset.historyApp).order('changed_at',{ascending:false});if(error)return alert(error.message);alert((data||[]).map(x=>`${dateText(x.changed_at)} — ${x.old_status||'NEW'} → ${x.new_status}${x.note?' — '+x.note:''}`).join('\n')||'No status history.');});
   body.querySelectorAll('[data-trash-app]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Move this application to Trash?'))return;const {error}=await supabase.rpc('admin_soft_delete_record',{p_table:'service_requests',p_id:btn.dataset.trashApp});if(error)return alert(error.message);await log('application_trashed','service_requests',btn.dataset.trashApp);await loadApplications();loadTrash();});
@@ -71,7 +78,13 @@ async function loadAudit(){
   const body=$('acsAuditBody'); if(!body)return;
   const {data,error}=await supabase.from('activity_logs').select('id,actor_type,action,target_type,target_id,details,created_at').order('created_at',{ascending:false}).limit(200);
   if(error){body.innerHTML=`<tr><td colspan="6">${esc(error.message)}</td></tr>`;return;}
-  body.innerHTML=(data||[]).map(x=>`<tr><td>${dateText(x.created_at)}</td><td>${esc(x.actor_type)}</td><td>${esc(x.action)}</td><td>${esc(x.target_type||'-')}</td><td>${esc(x.target_id||'-')}</td><td><code>${esc(JSON.stringify(x.details||{}))}</code></td></tr>`).join('')||'<tr><td colspan="6">No audit records.</td></tr>';
+  body.innerHTML=(data||[]).map(x=>`<tr><td>${dateText(x.created_at)}</td><td>${esc(x.actor_type)}</td><td>${esc(x.action)}</td><td>${esc(x.target_type||'-')}</td><td>${esc(x.target_id||'-')}</td><td><code>${esc(JSON.stringify(x.details||{}))}</code></td><td><button class="btn danger" data-delete-audit="${x.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="7">No audit records.</td></tr>';
+  body.querySelectorAll('[data-delete-audit]').forEach(btn=>btn.onclick=async()=>{
+    if(!confirm('Delete this audit log? This cannot be undone.'))return;
+    const {error}=await supabase.from('activity_logs').delete().eq('id',btn.dataset.deleteAudit);
+    if(error)return alert(error.message);
+    await loadAudit();
+  });
 }
 
 async function loadTrash(){

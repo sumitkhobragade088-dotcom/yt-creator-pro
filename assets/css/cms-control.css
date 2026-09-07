@@ -16,3 +16,19 @@
 #view-control-suite select,#view-control-suite input{max-width:100%;box-sizing:border-box;padding:8px;border:1px solid #d0d5dd;border-radius:8px}
 
 .acs-permission-editor{display:grid;gap:12px;margin-top:16px}.acs-role-perm{border:1px solid #e4e7ec;border-radius:12px;padding:12px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}.acs-role-perm b{min-width:100px}.acs-role-perm label{font-size:12px}
+
+/* Admin Control Suite tab selection polish.
+   Each selected module gets a distinct color; inactive tabs remain neutral. */
+.acs-tabs .btn[data-acs-tab]{transition:background-color .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .12s ease}
+.acs-tabs .btn[data-acs-tab]:hover{transform:translateY(-1px)}
+.acs-tabs .btn[data-acs-tab].active{color:#fff!important;font-weight:900;box-shadow:0 5px 14px rgba(15,23,42,.16)}
+.acs-tabs .btn[data-acs-tab="applications"].active{background:#16a34a!important;border-color:#16a34a!important}
+.acs-tabs .btn[data-acs-tab="roles"].active{background:#2563eb!important;border-color:#2563eb!important}
+.acs-tabs .btn[data-acs-tab="audit"].active{background:#7c3aed!important;border-color:#7c3aed!important}
+.acs-tabs .btn[data-acs-tab="revenue"].active{background:#d97706!important;border-color:#d97706!important}
+.acs-tabs .btn[data-acs-tab="search"].active{background:#0891b2!important;border-color:#0891b2!important}
+.acs-tabs .btn[data-acs-tab="trash"].active{background:#dc2626!important;border-color:#dc2626!important}
+.acs-tabs .btn[data-acs-tab="health"].active{background:#059669!important;border-color:#059669!important}
+.acs-tabs .btn[data-acs-tab]:focus-visible{outline:3px solid rgba(37,99,235,.28);outline-offset:2px}
+/* Keep action columns usable on smaller screens. */
+.acs-panel .data-table td:last-child,.acs-panel .data-table th:last-child{white-space:nowrap}
