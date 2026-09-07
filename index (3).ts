@@ -40,7 +40,7 @@ Deno.serve(async (req) => {
     const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
     const ANON = Deno.env.get("SUPABASE_ANON_KEY")!;
     const SERVICE = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") || "699096777627-ch5ds0kau6qej3m91mfi0mk7dbdjgppe.apps.googleusercontent.com";
+    const CLIENT_ID = Deno.env.get("GOOGLE_CLIENT_ID") || "699096777627-on3eo7fsl0n2qij6il47vi0itkbbumpf.apps.googleusercontent.com";
     const CLIENT_SECRET = Deno.env.get("GOOGLE_CLIENT_SECRET")!;
 
     const auth = req.headers.get("Authorization");
