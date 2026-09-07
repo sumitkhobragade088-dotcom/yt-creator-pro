@@ -99,8 +99,23 @@ function sortByOrder(nodes,order,keyFn){if(!Array.isArray(order)||!order.length)
 function adminNavConfig(c,key){const legacyHidden=(c.hidden||[]).includes(key),v=c.nav?.[key];const out=typeof v==='string'?{label:v}:{label:'',icon:'',...(v||{})};out.hidden=!!(legacyHidden||out.hidden||out.inactive||out.deleted||out.status==='draft');return out}
 function cmsLive(v){return !!v&&!v.hidden&&!v.inactive&&!v.deleted&&v.status!=='draft'}
 
+function applyElementOverrides(c){
+  for(const x of (c?.elementOverrides||[])){
+    if(!x?.selector) continue;
+    let nodes=[];
+    try{nodes=[...document.querySelectorAll(x.selector)]}catch(_){continue}
+    for(const el of nodes){
+      if(x.text!==undefined && x.text!=='') el.textContent=x.text;
+      if(x.html!==undefined && x.html!=='') el.innerHTML=x.html;
+      if(x.href!==undefined && x.href!=='' && el.tagName==='A') el.setAttribute('href',x.href);
+      el.hidden=!!x.hidden;
+      if(x.css) el.style.cssText += ';'+String(x.css);
+    }
+  }
+}
+
 async function applyAdmin(){
-  const c=await read('admin_cms'),t=await read('admin_theme');applyThemeVars(t,true);applyAdvancedTheme(t,true);
+  const c=await read('admin_cms'),t=await read('admin_theme');applyThemeVars(t,true);applyAdvancedTheme(t,true);applyElementOverrides(c);
   const nav=document.querySelector('.yt-premium-nav');
   if(nav){
     const existing=[...nav.querySelectorAll('[data-view]')];
@@ -132,7 +147,7 @@ function renderVirtualPage(c,slug){
   document.title=x.seoTitle||x.title||x.label||document.title;if(x.seoDescription)setMeta('description',x.seoDescription);if(x.seoKeywords)setMeta('keywords',x.seoKeywords);if(x.robots)setMeta('robots',x.robots);if(x.ogTitle)setMeta('og:title',x.ogTitle,'property');if(x.ogDescription)setMeta('og:description',x.ogDescription,'property');if(x.ogImage)setMeta('og:image',x.ogImage,'property');return true;
 }
 async function applyWebsite(){
-  const c=await read('website_cms'),t=await read('website_theme'),seo=await read('seo');applyThemeVars(t,false);applyAdvancedTheme(t,false);
+  const c=await read('website_cms'),t=await read('website_theme'),seo=await read('seo');applyThemeVars(t,false);applyAdvancedTheme(t,false);applyElementOverrides(c);
   const page=currentPage(),params=new URLSearchParams(location.search),virtualSlug=params.get('slug')||params.get('page');
   if(page==='index.html'||page===''||page==='page.html'){
     const brandB=document.querySelector('.yt-user-public-brand b'),brandSmall=document.querySelector('.yt-user-public-brand small');if(brandB&&c.brand?.name)brandB.textContent=c.brand.name;if(brandSmall&&c.brand?.tagline)brandSmall.textContent=c.brand.tagline;

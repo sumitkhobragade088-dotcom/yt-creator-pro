@@ -1,4 +1,5 @@
 import { supabase } from "./supabase.js";
+import { collectCmsServiceFormData } from "./cms-service-form-runtime.js";
 
 const $ = (id) => document.getElementById(id);
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN",{minimumFractionDigits:2,maximumFractionDigits:2})}`;
@@ -60,6 +61,7 @@ async function submitAndPay(){
   try{
     const {data:req,error}=await supabase.from("service_requests").insert({customer_id:customer.id,service_type:selectedServices.join(" | "),status:"pending"}).select("id").single();
     if(error)throw error;
+    await collectCmsServiceFormData(req.id,customer.id,selectedServices);
     const payment=await waitForPayment(req.id,customer.id);
     if(!payment)throw new Error("Payment record create nahi hua. Service Charge check karein.");
     await openPayU(payment.id,btn);
