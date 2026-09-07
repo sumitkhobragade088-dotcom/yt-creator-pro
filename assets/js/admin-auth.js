@@ -487,6 +487,7 @@ if($("adminSidebarLogout")) $("adminSidebarLogout").onclick=window.adminLogout;
 const premiumViewTitles={
   dashboard:"Dashboard",
   customers:"Users / Customers",
+  "free-user-service":"🎁 Free User Service",
   "user-requests":"User Requests",
   channels:"YouTube Channels",
   manage:"Manage Channel",
