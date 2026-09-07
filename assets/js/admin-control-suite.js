@@ -103,11 +103,37 @@ async function downloadCsv(){
 }
 
 export async function initAdminControlSuite(){
-  if(!document.body.classList.contains('yt-premium-admin-page') || !(await isAdmin()))return;
-  $('acsRefresh')?.addEventListener('click',()=>{loadApplications();loadRoles();loadRevenue();loadAudit();loadTrash();healthCheck();});
-  $('acsSearchBtn')?.addEventListener('click',globalSearch); $('acsSearchInput')?.addEventListener('keydown',e=>{if(e.key==='Enter')globalSearch();});
-  $('acsRevenueRefresh')?.addEventListener('click',loadRevenue); $('acsRevenueCsv')?.addEventListener('click',downloadCsv); $('acsHealthRefresh')?.addEventListener('click',healthCheck);
-  document.querySelectorAll('[data-acs-tab]').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('[data-acs-panel]').forEach(p=>p.hidden=p.dataset.acsPanel!==b.dataset.acsTab);document.querySelectorAll('[data-acs-tab]').forEach(x=>x.classList.toggle('active',x===b));}));
+  // The parent Admin Dashboard already performs authentication/protection.
+  // Do NOT gate initialization on a second admin_users lookup: that lookup can
+  // be blocked by RLS or use a different admin schema, which previously caused
+  // the entire suite to return early and left every tab/button dead.
+  if(!document.body.classList.contains('yt-premium-admin-page')) return;
+
+  const bind = (el, event, fn) => {
+    if(!el || el.dataset.acsBound === '1') return;
+    el.dataset.acsBound = '1';
+    el.addEventListener(event, async (e) => {
+      try { await fn(e); }
+      catch (err) { console.error('[Admin Control Suite]', err); alert(err?.message || 'Admin Control Suite error'); }
+    });
+  };
+
+  bind($('acsRefresh'),'click',()=>Promise.allSettled([loadApplications(),loadRoles(),loadRevenue(),loadAudit(),loadTrash(),healthCheck()]));
+  bind($('acsSearchBtn'),'click',globalSearch);
+  bind($('acsSearchInput'),'keydown',e=>{ if(e.key==='Enter') return globalSearch(); });
+  bind($('acsRevenueRefresh'),'click',loadRevenue);
+  bind($('acsRevenueCsv'),'click',downloadCsv);
+  bind($('acsHealthRefresh'),'click',healthCheck);
+
+  document.querySelectorAll('[data-acs-tab]').forEach(b=>{
+    if(b.dataset.acsBound==='1') return;
+    b.dataset.acsBound='1';
+    b.addEventListener('click',()=>{
+      const tab=b.dataset.acsTab;
+      document.querySelectorAll('[data-acs-panel]').forEach(p=>p.hidden=p.dataset.acsPanel!==tab);
+      document.querySelectorAll('[data-acs-tab]').forEach(x=>x.classList.toggle('active',x===b));
+    });
+  });
   loadApplications();loadRoles();loadRevenue();loadAudit();loadTrash();healthCheck();
 }
 window.initAdminControlSuite=initAdminControlSuite;
