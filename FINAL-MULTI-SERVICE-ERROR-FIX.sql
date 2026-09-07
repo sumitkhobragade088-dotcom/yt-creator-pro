@@ -1,4 +1,5 @@
 -- YT Creator Pro — FINAL MULTI-SERVICE ERROR FIX
+-- Includes admin customer-list RLS and service-charge read access.
 -- Run once in Supabase SQL Editor.
 -- Fixes: service_charges.amount does not exist; admin cannot see existing customers.
 
