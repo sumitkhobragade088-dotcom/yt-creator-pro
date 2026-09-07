@@ -237,33 +237,54 @@ async function loadServices() {
 
   if (!cachedServices) {
     cachedServices = await safeQuery(
-      supabase.from("service_charges")
-        .select("id,service_name,description,charge,is_active,sort_order")
-        .eq("is_active", true)
-        .order("sort_order",{ascending:true})
-        .order("service_name",{ascending:true}),
+      supabase.from("service_charges").select("*"),
       [], "Services"
     );
-    serviceChargeMap = new Map((cachedServices || []).map(s => [s.service_name, Number(s.charge || 0)]));
+    cachedServices = (cachedServices || []).filter(s => s.is_active !== false).sort((a,b)=>(Number(a.sort_order ?? 999999)-Number(b.sort_order ?? 999999))||String(a.service_name||a.name||"").localeCompare(String(b.service_name||b.name||"")));
+    serviceChargeMap = new Map((cachedServices || []).map(s => [s.service_name || s.name, Number(s.charge ?? s.amount ?? s.price ?? s.service_charge ?? 0)]));
   }
 
   const rows = cachedServices || [];
-  select.innerHTML = '<option value="">Select Service</option>' + rows.map(s =>
-    `<option value="${esc(s.service_name)}">${esc(s.service_name)} — ${money(s.charge)}</option>`
+  select.innerHTML = rows.map(s =>
+    `<option value="${esc(s.service_name)}">${esc(s.service_name || s.name || "Service")} — ${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</option>`
   ).join("");
   catalog.innerHTML = rows.length ? rows.map(s => `
     <button type="button" data-service-pick="${esc(s.service_name)}">
-      <span>▶️</span><b>${esc(s.service_name)}</b>
+      <span>▶️</span><b>${esc(s.service_name || s.name || "Service")}</b>
       <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge)}</strong></small>
     </button>`).join("") : '<div class="yt-service-loading">No active services available.</div>';
 
+  const selectAll = $("selectAllUserServices");
+  selectAll?.addEventListener("click", () => {
+    [...select.options].forEach(o => o.selected = true);
+    catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.add("selected"));
+    updateUserServiceTotal();
+  });
+
   catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
     btn.addEventListener("click", () => {
-      select.value = btn.dataset.servicePick || "";
-      catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
-      btn.classList.add("selected");
+      const name = btn.dataset.servicePick || "";
+      if (select.multiple) {
+        const opt = [...select.options].find(o => o.value === name);
+        if (opt) opt.selected = !opt.selected;
+        btn.classList.toggle("selected", !!opt?.selected);
+        updateUserServiceTotal();
+      } else {
+        select.value = name;
+        catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
+        btn.classList.add("selected");
+      }
     });
   });
+}
+
+function updateUserServiceTotal(){
+  const select=$("userServiceType");
+  if(!select) return;
+  const selected=[...select.selectedOptions].map(o=>o.value).filter(Boolean);
+  const total=selected.reduce((sum,name)=>sum+Number(serviceChargeMap.get(name)||0),0);
+  const totalEl=$("userServiceTotal"); if(totalEl) totalEl.textContent=money(total);
+  const countEl=$("userServiceSelectedCount"); if(countEl) countEl.textContent=String(selected.length);
 }
 
 async function startPayU(paymentId, btn=null) {
@@ -307,18 +328,23 @@ async function submitServiceAndPay() {
   const btn = $("submitUserServiceRequest");
   const select = $("userServiceType");
   const message = $("userServiceRequestMessage");
-  const service_type = select?.value || "";
-  if (!service_type || !dashboardCustomer) return;
+  const selected = select ? [...select.selectedOptions].map(o => o.value).filter(Boolean) : [];
+  if (!selected.length || !dashboardCustomer) {
+    if (message) message.textContent = "Please select at least one service.";
+    return;
+  }
 
-  const charge = Number(serviceChargeMap.get(service_type) || 0);
-  if (charge <= 0) {
-    if (message) message.textContent = "Admin ne is service ka payment charge set nahi kiya.";
+  const missing = selected.filter(name => Number(serviceChargeMap.get(name) || 0) <= 0);
+  if (missing.length) {
+    if (message) message.textContent = `Charge not configured for: ${missing.join(", ")}`;
     return;
   }
 
   btn.disabled = true;
-  if (message) message.textContent = "Preparing payment...";
+  if (message) message.textContent = `Preparing payment for ${selected.length} service${selected.length > 1 ? "s" : ""}...`;
   try {
+    // One request contains the selected services; the DB trigger creates one invoice for their combined charge.
+    const service_type = selected.join(" | ");
     const res = await timeout(
       supabase.from("service_requests").insert({
         customer_id: dashboardCustomer.id,
@@ -447,6 +473,7 @@ function loadUserViewData(name) {
   if (["requests","payments","monetization","adsense"].includes(name)) loadRequestsAndPayments();
 }
 
+document.getElementById("userServiceType")?.addEventListener("change",updateUserServiceTotal);
 document.addEventListener("click",(e)=>{
   const b=e.target.closest?.("[data-user-view]");
   if (b) loadUserViewData(b.dataset.userView);
