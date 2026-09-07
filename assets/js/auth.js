@@ -229,6 +229,7 @@ async function loadDashboard() {
 async function loadServices() {
   const catalog = $("userServiceCatalog");
   const select = $("userServiceType");
+  const checklist = $("userServiceOptions");
   if (!catalog || !select) return;
   if (!dashboardCustomer) {
     catalog.innerHTML = '<div class="yt-service-loading">Customer profile unavailable.</div>';
@@ -248,34 +249,34 @@ async function loadServices() {
   select.innerHTML = rows.map(s =>
     `<option value="${esc(s.service_name)}">${esc(s.service_name || s.name || "Service")} — ${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</option>`
   ).join("");
+
+  if (checklist) {
+    checklist.innerHTML = rows.length ? rows.map(s => `<label class="yt-user-service-check"><input type="checkbox" data-user-service value="${esc(s.service_name)}"><span class="svc-main"><span class="svc-name">${esc(s.service_name || s.name || "Service")}</span>${s.description?`<span class="svc-desc">${esc(s.description)}</span>`:""}</span><span class="svc-price">${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</span></label>`).join("") : '<div class="yt-service-empty">No active services available.</div>';
+    checklist.querySelectorAll('input[data-user-service]').forEach(i=>i.addEventListener("change",()=>{
+      const opt=[...select.options].find(o=>o.value===i.value);if(opt)opt.selected=i.checked;updateUserServiceTotal();
+    }));
+  }
+
   catalog.innerHTML = rows.length ? rows.map(s => `
     <button type="button" data-service-pick="${esc(s.service_name)}">
       <span>▶️</span><b>${esc(s.service_name || s.name || "Service")}</b>
-      <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge)}</strong></small>
+      <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</strong></small>
     </button>`).join("") : '<div class="yt-service-loading">No active services available.</div>';
-
-  const selectAll = $("selectAllUserServices");
-  selectAll?.addEventListener("click", () => {
-    [...select.options].forEach(o => o.selected = true);
-    catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.add("selected"));
-    updateUserServiceTotal();
-  });
 
   catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
     btn.addEventListener("click", () => {
-      const name = btn.dataset.servicePick || "";
-      if (select.multiple) {
-        const opt = [...select.options].find(o => o.value === name);
-        if (opt) opt.selected = !opt.selected;
-        btn.classList.toggle("selected", !!opt?.selected);
+      const name=btn.dataset.servicePick||"";
+      const opt=[...select.options].find(o=>o.value===name);
+      if(select.multiple){
+        if(opt)opt.selected=!opt.selected;
+        const check=checklist?.querySelector(`input[data-user-service][value="${CSS.escape(name)}"]`);
+        if(check)check.checked=!!opt?.selected;
+        btn.classList.toggle("selected",!!opt?.selected);
         updateUserServiceTotal();
-      } else {
-        select.value = name;
-        catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
-        btn.classList.add("selected");
-      }
+      } else if(opt){select.value=name;catalog.querySelectorAll("[data-service-pick]").forEach(x=>x.classList.remove("selected"));btn.classList.add("selected");}
     });
   });
+  updateUserServiceTotal();
 }
 
 function updateUserServiceTotal(){
@@ -372,7 +373,7 @@ function payStatus(p) {
 
 async function loadRequestsAndPayments() {
   if (!dashboardCustomer) return;
-  const [reqs, payments] = await Promise.all([
+  const [reqs, payments, freeGrants] = await Promise.all([
     safeQuery(
       supabase.from("service_requests").select("id,service_type,status,created_at").eq("customer_id",dashboardCustomer.id).order("created_at",{ascending:false}),
       [], "Requests"
@@ -380,11 +381,27 @@ async function loadRequestsAndPayments() {
     safeQuery(
       supabase.from("payments").select("id,request_id,service_name,amount,currency,status,txnid,mihpayid,error_message,created_at,updated_at").eq("customer_id",dashboardCustomer.id).order("created_at",{ascending:false}),
       [], "Payments"
+    ),
+    safeQuery(
+      supabase.from("free_service_grants").select("id,channel_access_id,service_type,status,expires_at,created_at,channel_access(channel_name)").eq("customer_id",dashboardCustomer.id).order("created_at",{ascending:false}),
+      [], "Free services"
     )
   ]);
 
+  const now=Date.now();
+  const activeFree=(freeGrants||[]).filter(g=>String(g.status||"").toLowerCase()==="active" && (!g.expires_at || new Date(g.expires_at).getTime()>now));
+  const freeServiceNames=new Set(activeFree.map(g=>String(g.service_type||"").trim()).filter(Boolean));
+  const freeRequestIds=new Set();
+  const isFreeCoveredRequest=(r)=>{
+    const parts=String(r?.service_type||"").split("|").map(x=>x.trim()).filter(Boolean);
+    if(!parts.length||!freeServiceNames.size)return false;
+    return parts.every(name=>freeServiceNames.has(name));
+  };
+  (reqs||[]).forEach(r=>{if(isFreeCoveredRequest(r))freeRequestIds.add(r.id);});
+
   const pMap = new Map((payments||[]).map(p=>[p.request_id,p]));
-  const paidRequests = (reqs||[]).filter(r => payStatus(pMap.get(r.id)) === "paid");
+  const paidRequests = (reqs||[]).filter(r => !freeRequestIds.has(r.id) && payStatus(pMap.get(r)) === "paid");
+  const paidOrNonFreeRequests = (reqs||[]).filter(r => !freeRequestIds.has(r.id));
 
   const prettyStatus=(value)=>{
     const st=String(value||"pending").toLowerCase();
@@ -405,83 +422,57 @@ async function loadRequestsAndPayments() {
     return Number.isNaN(d.getTime())?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
   };
 
-  // My Requests: show every request for this customer, with both request and payment status.
-  const list = $("requestList");
-  if (list) {
-    list.innerHTML = (reqs||[]).length ? (reqs||[]).map(r => {
-      const p=pMap.get(r.id);
-      const pst=payStatus(p);
+  const freeBox=$("requestList");
+  if(freeBox){
+    const freeCards=activeFree.map(g=>`<div class="yt-user-request-card">
+      <div class="yt-user-request-main">
+        <b>${esc(g.service_type||"Free Service")}</b>
+        <div class="yt-user-request-meta"><span>Channel: ${esc(g.channel_access?.channel_name||"YouTube Channel")}</span><span>Granted: ${esc(dateText(g.created_at))}</span></div>
+      </div>
+      <div class="yt-user-status-stack"><span class="yt-user-status-chip completed">Free / Granted</span><span class="yt-user-status-chip paid">Payment: Not Required</span></div>
+    </div>`).join("");
+    const normalCards=paidOrNonFreeRequests.map(r=>{
+      const p=pMap.get(r.id),pst=payStatus(p);
       const payLabel=pst==="paid"?"Paid":pst==="failed"?"Failed":(pst==="cancelled"||pst==="canceled")?"Cancelled":"Pending";
       const payClass=pst==="paid"?"paid":pst==="failed"?"failed":(pst==="cancelled"||pst==="canceled")?"cancelled":"pending";
-      return `<div class="yt-user-request-card">
-        <div class="yt-user-request-main">
-          <b>${esc(r.service_type||"Service")}</b>
-          <div class="yt-user-request-meta">
-            <span>Request: ${esc(String(r.id||"").slice(0,8).toUpperCase())}</span>
-            <span>${esc(dateText(r.created_at))}</span>
-          </div>
-        </div>
-        <div class="yt-user-status-stack">
-          <span class="yt-user-status-chip ${statusClass(r.status)}">${esc(prettyStatus(r.status))}</span>
-          <span class="yt-user-status-chip ${payClass}">Payment: ${esc(payLabel)}</span>
-        </div>
-      </div>`;
-    }).join("") : '<div class="yt-user-empty-state">No service requests yet.</div>';
+      return `<div class="yt-user-request-card"><div class="yt-user-request-main"><b>${esc(r.service_type||"Service")}</b><div class="yt-user-request-meta"><span>Request: ${esc(String(r.id||"").slice(0,8).toUpperCase())}</span><span>${esc(dateText(r.created_at))}</span></div></div><div class="yt-user-status-stack"><span class="yt-user-status-chip ${statusClass(r.status)}">${esc(prettyStatus(r.status))}</span><span class="yt-user-status-chip ${payClass}">Payment: ${esc(payLabel)}</span></div></div>`;
+    }).join("");
+    freeBox.innerHTML=(freeCards+normalCards)||'<div class="yt-user-empty-state">No service requests or free services yet.</div>';
   }
 
-  // Payments: show Paid / Pending / Failed / Cancelled clearly with retry actions.
   const payBox = $("userPaymentsList");
   if (payBox) {
-    payBox.innerHTML = (payments||[]).length ? (payments||[]).map(p => {
-      const st = payStatus(p);
-      const label = st==="paid" ? "Paid" : st==="failed" ? "Failed" : (st==="cancelled"||st==="canceled") ? "Cancelled" : "Pending";
-      const cls = st==="paid"?"paid":st==="failed"?"failed":(st==="cancelled"||st==="canceled")?"cancelled":"pending";
-      const action = st==="paid" ? "" : `<button type="button" class="yt-user-red-btn" data-retry-payment="${esc(p.id)}">${st==="failed"?"Retry Payment":(st==="cancelled"||st==="canceled")?"Pay Again":"Pay Now"}</button>`;
-      return `<div class="yt-user-payment-card">
-        <div class="yt-user-payment-main">
-          <b>${esc(p.service_name||"Service")}</b>
-          <div class="yt-user-payment-meta">
-            <span>${money(p.amount)}</span>
-            <span>${esc(p.txnid||"Transaction not started")}</span>
-            <span>${esc(dateText(p.updated_at||p.created_at))}</span>
-          </div>
-        </div>
-        <div class="yt-user-status-stack">
-          <span class="yt-user-status-chip ${cls}">${esc(label)}</span>
-          ${action}
-        </div>
-      </div>`;
-    }).join("") : '<div class="yt-user-empty-state">No payments yet.</div>';
-    payBox.querySelectorAll("[data-retry-payment]").forEach(b => b.addEventListener("click",()=>startPayU(b.dataset.retryPayment,b)));
+    const visiblePayments=(payments||[]).filter(p=>!freeRequestIds.has(p.request_id));
+    payBox.innerHTML = visiblePayments.length ? visiblePayments.map(p => {
+      const st=payStatus(p);
+      const label=st==="paid"?"Paid":st==="failed"?"Failed":(st==="cancelled"||st==="canceled")?"Cancelled":"Pending";
+      const cls=st==="paid"?"paid":st==="failed"?"failed":(st==="cancelled"||st==="canceled")?"cancelled":"pending";
+      const action=st==="paid"?"":`<button type="button" class="yt-user-red-btn" data-retry-payment="${esc(p.id)}">${st==="failed"?"Retry Payment":(st==="cancelled"||st==="canceled")?"Pay Again":"Pay Now"}</button>`;
+      return `<div class="yt-user-payment-card"><div class="yt-user-payment-main"><b>${esc(p.service_name||"Service")}</b><div class="yt-user-payment-meta"><span>${money(p.amount)}</span><span>${esc(p.txnid||"Transaction not started")}</span><span>${esc(dateText(p.updated_at||p.created_at))}</span></div></div><div class="yt-user-status-stack"><span class="yt-user-status-chip ${cls}">${esc(label)}</span>${action}</div></div>`;
+    }).join("") : '<div class="yt-user-empty-state">No payment records yet.</div>';
+    payBox.querySelectorAll("[data-retry-payment]").forEach(b=>b.addEventListener("click",()=>startPayU(b.dataset.retryPayment,b)));
   }
 
-  const filtered = (word) => paidRequests.filter(r=>String(r.service_type||"").toLowerCase().includes(word));
-  const monet = $("userMonetizationRequests");
-  if (monet) {
-    const rows=filtered("monetization");
-    monet.innerHTML=rows.length?rows.map(r=>`<div class="request-row"><b>${esc(r.service_type)}</b><span>${esc(r.status==="payment_pending"?"pending":r.status)}</span></div>`).join(""):"<p>No monetization requests yet.</p>";
-  }
-  const ads = $("userAdsenseRequests");
-  if (ads) {
-    const rows=filtered("adsense");
-    ads.innerHTML=rows.length?rows.map(r=>`<div class="request-row"><b>${esc(r.service_type)}</b><span>${esc(r.status==="payment_pending"?"pending":r.status)}</span></div>`).join(""):"<p>No AdSense requests yet.</p>";
-  }
+  const filtered=(word)=>paidRequests.filter(r=>String(r.service_type||"").toLowerCase().includes(word));
+  const monet=$("userMonetizationRequests");
+  if(monet){const rows=filtered("monetization");monet.innerHTML=rows.length?rows.map(r=>`<div class="request-row"><b>${esc(r.service_type)}</b><span>${esc(r.status)}</span></div>`).join(""):"<p>No monetization requests yet.</p>";}
+  const ads=$("userAdsenseRequests");
+  if(ads){const rows=filtered("adsense");ads.innerHTML=rows.length?rows.map(r=>`<div class="request-row"><b>${esc(r.service_type)}</b><span>${esc(r.status)}</span></div>`).join(""):"<p>No AdSense requests yet.</p>";}
 }
 
 function loadUserViewData(name) {
-  // Service selection/payment is owned by assets/js/service-payment-flow.js.
-  // Do not reload the legacy service catalog here: doing so races with the
-  // checkbox selector and can overwrite the user's selected services.
+  if (name === "services") loadServices();
   if (["requests","payments","monetization","adsense"].includes(name)) loadRequestsAndPayments();
 }
 
-// Service checkbox state and total are handled by service-payment-flow.js.
+document.getElementById("userServiceType")?.addEventListener("change",updateUserServiceTotal);
 document.addEventListener("click",(e)=>{
   const b=e.target.closest?.("[data-user-view]");
   if (b) loadUserViewData(b.dataset.userView);
 });
 
-// Submit handler is handled by service-payment-flow.js.
+const submitBtn = $("submitUserServiceRequest");
+if (submitBtn) submitBtn.addEventListener("click", submitServiceAndPay);
 
 
 function setProfileEditing(enabled){
