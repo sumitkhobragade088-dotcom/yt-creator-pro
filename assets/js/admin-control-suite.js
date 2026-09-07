@@ -123,16 +123,62 @@ async function loadTrash(){
 }
 
 async function healthCheck(){
-  const body=$('acsHealthBody'); if(!body)return;
+  const body=$('acsHealthBody');
+  const summary=$('acsHealthSummary');
+  if(!body)return;
+
   const checks=[];
-  const t=async(name,fn)=>{const s=performance.now();try{await fn();checks.push([name,'HEALTHY',Math.round(performance.now()-s)]);}catch(e){checks.push([name,'ERROR',e.message||'Failed']);}};
+  if(summary){ summary.className='acs-health-summary warning'; summary.innerHTML='<span><span class="acs-health-dot red"></span><strong>Checking system…</strong></span>'; }
+  body.innerHTML='<tr><td colspan="3">Checking…</td></tr>';
+
+  const withTimeout=async(fn,ms=8000)=>{
+    let timer;
+    try{
+      return await Promise.race([
+        fn(),
+        new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('Check timed out')),ms);})
+      ]);
+    }finally{ clearTimeout(timer); }
+  };
+
+  const t=async(name,fn)=>{
+    const started=performance.now();
+    try{
+      await withTimeout(fn);
+      checks.push([name,'HEALTHY',Math.round(performance.now()-started)+' ms']);
+    }catch(e){
+      checks.push([name,'ERROR',e?.message||'Check failed']);
+    }
+    renderHealth();
+  };
+
+  const renderHealth=()=>{
+    body.innerHTML=checks.map(x=>{
+      const status=x[1];
+      const cls=status==='HEALTHY'?'good-text':'error-text';
+      const dot=status==='HEALTHY'?'green':'red';
+      return `<tr><td>${esc(x[0])}</td><td class="${cls}"><span class="acs-health-dot ${dot}"></span><b>${esc(status)}</b></td><td>${esc(x[2])}</td></tr>`;
+    }).join('');
+
+    if(summary){
+      const errors=checks.filter(x=>x[1]!=='HEALTHY').length;
+      if(errors===0){
+        summary.className='acs-health-summary healthy';
+        summary.innerHTML=`<span><span class="acs-health-dot green"></span><strong>System Healthy</strong></span><span>${checks.length}/${checks.length} checks passed</span>`;
+      }else{
+        summary.className='acs-health-summary problem';
+        summary.innerHTML=`<span><span class="acs-health-dot red"></span><strong>${errors} problem${errors===1?'':'s'} found</strong></span><span>${checks.length-errors}/${checks.length} checks passed</span>`;
+      }
+    }
+  };
+
   await t('Supabase Database',async()=>{const {error}=await supabase.from('admin_users').select('id').limit(1);if(error)throw error;});
   await t('Admin Session',async()=>{const {data}=await supabase.auth.getSession();if(!data.session)throw new Error('No active session');});
   await t('Storage',async()=>{const {error}=await supabase.storage.listBuckets();if(error)throw error;});
   await t('Application Workflow',async()=>{const {error}=await supabase.from('application_status_history').select('id').limit(1);if(error)throw error;});
   await t('Audit Logs',async()=>{const {error}=await supabase.from('activity_logs').select('id').limit(1);if(error)throw error;});
   await t('Trash',async()=>{const {error}=await supabase.from('admin_trash').select('id').limit(1);if(error)throw error;});
-  body.innerHTML=checks.map(x=>{const s=String(x[1]||'').toUpperCase();const c=s==='HEALTHY'?'acs-health-healthy':(s==='WARNING'?'acs-health-warning':(s==='DEGRADED'?'acs-health-degraded':'acs-health-error'));return `<tr><td>${esc(x[0])}</td><td class="acs-health-status ${c}"><b>${esc(x[1])}</b></td><td>${esc(x[2])}</td></tr>`}).join('');
+  renderHealth();
 }
 
 async function downloadCsv(){
