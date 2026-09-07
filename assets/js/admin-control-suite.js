@@ -132,7 +132,7 @@ async function healthCheck(){
   await t('Application Workflow',async()=>{const {error}=await supabase.from('application_status_history').select('id').limit(1);if(error)throw error;});
   await t('Audit Logs',async()=>{const {error}=await supabase.from('activity_logs').select('id').limit(1);if(error)throw error;});
   await t('Trash',async()=>{const {error}=await supabase.from('admin_trash').select('id').limit(1);if(error)throw error;});
-  body.innerHTML=checks.map(x=>`<tr><td>${esc(x[0])}</td><td class="${x[1]==='HEALTHY'?'good-text':'error-text'}"><b>${x[1]}</b></td><td>${esc(x[2])}</td></tr>`).join('');
+  body.innerHTML=checks.map(x=>{const s=String(x[1]||'').toUpperCase();const c=s==='HEALTHY'?'acs-health-healthy':(s==='WARNING'?'acs-health-warning':(s==='DEGRADED'?'acs-health-degraded':'acs-health-error'));return `<tr><td>${esc(x[0])}</td><td class="acs-health-status ${c}"><b>${esc(x[1])}</b></td><td>${esc(x[2])}</td></tr>`}).join('');
 }
 
 async function downloadCsv(){

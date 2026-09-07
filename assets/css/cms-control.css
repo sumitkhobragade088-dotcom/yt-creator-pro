@@ -63,3 +63,21 @@
 
 #view-control-suite .acs-staff-create-box{display:grid;grid-template-columns:1.2fr 1fr 1fr auto;gap:10px;align-items:center;padding:15px;border:1px solid #bfdbfe;border-radius:14px;background:#eff6ff;margin:14px 0}
 #view-control-suite .acs-staff-create-box h4{margin:0 0 4px}.acs-staff-create-box p{margin:0;color:#475467;font-size:11px}.acs-staff-create-box input,.acs-staff-create-box select{min-height:40px;border:1px solid #d0d5dd;border-radius:9px;padding:0 10px}.acs-warning{grid-column:1/-1;background:#fffbeb;border:1px solid #fcd34d;color:#92400e;border-radius:10px;padding:9px;font-size:11px}.good-text{color:#15803d}.error-text{color:#b91c1c}@media(max-width:900px){#view-control-suite .acs-staff-create-box{grid-template-columns:1fr 1fr}.acs-staff-create-box>div:first-child,.acs-warning{grid-column:1/-1}}@media(max-width:560px){#view-control-suite .acs-staff-create-box{grid-template-columns:1fr}}
+
+
+/* SYSTEM HEALTH PROFESSIONAL STATUS — additive, scoped */
+#view-control-suite .acs-health-table{}
+#view-control-suite #acsHealthBody td.acs-health-status{font-weight:900;white-space:nowrap}
+#view-control-suite #acsHealthBody td.acs-health-status::before{content:"●";display:inline-block;margin-right:7px;font-size:13px}
+#view-control-suite #acsHealthBody td.acs-health-healthy{color:#15803d;background:#ecfdf3}
+#view-control-suite #acsHealthBody td.acs-health-healthy::before{color:#16a34a}
+#view-control-suite #acsHealthBody td.acs-health-warning{color:#a16207;background:#fefce8}
+#view-control-suite #acsHealthBody td.acs-health-warning::before{color:#eab308}
+#view-control-suite #acsHealthBody td.acs-health-degraded{color:#be185d;background:#fdf2f8}
+#view-control-suite #acsHealthBody td.acs-health-degraded::before{color:#ec4899}
+#view-control-suite #acsHealthBody td.acs-health-error{color:#b91c1c;background:#fef2f2}
+#view-control-suite #acsHealthBody td.acs-health-error::before{color:#ef4444}
+#view-control-suite #acsHealthBody td.acs-health-status{border-radius:8px}
+#view-control-suite .acs-health-summary.healthy{box-shadow:inset 4px 0 0 #16a34a}
+#view-control-suite .acs-health-summary.warning{box-shadow:inset 4px 0 0 #eab308}
+#view-control-suite .acs-health-summary.problem{box-shadow:inset 4px 0 0 #ef4444}
