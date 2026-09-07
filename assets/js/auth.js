@@ -390,10 +390,14 @@ async function loadRequestsAndPayments() {
 
   const now=Date.now();
   const activeFree=(freeGrants||[]).filter(g=>String(g.status||"").toLowerCase()==="active" && (!g.expires_at || new Date(g.expires_at).getTime()>now));
-  const freeServiceNames=new Set(activeFree.map(g=>String(g.service_type||"").trim()).filter(Boolean));
+  // Free grants are not paid requests. Hide any old/pending request that is
+  // completely covered by an active free grant so My Requests cannot show it
+  // as Payment Pending/Pending after an admin grants the same services free.
+  const normalizeServiceName=(value)=>String(value||"").trim().replace(/\s+/g," ").toLowerCase();
+  const freeServiceNames=new Set(activeFree.map(g=>normalizeServiceName(g.service_type)).filter(Boolean));
   const freeRequestIds=new Set();
   const isFreeCoveredRequest=(r)=>{
-    const parts=String(r?.service_type||"").split("|").map(x=>x.trim()).filter(Boolean);
+    const parts=String(r?.service_type||"").split("|").map(normalizeServiceName).filter(Boolean);
     if(!parts.length||!freeServiceNames.size)return false;
     return parts.every(name=>freeServiceNames.has(name));
   };
