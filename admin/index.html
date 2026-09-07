@@ -135,7 +135,7 @@ document.documentElement.classList.add("yt-admin-boot");
 <style>
 #view-free-user-service .yt-service-select-hidden{display:none!important}
 #view-free-user-service .free-service-form-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-#view-free-user-service .free-service-checklist{display:grid;gap:8px;max-height:250px;overflow:auto;margin-top:7px;padding:4px}
+#view-free-user-service .free-service-dropdown{position:relative;margin-top:6px}.free-service-dropdown-toggle{width:100%;min-height:38px;text-align:left;background:#fff;border:1px solid #d0d5dd;border-radius:8px;padding:9px 36px 9px 12px;cursor:pointer;position:relative}.free-service-dropdown-toggle:after{content:"▾";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:#667085}.free-service-dropdown.open .free-service-dropdown-toggle:after{content:"▴"}.free-service-dropdown-menu{display:none;position:absolute;z-index:30;left:0;right:0;top:calc(100% + 4px);background:#fff;border:1px solid #d0d5dd;border-radius:10px;box-shadow:0 8px 24px rgba(16,24,40,.14);padding:8px}.free-service-dropdown.open .free-service-dropdown-menu{display:block}.free-service-checklist{display:grid;gap:8px;max-height:250px;overflow:auto;padding:4px}
 #view-free-user-service .free-service-check{display:flex;align-items:center;gap:9px;padding:9px 10px;border:1px solid #e4e8f0;border-radius:10px;background:#fff;cursor:pointer}
 #view-free-user-service .free-service-check input{width:17px;height:17px;accent-color:#e11d48}
 #view-free-user-service .free-service-check span{font-weight:700;min-width:0}
@@ -309,7 +309,7 @@ document.documentElement.classList.add("yt-admin-boot");
         <div class="free-service-form-grid">
           <label><b>Customer</b><select id="freeServiceCustomer" style="width:100%;margin-top:6px"><option value="">Select customer…</option></select></label>
           <label><b>YouTube Channel</b><select id="freeServiceChannel" style="width:100%;margin-top:6px" disabled><option value="">Select customer first…</option></select></label>
-          <label><b>Service</b><select id="freeServiceType" multiple class="yt-service-select-hidden" aria-label="Select multiple free services"><option value="">Select channel first…</option></select><div id="freeServiceOptions" class="free-service-checklist"><small>Select customer and channel first…</small></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px"><button id="selectAllFreeServices" class="btn" type="button" disabled>☑ Select All Services</button><button id="clearAllFreeServices" class="btn" type="button" disabled>Clear Services</button><small id="freeServiceSelectedSummary">0 selected</small></div></label>
+          <label><b>Service</b><select id="freeServiceType" multiple class="yt-service-select-hidden" aria-label="Select multiple free services"><option value="">Select channel first…</option></select><div id="freeServiceDropdown" class="free-service-dropdown"><button id="freeServiceDropdownToggle" class="free-service-dropdown-toggle" type="button" aria-expanded="false">Select channel first…</button><div class="free-service-dropdown-menu"><div id="freeServiceOptions" class="free-service-checklist"><small>Select customer and channel first…</small></div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:6px;padding:4px;border-top:1px solid #eef0f3"><button id="selectAllFreeServices" class="btn" type="button" disabled>☑ Select All Services</button><button id="clearAllFreeServices" class="btn" type="button" disabled>Clear Services</button><small id="freeServiceSelectedSummary">0 selected</small></div></div></div></label>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:16px">
           <label style="min-width:180px"><b>Duration</b><select id="freeServiceDuration" style="width:100%;margin-top:6px"><option value="unlimited">No expiry</option><option value="7">7 days</option><option value="30">30 days</option><option value="90">90 days</option><option value="365">1 year</option></select></label>
@@ -322,10 +322,7 @@ document.documentElement.classList.add("yt-admin-boot");
         <div class="yt-manager-head"><div><h3>Free Users • Channel Management</h3><p>Select a customer who has received a free service, then manage all of that customer's connected YouTube channels.</p></div><button id="refreshFreeServiceGrants" class="btn" type="button">↻ Refresh</button></div>
         <div class="free-user-manage-grid">
           <label><b>Free User</b><select id="freeUserManageCustomer" style="width:100%;margin-top:6px"><option value="">Select free user…</option></select><small id="freeUserManageSummary" style="display:block;color:#667085;margin-top:8px">Select a free user to load channels.</small></label>
-          <div>
-            <div id="freeUserChannelList" class="free-user-channel-list"><div class="yt-service-empty">Select a free user to manage channels.</div></div>
-            <div id="freeUserInlineManageHost" style="margin-top:16px"></div>
-          </div>
+          <div id="freeUserChannelList" class="free-user-channel-list"><div class="yt-service-empty">Select a free user to manage channels.</div></div>
         </div>
         <div id="freeServiceGrantsBody" hidden></div>
       </div>
@@ -1036,7 +1033,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/cms-deep-admin.js"></script>
 <script type="module" src="../assets/js/cms-admin-ui.js"></script>
 <script type="module" src="../assets/js/cms-professional.js"></script>
-<script type="module" src="../assets/js/free-user-service.js?v=4point5"></script>
+<script type="module" src="../assets/js/free-user-service.js?v=4point4"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>

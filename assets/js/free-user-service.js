@@ -8,11 +8,16 @@ let customers=[], channels=[], services=[];
 function msg(t,ok=false){const e=$("freeServiceMessage");if(e){e.textContent=t;e.className=ok?"message ok":"message";}}
 function selectedServiceNames(){return [...($('freeServiceType')?.selectedOptions||[])].map(o=>o.value).filter(Boolean);}
 function syncServiceUI(){
-  const sel=$("freeServiceType"),box=$("freeServiceOptions"),all=$("selectAllFreeServices"),clear=$("clearAllFreeServices"),summary=$("freeServiceSelectedSummary");
+  const sel=$("freeServiceType"),box=$("freeServiceOptions"),all=$("selectAllFreeServices"),clear=$("clearAllFreeServices"),summary=$("freeServiceSelectedSummary"),toggle=$("freeServiceDropdownToggle");
   if(!sel||!box)return;
   const values=new Set(selectedServiceNames());
   box.querySelectorAll('input[data-service-value]').forEach(i=>{i.checked=values.has(i.value);});
   if(summary) summary.textContent=`${values.size} selected`;
+  if(toggle){
+    toggle.textContent=values.size?`${values.size} service${values.size!==1?"s":""} selected`:($("freeServiceChannel")?.value?"Select service…":"Select channel first…");
+    toggle.disabled=!$("freeServiceChannel")?.value||services.length===0;
+    toggle.setAttribute("aria-expanded",$("freeServiceDropdown")?.classList.contains("open")?"true":"false");
+  }
   const enabled=!!$("freeServiceChannel")?.value&&services.length>0;
   if(all)all.disabled=!enabled;
   if(clear)clear.disabled=!enabled||values.size===0;
@@ -98,17 +103,30 @@ async function renderFreeUserChannels(customerId,grantRows,summary,list){
     const gs=grouped.get(c.id)||[];const active=gs.filter(g=>g.status==="active"&&(!g.expires_at||new Date(g.expires_at)>new Date()));
     const servicesText=active.length?active.map(g=>esc(g.service_type)).join(" • "):"No active free service";
     const canManage=!!c.manager_access;
-    return `<div class="free-user-channel-card"><div><b>${esc(c.channel_name||c.channel_id||"YouTube Channel")}</b><small>${c.google_connected?"Connected":"Saved"} • Free: ${servicesText}</small></div>${canManage?`<button type="button" class="btn primary" data-manage-customer="${esc(customerId)}" data-manage-channel="${esc(c.id)}" data-manage-target="channel">Manage Channel</button>`:`<span class="yt-status-chip pending">Manager Access required</span>`}</div>`;
+    return `<div class="free-user-channel-card"><div><b>${esc(c.channel_name||c.channel_id||"YouTube Channel")}</b><small>${c.google_connected?"Connected":"Saved"} • Free: ${servicesText}</small></div>${canManage?`<button type="button" class="btn primary" data-manage-customer="${esc(customerId)}" data-manage-target="channel">Manage Channel</button>`:`<span class="yt-status-chip pending">Manager Access required</span>`}</div>`;
   }).join("");
 }
 function bind(){
+  $("freeServiceDropdownToggle")?.addEventListener("click",()=>{
+    const d=$("freeServiceDropdown");
+    if(!d||$("freeServiceDropdownToggle")?.disabled)return;
+    d.classList.toggle("open");
+    $("freeServiceDropdownToggle").setAttribute("aria-expanded",d.classList.contains("open")?"true":"false");
+  });
+  document.addEventListener("click",e=>{
+    const d=$("freeServiceDropdown");
+    if(d&&!d.contains(e.target)){
+      d.classList.remove("open");
+      $("freeServiceDropdownToggle")?.setAttribute("aria-expanded","false");
+    }
+  });
   $("freeServiceCustomer")?.addEventListener("change",async e=>{msg("");await loadChannels(e.target.value);renderServiceOptions();});
   $("freeServiceChannel")?.addEventListener("change",renderServiceOptions);
   $("freeServiceType")?.addEventListener("change",syncServiceUI);
   $("grantFreeService")?.addEventListener("click",grant);
   $("selectAllFreeServices")?.addEventListener("click",()=>{const s=$("freeServiceType");if(!s||s.disabled)return;[...s.options].forEach(o=>o.selected=true);syncServiceUI();});
   $("clearAllFreeServices")?.addEventListener("click",()=>{const s=$("freeServiceType");if(s)[...s.options].forEach(o=>o.selected=false);syncServiceUI();});
-  $("clearFreeService")?.addEventListener("click",()=>{["freeServiceCustomer","freeServiceChannel","freeServiceType"].forEach(id=>{const e=$(id);if(e){if(e.multiple)[...e.options].forEach(o=>o.selected=false);else e.value="";}});const c=$("freeServiceChannel");if(c){c.innerHTML='<option value="">Select customer first…</option>';c.disabled=true;}renderServiceOptions();syncServiceUI();msg("");});
+  $("clearFreeService")?.addEventListener("click",()=>{["freeServiceCustomer","freeServiceChannel","freeServiceType"].forEach(id=>{const e=$(id);if(e){if(e.multiple)[...e.options].forEach(o=>o.selected=false);else e.value="";}});const c=$("freeServiceChannel");if(c){c.innerHTML='<option value="">Select customer first…</option>';c.disabled=true;}$("freeServiceDropdown")?.classList.remove("open");renderServiceOptions();syncServiceUI();msg("");});
   $("refreshFreeServiceGrants")?.addEventListener("click",async()=>{await loadFreeUserManager();});
   $("freeUserManageCustomer")?.addEventListener("change",async e=>{
     const {data}=await supabase.from("free_service_grants").select("customer_id,channel_access_id,service_type,status,expires_at,created_at,customers(full_name,email)").eq("customer_id",e.target.value).order("created_at",{ascending:false}).limit(500);
