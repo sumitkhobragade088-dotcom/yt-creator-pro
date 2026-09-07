@@ -654,18 +654,31 @@ if($("resetAdminEditor")) $("resetAdminEditor").onclick=()=>{
 };
 
 
-function openInlineChannelManager(customerId,target="channel"){
+function openInlineChannelManager(customerId,target="channel",clickEvent=null){
   const accessRow=(dashboardCache.access||[]).find(a=>String(a.customer_id)===String(customerId));
   if(!accessRow?.manager_access){
     alert("Manager Access is not granted for this channel yet.");
     showPremiumAdminView("access");
     return;
   }
-  showPremiumAdminView("manage");
-  const listPanel=$("manageChannelListPanel");
   const workspace=$("manageWorkspace");
-  if(workspace) workspace.hidden=false;
-  if(listPanel) listPanel.classList.add("yt-manage-list-compact");
+  const listPanel=$("manageChannelListPanel");
+  const freeHost=$("freeUserInlineManageHost");
+  const fromFreeUser=!!clickEvent?.target?.closest?.("#freeUserChannelList");
+
+  if(fromFreeUser && workspace && freeHost){
+    // Keep the admin on Free User Service and open the existing channel
+    // management workspace directly below the selected free user's channels.
+    showPremiumAdminView("free-user-service");
+    freeHost.appendChild(workspace);
+    workspace.hidden=false;
+    if(listPanel) listPanel.classList.remove("yt-manage-list-compact");
+  }else{
+    showPremiumAdminView("manage");
+    if(workspace) workspace.hidden=false;
+    if(listPanel) listPanel.classList.add("yt-manage-list-compact");
+  }
+
   if(typeof window.ytManageSelectCustomer==="function"){
     window.ytManageSelectCustomer(customerId,target);
   }else{
@@ -676,11 +689,13 @@ document.addEventListener("click",(event)=>{
   const btn=event.target.closest("[data-manage-customer]");
   if(!btn)return;
   event.preventDefault();
-  openInlineChannelManager(btn.dataset.manageCustomer,btn.dataset.manageTarget||"channel");
+  openInlineChannelManager(btn.dataset.manageCustomer,btn.dataset.manageTarget||"channel",event);
 });
 if($("closeManageWorkspace")) $("closeManageWorkspace").onclick=()=>{
   const workspace=$("manageWorkspace");
   const listPanel=$("manageChannelListPanel");
+  const manageView=$("view-manage");
+  if(workspace && manageView && workspace.parentElement!==manageView) manageView.appendChild(workspace);
   if(workspace)workspace.hidden=true;
   if(listPanel)listPanel.classList.remove("yt-manage-list-compact");
 };
