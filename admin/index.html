@@ -956,18 +956,87 @@ document.documentElement.classList.add("yt-admin-boot");
 
 
     <section class="yt-premium-view" id="view-control-suite">
-      <div class="yt-premium-section-head"><div><span>CONTROL SUITE</span><h2>Admin Control Suite</h2><p>Application workflow, roles, audit, revenue, search, trash and system health.</p></div><button id="acsRefresh" class="btn primary">Refresh All</button></div>
-      <div class="acs-tabs">
-        <button class="btn active" data-acs-tab="applications">Applications</button><button class="btn" data-acs-tab="roles">Roles & Permissions</button><button class="btn" data-acs-tab="audit">Audit Log</button><button class="btn" data-acs-tab="revenue">Revenue</button><button class="btn" data-acs-tab="search">Global Search</button><button class="btn" data-acs-tab="trash">Trash / Restore</button><button class="btn" data-acs-tab="health">System Health</button>
+  <div class="yt-premium-section-head">
+    <div><span>CONTROL SUITE 🔒</span><h2>Admin Control Suite</h2><p>Applications, roles, audit, revenue, global search, trash and system health.</p></div>
+    <button id="acsRefresh" class="btn primary">Refresh All</button>
+  </div>
+
+  <div class="acs-tabs" role="tablist">
+    <button type="button" class="btn active acs-tab-applications" data-acs-tab="applications">📋 Applications</button>
+    <button type="button" class="btn acs-tab-roles" data-acs-tab="roles">👥 Roles & Permissions</button>
+    <button type="button" class="btn acs-tab-audit" data-acs-tab="audit">🧾 Audit Log</button>
+    <button type="button" class="btn acs-tab-revenue" data-acs-tab="revenue">💰 Revenue</button>
+    <button type="button" class="btn acs-tab-search" data-acs-tab="search">🔎 Global Search</button>
+    <button type="button" class="btn acs-tab-trash" data-acs-tab="trash">🗑️ Trash / Restore</button>
+    <button type="button" class="btn acs-tab-health" data-acs-tab="health">⚙️ System Health</button>
+  </div>
+
+  <div class="acs-panel" data-acs-panel="applications">
+    <div class="panel yt-premium-panel">
+      <div class="acs-toolbar acs-toolbar-main"><div><h3>Application Workflow</h3><p>Pending → Under Review → Documents Required → Approved / Rejected → Completed</p></div><button id="acsApplicationsDeleteAll" class="btn danger">🗑️ Delete All</button></div>
+      <p id="acsApplicationsMsg"></p>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>ID</th><th>Service</th><th>Status</th><th>Created</th><th>Note</th><th>Action</th></tr></thead><tbody id="acsApplicationsBody"><tr><td colspan="6">Loading…</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="acs-panel" data-acs-panel="roles" hidden>
+    <div class="panel yt-premium-panel">
+      <h3>👥 Admin / Staff Roles & Permissions</h3>
+      <p>Click a role to see its purpose. Assign an existing authorized admin/staff account to one role.</p>
+      <div id="acsRoleCards" class="acs-role-cards"></div>
+      <div id="acsRoleInfo" class="acs-role-info">Select a role above.</div>
+      <div class="acs-assign-box">
+        <select id="acsAdminUserSelect"><option value="">Select admin/staff account…</option></select>
+        <select id="acsNewRole">${ROLES.map(([k,l])=>`<option value="${k}">${l.replace(/^[^ ]+ /,'')}</option>`).join('')}</select>
+        <button id="acsAssignRole" class="btn primary">Assign Role</button>
+        <span id="acsRoleMsg"></span>
       </div>
-      <div class="acs-panel" data-acs-panel="applications"><div class="panel yt-premium-panel"><div class="yt-table-scroll"><table class="data-table"><thead><tr><th>ID</th><th>Service</th><th>Status</th><th>Created</th><th>Note</th><th>Action</th></tr></thead><tbody id="acsApplicationsBody"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></div></div>
-      <div class="acs-panel" data-acs-panel="roles" hidden><div class="panel yt-premium-panel"><h3>Admin / Staff Roles</h3><p>Super Admin, Manager, Operator and Support.</p><div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Admin</th><th>Role</th><th>Created</th><th>Action</th></tr></thead><tbody id="acsRolesBody"><tr><td colspan="4">Loading…</td></tr></tbody></table></div><div id="acsPermissionList" class="acs-pill-wrap"></div><div id="acsPermissionEditor" class="acs-permission-editor"></div></div></div>
-      <div class="acs-panel" data-acs-panel="audit" hidden><div class="panel yt-premium-panel"><h3>Activity / Audit Log</h3><p>Recent administrative changes and system events.</p><div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Date</th><th>Actor</th><th>Action</th><th>Target</th><th>ID</th><th>Details</th><th>Action</th></tr></thead><tbody id="acsAuditBody"><tr><td colspan="6">Loading…</td></tr></tbody></table></div></div></div>
-      <div class="acs-panel" data-acs-panel="revenue" hidden><div class="yt-pay-summary-grid"><div class="yt-pay-summary-card"><span>₹</span><div><small>Successful Revenue</small><b id="acsRevenueTotal">₹0.00</b></div></div><div class="yt-pay-summary-card"><span>✅</span><div><small>Successful</small><b id="acsRevenueCount">0</b></div></div><div class="yt-pay-summary-card"><span>❌</span><div><small>Failed</small><b id="acsRevenueFailed">0</b></div></div></div><div class="panel yt-premium-panel"><div class="acs-toolbar"><input id="acsRevenueFrom" type="date"><input id="acsRevenueTo" type="date"><button id="acsRevenueRefresh" class="btn primary">Apply</button><button id="acsRevenueCsv" class="btn">Export CSV</button></div><p id="acsRevenueMsg"></p><div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Service</th><th>Amount</th><th>Status</th><th>Mode</th><th>Date</th></tr></thead><tbody id="acsRevenueBody"></tbody></table></div></div></div>
-      <div class="acs-panel" data-acs-panel="search" hidden><div class="panel yt-premium-panel"><div class="acs-toolbar"><input id="acsSearchInput" placeholder="Search users, applications, services, payments…"><button id="acsSearchBtn" class="btn primary">Search</button></div><div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Type</th><th>ID</th><th>Title</th><th>Details</th></tr></thead><tbody id="acsSearchBody"><tr><td colspan="4">Enter a search.</td></tr></tbody></table></div></div></div>
-      <div class="acs-panel" data-acs-panel="trash" hidden><div class="panel yt-premium-panel"><h3>Trash / Restore</h3><p>Soft-deleted records only; payments are never permanently deleted by this module.</p><div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Table</th><th>Record</th><th>Summary</th><th>Deleted</th><th>Action</th></tr></thead><tbody id="acsTrashBody"><tr><td colspan="5">Loading…</td></tr></tbody></table></div></div></div>
-      <div class="acs-panel" data-acs-panel="health" hidden><div class="panel yt-premium-panel"><div class="acs-toolbar"><button id="acsHealthRefresh" class="btn primary">Run Health Check</button></div><div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Component</th><th>Status</th><th>Latency / Detail</th></tr></thead><tbody id="acsHealthBody"><tr><td colspan="3">Checking…</td></tr></tbody></table></div></div></div>
-    </section>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Admin / Staff</th><th>Current Role</th><th>Created</th><th>Action</th></tr></thead><tbody id="acsRolesBody"><tr><td colspan="4">Loading…</td></tr></tbody></table></div>
+      <h4>Permission Matrix</h4><div id="acsPermissionEditor" class="acs-permission-editor"></div>
+    </div>
+  </div>
+
+  <div class="acs-panel" data-acs-panel="audit" hidden>
+    <div class="panel yt-premium-panel">
+      <div class="acs-toolbar acs-toolbar-main"><div><h3>🧾 Activity / Audit Log</h3><p>Who changed what and when.</p></div><button id="acsAuditDeleteAll" class="btn danger">🗑️ Delete All</button></div>
+      <p id="acsAuditMsg"></p>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Date</th><th>Actor</th><th>Action</th><th>Target</th><th>ID</th><th>Details</th><th>Action</th></tr></thead><tbody id="acsAuditBody"><tr><td colspan="7">Loading…</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="acs-panel" data-acs-panel="revenue" hidden>
+    <div class="yt-pay-summary-grid"><div class="yt-pay-summary-card"><span>₹</span><div><small>Successful Revenue</small><b id="acsRevenueTotal">₹0.00</b></div></div><div class="yt-pay-summary-card"><span>✅</span><div><small>Successful</small><b id="acsRevenueCount">0</b></div></div><div class="yt-pay-summary-card"><span>❌</span><div><small>Failed</small><b id="acsRevenueFailed">0</b></div></div></div>
+    <div class="panel yt-premium-panel">
+      <div class="acs-toolbar"><input id="acsRevenueFrom" type="date"><input id="acsRevenueTo" type="date"><button id="acsRevenueRefresh" class="btn primary">Apply</button><button id="acsRevenueCsv" class="btn">Export CSV</button><button id="acsRevenueDeleteAll" class="btn danger">🗑️ Delete All</button></div>
+      <p id="acsRevenueMsg"></p>
+      <p class="acs-safe-note">💡 Delete here removes payments from the Revenue view only. The original payment record stays intact for reconciliation.</p>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Service</th><th>Amount</th><th>Status</th><th>Mode</th><th>Date</th><th>Action</th></tr></thead><tbody id="acsRevenueBody"></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="acs-panel" data-acs-panel="search" hidden>
+    <div class="panel yt-premium-panel"><h3>🔎 Global Search</h3><p>Search users, applications, services, payments and transaction IDs.</p>
+      <div class="acs-toolbar"><input id="acsSearchInput" placeholder="Name, email, mobile, application ID, service, payment ID, transaction ID…"><button id="acsSearchBtn" class="btn primary">Search</button></div>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Type</th><th>ID</th><th>Title</th><th>Details</th><th>Open</th></tr></thead><tbody id="acsSearchBody"><tr><td colspan="5">Enter a search.</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="acs-panel" data-acs-panel="trash" hidden>
+    <div class="panel yt-premium-panel">
+      <div class="acs-toolbar acs-toolbar-main"><div><h3>🗑️ Trash / Restore</h3><p>Deleted applications/users/services appear here and can be restored.</p></div><button id="acsTrashEmpty" class="btn danger">Empty Trash</button></div>
+      <p id="acsTrashMsg"></p>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Type</th><th>Record</th><th>Summary</th><th>Deleted</th><th>Action</th></tr></thead><tbody id="acsTrashBody"><tr><td colspan="5">Loading…</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <div class="acs-panel" data-acs-panel="health" hidden>
+    <div class="panel yt-premium-panel">
+      <div class="acs-toolbar"><button id="acsHealthRefresh" class="btn primary">Run Health Check</button></div>
+      <div id="acsHealthSummary" class="acs-health-summary">Checking system…</div>
+      <div class="yt-table-scroll"><table class="data-table"><thead><tr><th>Component</th><th>Status</th><th>Latency / Detail</th></tr></thead><tbody id="acsHealthBody"><tr><td colspan="3">Checking…</td></tr></tbody></table></div>
+    </div>
+  </div>
+</section>
 
     <section class="yt-premium-view" id="view-settings">
       <div class="yt-premium-section-head"><div><span>SETTINGS</span><h2>Settings</h2><p>Admin dashboard settings only.</p></div></div>

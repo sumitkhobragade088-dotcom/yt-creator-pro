@@ -1,0 +1,17 @@
+YT Creator Pro Admin Control Suite TOTAL LOCK
+
+Changed related files only:
+- admin/index.html
+- assets/js/admin-control-suite.js
+- assets/css/cms-control.css
+- ADMIN-CONTROL-SUITE-TOTAL-LOCK.sql
+
+Run the TOTAL-LOCK SQL in Supabase first, then replace the three frontend files.
+
+Safety:
+- Application Delete moves to Trash; Delete All also moves applications to Trash.
+- Audit Delete/Delete All permanently deletes audit history and is Super Admin only.
+- Revenue Delete/Delete All removes records from the Revenue view only; payment ledger rows are preserved.
+- Trash Restore reverses soft deletion. Permanent delete/Empty Trash is Super Admin only.
+- Roles require accounts already present in public.admin_users; the role module does not create Supabase Auth accounts.
+- System Health shows explicit GREEN/RED plus percentage.
