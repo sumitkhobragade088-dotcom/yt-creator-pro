@@ -98,7 +98,7 @@ async function renderFreeUserChannels(customerId,grantRows,summary,list){
     const gs=grouped.get(c.id)||[];const active=gs.filter(g=>g.status==="active"&&(!g.expires_at||new Date(g.expires_at)>new Date()));
     const servicesText=active.length?active.map(g=>esc(g.service_type)).join(" • "):"No active free service";
     const canManage=!!c.manager_access;
-    return `<div class="free-user-channel-card"><div><b>${esc(c.channel_name||c.channel_id||"YouTube Channel")}</b><small>${c.google_connected?"Connected":"Saved"} • Free: ${servicesText}</small></div>${canManage?`<button type="button" class="btn primary" data-manage-customer="${esc(customerId)}" data-manage-target="channel">Manage Channel</button>`:`<span class="yt-status-chip pending">Manager Access required</span>`}</div>`;
+    return `<div class="free-user-channel-card"><div><b>${esc(c.channel_name||c.channel_id||"YouTube Channel")}</b><small>${c.google_connected?"Connected":"Saved"} • Free: ${servicesText}</small></div>${canManage?`<button type="button" class="btn primary" data-manage-customer="${esc(customerId)}" data-manage-channel="${esc(c.id)}" data-manage-target="channel">Manage Channel</button>`:`<span class="yt-status-chip pending">Manager Access required</span>`}</div>`;
   }).join("");
 }
 function bind(){

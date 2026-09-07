@@ -654,9 +654,10 @@ if($("resetAdminEditor")) $("resetAdminEditor").onclick=()=>{
 };
 
 
-function openInlineChannelManager(customerId,target="channel",clickEvent=null){
+function openInlineChannelManager(customerId,target="channel",clickEvent=null,channelAccessId=""){
+  const fromFreeUser=!!clickEvent?.target?.closest?.("#freeUserChannelList");
   const accessRow=(dashboardCache.access||[]).find(a=>String(a.customer_id)===String(customerId));
-  if(!accessRow?.manager_access){
+  if(!fromFreeUser && !accessRow?.manager_access){
     alert("Manager Access is not granted for this channel yet.");
     showPremiumAdminView("access");
     return;
@@ -664,7 +665,6 @@ function openInlineChannelManager(customerId,target="channel",clickEvent=null){
   const workspace=$("manageWorkspace");
   const listPanel=$("manageChannelListPanel");
   const freeHost=$("freeUserInlineManageHost");
-  const fromFreeUser=!!clickEvent?.target?.closest?.("#freeUserChannelList");
 
   if(fromFreeUser && workspace && freeHost){
     // Keep the admin on Free User Service and open the existing channel
@@ -689,7 +689,7 @@ document.addEventListener("click",(event)=>{
   const btn=event.target.closest("[data-manage-customer]");
   if(!btn)return;
   event.preventDefault();
-  openInlineChannelManager(btn.dataset.manageCustomer,btn.dataset.manageTarget||"channel",event);
+  openInlineChannelManager(btn.dataset.manageCustomer,btn.dataset.manageTarget||"channel",event,btn.dataset.manageChannel||"");
 });
 if($("closeManageWorkspace")) $("closeManageWorkspace").onclick=()=>{
   const workspace=$("manageWorkspace");

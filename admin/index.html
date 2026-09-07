@@ -322,7 +322,10 @@ document.documentElement.classList.add("yt-admin-boot");
         <div class="yt-manager-head"><div><h3>Free Users • Channel Management</h3><p>Select a customer who has received a free service, then manage all of that customer's connected YouTube channels.</p></div><button id="refreshFreeServiceGrants" class="btn" type="button">↻ Refresh</button></div>
         <div class="free-user-manage-grid">
           <label><b>Free User</b><select id="freeUserManageCustomer" style="width:100%;margin-top:6px"><option value="">Select free user…</option></select><small id="freeUserManageSummary" style="display:block;color:#667085;margin-top:8px">Select a free user to load channels.</small></label>
-          <div id="freeUserChannelList" class="free-user-channel-list"><div class="yt-service-empty">Select a free user to manage channels.</div></div>
+          <div>
+            <div id="freeUserChannelList" class="free-user-channel-list"><div class="yt-service-empty">Select a free user to manage channels.</div></div>
+            <div id="freeUserInlineManageHost" style="margin-top:16px"></div>
+          </div>
         </div>
         <div id="freeServiceGrantsBody" hidden></div>
       </div>
@@ -1033,7 +1036,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/cms-deep-admin.js"></script>
 <script type="module" src="../assets/js/cms-admin-ui.js"></script>
 <script type="module" src="../assets/js/cms-professional.js"></script>
-<script type="module" src="../assets/js/free-user-service.js?v=4point4"></script>
+<script type="module" src="../assets/js/free-user-service.js?v=4point5"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>
