@@ -6,18 +6,13 @@ const dt = (v) => { if(!v) return "-"; const d=new Date(v); return Number.isNaN(
 let customers=[], channels=[], services=[];
 
 function msg(t,ok=false){const e=$("freeServiceMessage");if(e){e.textContent=t;e.className=ok?"message ok":"message";}}
-function selectedServiceNames(){
-  const box=$("freeServiceOptions");
-  const checked=box ? [...box.querySelectorAll('input[data-service-value]:checked')].map(i=>i.value).filter(Boolean) : [];
-  if(checked.length) return checked;
-  return [...($("freeServiceType")?.selectedOptions||[])].map(o=>o.value).filter(Boolean);
-}
+function selectedServiceNames(){return [...($("freeServiceType")?.selectedOptions||[])].map(o=>o.value).filter(Boolean);}
 function syncServiceUI(){
   const sel=$("freeServiceType"), box=$("freeServiceOptions"), all=$("selectAllFreeServices"), clear=$("clearAllFreeServices"), summary=$("freeServiceSelectedSummary");
   if(!sel||!box)return;
   const values=new Set(selectedServiceNames());
   box.querySelectorAll('input[data-service-value]').forEach(i=>{i.checked=values.has(i.value);});
-  if(summary) summary.textContent=`${values.size} selected`;
+  if(summary) summary.textContent=`${values.size} selected`;const drop=$("freeServiceDropdownButton");if(drop){drop.innerHTML=`${values.size?`${values.size} service${values.size>1?"s":""} selected`:"Select services…"}<span>▾</span>`;}
   const enabled=!!$("freeServiceChannel")?.value && services.length>0;
   if(all) all.disabled=!enabled;
   if(clear) clear.disabled=!enabled || values.size===0;
@@ -30,11 +25,7 @@ async function isAdmin(){
 async function loadCustomers(){
   if(!(await isAdmin()))return;
   const {data,error}=await supabase.from("customers").select("id,full_name,email").order("full_name",{ascending:true});
-  if(error){
-    console.error("Free User Service customer list:",error);
-    msg(`Customer list load failed: ${error.message}`);
-    return;
-  }
+  if(error){msg(`Customer list load failed: ${error.message}`);return;}
   customers=data||[];
   const sel=$("freeServiceCustomer"); if(!sel)return;
   sel.innerHTML='<option value="">Select customer…</option>'+customers.map(c=>`<option value="${esc(c.id)}">${esc(c.full_name||c.email||c.id)}${c.email?` • ${esc(c.email)}`:""}</option>`).join("");
@@ -59,13 +50,13 @@ async function loadServices(){
   services=data||[]; renderServiceOptions();
 }
 function renderServiceOptions(){
-  const sel=$("freeServiceType"),box=$("freeServiceOptions");if(!sel||!box)return;
+  const sel=$("freeServiceType"),box=$("freeServiceOptions"),drop=$("freeServiceDropdownButton");if(!sel||!box)return;
   const previous=new Set(selectedServiceNames());
-  if(!services.length){sel.innerHTML="";box.innerHTML="<small>No active services available.</small>";syncServiceUI();return;}
+  if(!services.length){sel.innerHTML="";box.innerHTML="<small>No active services available.</small>";if(drop){drop.disabled=true;drop.textContent="No services available";}syncServiceUI();return;}
   sel.innerHTML=services.map(s=>`<option value="${esc(s.service_name)}" ${previous.has(s.service_name)?"selected":""}>${esc(s.service_name)}</option>`).join("");
-  if($("freeServiceChannel")?.value){sel.disabled=false;box.innerHTML=services.map(s=>`<label class="service-check"><input type="checkbox" data-service-value value="${esc(s.service_name)}" ${previous.has(s.service_name)?"checked":""}><span>${esc(s.service_name)}</span>${s.charge!=null?`<small>₹${Number(s.charge).toLocaleString("en-IN")}</small>`:""}</label>`).join("");
+  if($("freeServiceChannel")?.value){sel.disabled=false;if(drop){drop.disabled=false;drop.innerHTML=`${previous.size?`${previous.size} service${previous.size>1?"s":""} selected`:"Select services…"}<span>▾</span>`;}box.innerHTML=services.map(s=>`<label class="service-check"><input type="checkbox" data-service-value value="${esc(s.service_name)}" ${previous.has(s.service_name)?"checked":""}><span>${esc(s.service_name)}</span>${s.charge!=null?`<small>₹${Number(s.charge).toLocaleString("en-IN")}</small>`:""}</label>`).join("");
     box.querySelectorAll('input[data-service-value]').forEach(i=>i.addEventListener("change",()=>{const o=[...sel.options].find(x=>x.value===i.value);if(o)o.selected=i.checked;syncServiceUI();}));
-  }else{sel.disabled=true;box.innerHTML="<small>Select customer and channel first…</small>";}
+  }else{sel.disabled=true;box.innerHTML="<small>Select customer and channel first…</small>";if(drop){drop.disabled=true;drop.innerHTML=`Select services…<span>▾</span>`;drop.setAttribute("aria-expanded","false");}}
   syncServiceUI();
 }
 function fillServices(){renderServiceOptions();}
@@ -97,17 +88,10 @@ function bind(){
   $("freeServiceChannel")?.addEventListener("change",fillServices);
   $("freeServiceType")?.addEventListener("change",syncServiceUI);
   $("grantFreeService")?.addEventListener("click",grant);
-  $("selectAllFreeServices")?.addEventListener("click",()=>{
-    const s=$("freeServiceType");if(!s||s.disabled)return;
-    [...s.options].forEach(o=>o.selected=true);
-    $("freeServiceOptions")?.querySelectorAll('input[data-service-value]').forEach(i=>i.checked=true);
-    syncServiceUI();
-  });
-  $("clearAllFreeServices")?.addEventListener("click",()=>{
-    const s=$("freeServiceType");if(s)[...s.options].forEach(o=>o.selected=false);
-    $("freeServiceOptions")?.querySelectorAll('input[data-service-value]').forEach(i=>i.checked=false);
-    syncServiceUI();
-  });
+  $("selectAllFreeServices")?.addEventListener("click",()=>{const s=$("freeServiceType");if(!s||s.disabled)return;[...s.options].forEach(o=>o.selected=true);syncServiceUI();});
+  $("clearAllFreeServices")?.addEventListener("click",()=>{const s=$("freeServiceType");if(s)[...s.options].forEach(o=>o.selected=false);syncServiceUI();});
+  $("freeServiceDropdownButton")?.addEventListener("click",()=>{const b=$("freeServiceDropdownButton"),m=$("freeServiceOptions");if(!b||b.disabled||!m)return;const open=!m.hidden;m.hidden=open;b.setAttribute("aria-expanded",String(!open));});
+  document.addEventListener("click",e=>{const wrap=$("freeServiceDropdown");const m=$("freeServiceOptions"),b=$("freeServiceDropdownButton");if(wrap&&m&&b&&!wrap.contains(e.target)){m.hidden=true;b.setAttribute("aria-expanded","false");}});
   $("clearFreeService")?.addEventListener("click",()=>{["freeServiceCustomer","freeServiceChannel","freeServiceType"].forEach(id=>{const e=$(id);if(e){if(e.multiple)[...e.options].forEach(o=>o.selected=false);else e.value="";}});const c=$("freeServiceChannel");if(c){c.innerHTML='<option value="">Select customer first…</option>';c.disabled=true;}renderServiceOptions();syncServiceUI();msg("");});
   $("refreshFreeServiceGrants")?.addEventListener("click",loadGrants);
 }

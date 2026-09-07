@@ -12,18 +12,13 @@ async function currentCustomer(){
   const { data } = await supabase.from("customers").select("id").eq("user_id",user.id).maybeSingle();
   return data || null;
 }
-function selected(){
-  const box=$("userServiceOptions");
-  const checked=box ? [...box.querySelectorAll('input[data-user-service]:checked')].map(i=>i.value).filter(Boolean) : [];
-  if(checked.length) return checked;
-  return [...($("userServiceType")?.selectedOptions||[])].map(o=>o.value).filter(Boolean);
-}
+function selected(){return [...($("userServiceType")?.selectedOptions||[])].map(o=>o.value).filter(Boolean);}
 function syncUserServiceUI(){
   const sel=$("userServiceType"),box=$("userServiceOptions");if(!sel||!box)return;
   const chosen=new Set(selected()); let total=0;
-  userServices.forEach(s=>{if(chosen.has(s.service_name))total+=Number(s.charge ?? 0);});
+  userServices.forEach(s=>{if(chosen.has(s.service_name))total+=Number(s.charge||0);});
   box.querySelectorAll('input[data-user-service]').forEach(i=>i.checked=chosen.has(i.value));
-  if($("userServiceSelectedCount"))$("userServiceSelectedCount").textContent=`${chosen.size} selected`;
+  if($("userServiceSelectedCount"))$("userServiceSelectedCount").textContent=`${chosen.size} selected`;const drop=$("userServiceDropdownButton");if(drop)drop.innerHTML=`${chosen.size?`${chosen.size} service${chosen.size>1?"s":""} selected`:"Select services…"}<span>▾</span>`;
   if($("userServiceTotalAmount"))$("userServiceTotalAmount").textContent=money(total);
 }
 async function loadUserServices(){
@@ -85,18 +80,10 @@ async function loadPaidRequestsAndPayments(){
   if(paymentBox)paymentBox.querySelectorAll("[data-retry-payment]").forEach(b=>b.addEventListener("click",()=>openPayU(b.dataset.retryPayment,b)));
   const params=new URLSearchParams(location.search),result=params.get("payment");if(result){const success=result==="success";sessionStorage.setItem("yt_user_view",success?"requests":"payments");if(typeof window.openUserView==="function")window.openUserView(success?"requests":"payments");const box=$("userPaymentResultNew");if(box){box.hidden=false;box.className=`yt-payment-result ${success?"success":"failed"}`;box.textContent=success?"Payment successful ✅ Request My Requests me add ho gaya.":"Payment complete nahi hua. Yahan se Retry / Pay Again karein.";}history.replaceState({},"","dashboard.html");}
 }
+$("userServiceDropdownButton")?.addEventListener("click",()=>{const b=$("userServiceDropdownButton"),m=$("userServiceOptions");if(!b||!m)return;const open=!m.hidden;m.hidden=open;b.setAttribute("aria-expanded",String(!open));});
+document.addEventListener("click",e=>{const wrap=document.querySelector(".user-service-dropdown"),m=$("userServiceOptions"),b=$("userServiceDropdownButton");if(wrap&&m&&b&&!wrap.contains(e.target)){m.hidden=true;b.setAttribute("aria-expanded","false");}});
 $("submitUserServiceRequest")?.addEventListener("click",submitAndPay);
-$("selectAllUserServices")?.addEventListener("click",()=>{
-  const s=$("userServiceType");
-  if(s)[...s.options].forEach(o=>o.selected=true);
-  $("userServiceOptions")?.querySelectorAll('input[data-user-service]').forEach(i=>i.checked=true);
-  syncUserServiceUI();
-});
-$("clearAllUserServices")?.addEventListener("click",()=>{
-  const s=$("userServiceType");
-  if(s)[...s.options].forEach(o=>o.selected=false);
-  $("userServiceOptions")?.querySelectorAll('input[data-user-service]').forEach(i=>i.checked=false);
-  syncUserServiceUI();
-});
+$("selectAllUserServices")?.addEventListener("click",()=>{const s=$("userServiceType");if(!s)return;[...s.options].forEach(o=>o.selected=true);syncUserServiceUI();});
+$("clearAllUserServices")?.addEventListener("click",()=>{const s=$("userServiceType");if(!s)return;[...s.options].forEach(o=>o.selected=false);syncUserServiceUI();});
 loadUserServices();
 loadPaidRequestsAndPayments();
