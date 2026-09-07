@@ -41,7 +41,7 @@ async function loadChannels(customerId){
   renderServiceOptions();syncServiceUI();
 }
 async function loadServices(){
-  const {data,error}=await supabase.from("service_charges").select("service_name,description,is_active,sort_order,amount,charge").eq("is_active",true).order("sort_order",{ascending:true}).order("service_name",{ascending:true});
+  const {data,error}=await supabase.from("service_charges").select("service_name,description,is_active,sort_order,charge").eq("is_active",true).order("sort_order",{ascending:true}).order("service_name",{ascending:true});
   if(error){msg(`Service list load failed: ${error.message}`);return;}
   services=data||[];renderServiceOptions();
 }
@@ -52,7 +52,7 @@ function renderServiceOptions(){
   sel.innerHTML=services.map(s=>`<option value="${esc(s.service_name)}" ${previous.has(s.service_name)?"selected":""}>${esc(s.service_name)}</option>`).join("");
   if($("freeServiceChannel")?.value){
     sel.disabled=false;
-    box.innerHTML=services.map(s=>`<label class="free-service-check"><input type="checkbox" data-service-value value="${esc(s.service_name)}" ${previous.has(s.service_name)?"checked":""}><span>${esc(s.service_name)}</span><small>₹${Number(s.amount??s.charge??0).toLocaleString("en-IN")}</small></label>`).join("");
+    box.innerHTML=services.map(s=>`<label class="free-service-check"><input type="checkbox" data-service-value value="${esc(s.service_name)}" ${previous.has(s.service_name)?"checked":""}><span>${esc(s.service_name)}</span><small>₹${Number(s.charge??0).toLocaleString("en-IN")}</small></label>`).join("");
     box.querySelectorAll('input[data-service-value]').forEach(i=>i.addEventListener("change",()=>{const o=[...sel.options].find(x=>x.value===i.value);if(o)o.selected=i.checked;syncServiceUI();}));
   }else{sel.disabled=true;box.innerHTML="<small>Select customer and channel first…</small>";}
   syncServiceUI();
