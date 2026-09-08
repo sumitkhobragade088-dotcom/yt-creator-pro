@@ -9,8 +9,8 @@ async function boot(){
   if(error||!admin)return location.href="admin/login.html";
   const status=String(admin.status||"active").toLowerCase();
   if(status!=="active"){await supabase.auth.signOut().catch(()=>{});return location.href=`admin/login.html?status=${encodeURIComponent(status)}`;}
-  const {data:a,error:ae}=await supabase.from("admin_role_assignments").select("role").eq("admin_user_id",user.id).maybeSingle();
-  if(ae||a?.role!==role)return location.href="admin/login.html";
+  const {data:a,error:ae}=await supabase.from("admin_staff_roles").select("role,status").eq("admin_id",user.id).maybeSingle();
+  if(ae||a?.role!==role||String(a?.status||"").toLowerCase()!=="active")return location.href="admin/login.html";
   const {data:perms}=await supabase.from("admin_role_permissions").select("permission_key").eq("role",role);
   $("staffEmail").textContent=user.email||""; $("staffWelcome").textContent=`Welcome ${label}`; document.documentElement.style.setProperty("--staff-accent",accent);
   const map=[

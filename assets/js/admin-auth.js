@@ -9,11 +9,13 @@ async function getAccess(user){
   const {data:admin,error}=await supabase.from("admin_users").select("id,email,status").eq("id",user.id).maybeSingle();
   if(error || !admin) return {authorized:false,status:"unauthorized",role:null};
   const status=String(admin.status||"active").trim().toLowerCase();
-  const {data:assignment}=await supabase.from("admin_role_assignments").select("role").eq("admin_user_id",user.id).maybeSingle();
-  const role=assignment?.role || (String(admin.email||"").toLowerCase()===ADMIN_EMAIL.toLowerCase()?"super_admin":null);
-  if(status==="inactive") return {authorized:false,status:"inactive",role};
-  if(status==="suspended") return {authorized:false,status:"suspended",role};
-  if(status!=="active") return {authorized:false,status:"unauthorized",role};
+  const {data:staff,error:staffError}=await supabase.from("admin_staff_roles").select("role,status").eq("admin_id",user.id).maybeSingle();
+  const role=staff?.role || (String(admin.email||"").toLowerCase()===ADMIN_EMAIL.toLowerCase()?"super_admin":null);
+  const effectiveStatus=staff?.status ? String(staff.status).toLowerCase() : status;
+  if(effectiveStatus==="inactive") return {authorized:false,status:"inactive",role};
+  if(effectiveStatus==="suspended") return {authorized:false,status:"suspended",role};
+  if(effectiveStatus!=="active") return {authorized:false,status:"unauthorized",role};
+  if(!role) return {authorized:false,status:"unauthorized",role:null};
   return {authorized:true,status:"active",role};
 }
 
@@ -496,7 +498,10 @@ function showPremiumAdminView(name){
   loadPremiumSectionData(name);
 }
 document.querySelectorAll(".yt-premium-nav-btn").forEach(btn=>{
-  btn.addEventListener("click",()=>showPremiumAdminView(btn.dataset.view));
+  btn.addEventListener("click",()=>{
+    if(btn.dataset.roleControl) return;
+    if(btn.dataset.view) showPremiumAdminView(btn.dataset.view);
+  });
 });
 
 if($("ytPremiumSidebarToggle")){

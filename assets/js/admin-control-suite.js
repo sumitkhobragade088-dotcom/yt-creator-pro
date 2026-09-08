@@ -19,22 +19,74 @@ async function log(action,targetType,targetId,details={}){
 function setMsg(id,msg,good=false){ const e=$(id); if(e){e.textContent=msg;e.className=good?'good-text':'error-text';} }
 
 async function loadRoles(){
-  const [roles,perms,assign]=await Promise.all([
-    supabase.from('admin_role_assignments').select('id,admin_user_id,role,created_at').order('created_at'),
+  const [roles,perms,users]=await Promise.all([
+    supabase.from('admin_staff_roles').select('admin_id,role,status,created_at,updated_at').order('created_at'),
     supabase.from('admin_permissions').select('permission_key,label').order('permission_key'),
-    supabase.from('admin_users').select('id,email').order('email')
+    supabase.from('admin_users').select('id,email,status,created_at').order('email')
   ]);
   const body=$('acsRolesBody'); if(!body)return;
-  if(roles.error||perms.error||assign.error){body.innerHTML='<tr><td colspan="4">Role tables are not installed. Run the supplied SQL first.</td></tr>';return;}
-  const emails=new Map((assign.data||[]).map(u=>[u.id,u.email]));
-  body.innerHTML=(roles.data||[]).map(r=>`<tr><td>${esc(emails.get(r.admin_user_id)||r.admin_user_id)}</td><td><select data-role-id="${r.id}">${['super_admin','manager','operator','support'].map(x=>`<option ${x===r.role?'selected':''}>${x}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><button class="btn primary" data-save-role="${r.id}">Save</button></td></tr>`).join('')||'<tr><td colspan="4">No admin roles found.</td></tr>';
-  body.querySelectorAll('[data-save-role]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.saveRole;const role=body.querySelector(`[data-role-id="${id}"]`).value;const {error}=await supabase.from('admin_role_assignments').update({role}).eq('id',id);if(error)return alert(error.message);await log('role_updated','admin_role_assignments',id,{role});await loadRoles();});
-  const p=$('acsPermissionList'); if(p)p.innerHTML=(perms.data||[]).map(x=>`<span class="acs-pill">${esc(x.label||x.permission_key)}</span>`).join('');
-  const pe=$('acsPermissionEditor'); if(pe){
-    const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['super_admin','manager','operator','support'];
-    const rp=(await supabase.from('admin_role_permissions').select('role,permission_key')).data||[]; const existing=new Set(rp.map(x=>x.role+'|'+x.permission_key));
-    pe.innerHTML=rolesList.map(role=>`<div class="acs-role-perm"><b>${role}</b>${allPerms.map(k=>`<label><input type="checkbox" data-rp-role="${role}" data-rp-key="${k}" ${existing.has(role+'|'+k)?'checked':''}> ${esc(k)}</label>`).join('')}</div>`).join('');
-    pe.querySelectorAll('[data-rp-role]').forEach(ch=>ch.addEventListener('change',async()=>{const role=ch.dataset.rpRole,key=ch.dataset.rpKey;if(ch.checked){const {error}=await supabase.from('admin_role_permissions').upsert({role,permission_key:key});if(error){ch.checked=false;alert(error.message);}}else{const {error}=await supabase.from('admin_role_permissions').delete().eq('role',role).eq('permission_key',key);if(error){ch.checked=true;alert(error.message);}}}));
+  if(roles.error||perms.error||users.error){body.innerHTML='<tr><td colspan="5">Role/permission data could not be loaded. Run STAFF-DASHBOARDS-TOTAL-LOCK.sql once.</td></tr>';return;}
+  const userMap=new Map((users.data||[]).map(u=>[u.id,u]));
+  const roleRows=roles.data||[];
+  const roleMeta={
+    manager:{icon:'🟢',title:'Manager',desc:'Management-level access controlled entirely by Super Admin.'},
+    operator:{icon:'🟡',title:'Operator',desc:'Operational access controlled entirely by Super Admin.'},
+    support:{icon:'🩷',title:'Support',desc:'Support/customer-help access controlled entirely by Super Admin.'},
+    super_admin:{icon:'👑',title:'Super Admin',desc:'Full protected administrator control.'}
+  };
+  const cards=$('acsRoleCards');
+  if(cards){
+    cards.innerHTML=['manager','operator','support'].map(r=>`<button type="button" class="acs-role-card" data-role-card="${r}"><b>${roleMeta[r].icon} ${roleMeta[r].title}</b><small>${esc(roleMeta[r].desc)}</small></button>`).join('');
+    cards.querySelectorAll('[data-role-card]').forEach(b=>b.addEventListener('click',()=>focusRole(b.dataset.roleCard)));
+  }
+  window.focusRole=focusRole;
+  function focusRole(role){
+    const m=roleMeta[role]||roleMeta.operator;
+    cards?.querySelectorAll('[data-role-card]').forEach(b=>b.classList.toggle('active',b.dataset.roleCard===role));
+    const info=$('acsRoleInfo'); if(info)info.innerHTML=`<b>${m.icon} ${m.title}</b><span>${esc(m.desc)}</span><small>Use the Permission Matrix below to grant or remove A–Z permissions.</small>`;
+    const editor=$('acsPermissionEditor');
+    editor?.querySelectorAll('.acs-role-perm').forEach(x=>x.hidden=x.dataset.rpRole!==role);
+  }
+  body.innerHTML=roleRows.map(r=>{
+    const u=userMap.get(r.admin_id)||{};
+    const status=String(r.status||'active').toLowerCase();
+    return `<tr><td><b>${esc(u.email||r.admin_id)}</b></td><td>${esc(r.role)}</td><td><span class="yt-status-chip ${status==='active'?'good':'bad'}">${esc(status.toUpperCase())}</span></td><td>${dateText(r.updated_at||r.created_at)}</td><td><select data-staff-role="${r.admin_id}"><option value="manager" ${r.role==='manager'?'selected':''}>Manager</option><option value="operator" ${r.role==='operator'?'selected':''}>Operator</option><option value="support" ${r.role==='support'?'selected':''}>Support</option></select> <select data-staff-status="${r.admin_id}"><option value="active" ${status==='active'?'selected':''}>Active</option><option value="inactive" ${status==='inactive'?'selected':''}>Inactive</option><option value="suspended" ${status==='suspended'?'selected':''}>Suspended</option></select> <button class="btn primary" data-save-staff="${r.admin_id}">Save</button> <button class="btn danger" data-delete-staff="${r.admin_id}">Delete</button></td></tr>`;
+  }).join('')||'<tr><td colspan="5">No staff accounts found.</td></tr>';
+  body.querySelectorAll('[data-save-staff]').forEach(btn=>btn.onclick=async()=>{
+    const id=btn.dataset.saveStaff, role=body.querySelector(`[data-staff-role="${id}"]`).value, status=body.querySelector(`[data-staff-status="${id}"]`).value;
+    if(id=== (await supabase.auth.getUser()).data.user?.id) return alert('Your Super Admin account is protected.');
+    const {error}=await supabase.rpc('admin_update_staff',{p_admin_id:id,p_role:role,p_status:status});
+    if(error)return alert(error.message); await log('staff_updated','admin_staff_roles',id,{role,status}); await loadRoles();
+  });
+  body.querySelectorAll('[data-delete-staff]').forEach(btn=>btn.onclick=async()=>{
+    const id=btn.dataset.deleteStaff; if(!confirm('WARNING: Delete this staff access? The Supabase Auth account will NOT be deleted. Continue?'))return;
+    const {error}=await supabase.rpc('admin_remove_staff',{p_admin_id:id}); if(error)return alert(error.message); await log('staff_access_deleted','admin_staff_roles',id); await loadRoles();
+  });
+  const select=$('acsAdminUserSelect'); if(select){select.innerHTML='<option value="">Select admin/staff account…</option>'+ (users.data||[]).map(u=>`<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');}
+  const pe=$('acsPermissionEditor');
+  if(pe){
+    const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['manager','operator','support'];
+    const rpRes=await supabase.from('admin_role_permissions').select('role,permission_key');
+    const existing=new Set((rpRes.data||[]).map(x=>x.role+'|'+x.permission_key));
+    pe.innerHTML=rolesList.map(role=>`<div class="acs-role-perm" data-rp-role="${role}"><h4>${roleMeta[role].icon} ${roleMeta[role].title} Permissions</h4><div class="acs-perm-tools"><button type="button" class="btn" data-perm-all="${role}">Select All</button><button type="button" class="btn" data-perm-none="${role}">Clear All</button><input type="search" placeholder="Search permissions…" data-perm-search="${role}"></div><div class="acs-perm-grid">${allPerms.map(k=>`<label data-perm-item="${role}" data-perm-key="${esc(k)}"><input type="checkbox" data-rp-role="${role}" data-rp-key="${esc(k)}" ${existing.has(role+'|'+k)?'checked':''}> ${esc((perms.data||[]).find(x=>x.permission_key===k)?.label||k)}</label>`).join('')}</div></div>`).join('');
+    pe.querySelectorAll('[data-rp-role][data-rp-key]').forEach(ch=>ch.addEventListener('change',async()=>{const role=ch.dataset.rpRole,key=ch.dataset.rpKey;const q=ch.checked?supabase.from('admin_role_permissions').upsert({role,permission_key:key}):supabase.from('admin_role_permissions').delete().eq('role',role).eq('permission_key',key);const {error}=await q;if(error){ch.checked=!ch.checked;alert(error.message);}}));
+    pe.querySelectorAll('[data-perm-all]').forEach(b=>b.onclick=()=>pe.querySelectorAll(`[data-rp-role="${b.dataset.permAll}"][data-rp-key]`).forEach(x=>{x.checked=true;x.dispatchEvent(new Event('change'))}));
+    pe.querySelectorAll('[data-perm-none]').forEach(b=>b.onclick=()=>pe.querySelectorAll(`[data-rp-role="${b.dataset.permNone}"][data-rp-key]`).forEach(x=>{x.checked=false;x.dispatchEvent(new Event('change'))}));
+    pe.querySelectorAll('[data-perm-search]').forEach(inp=>inp.oninput=()=>{const q=inp.value.toLowerCase();pe.querySelectorAll(`[data-perm-item="${inp.dataset.permSearch}"]`).forEach(x=>x.hidden=!x.dataset.permKey.toLowerCase().includes(q));});
+    focusRole(sessionStorage.getItem('yt_acs_role_focus')||'manager'); sessionStorage.removeItem('yt_acs_role_focus');
+  }
+  const create=$('acsCreateStaff');
+  if(create && create.dataset.bound!=='1'){
+    create.dataset.bound='1'; create.onclick=async()=>{
+      const name=$('acsStaffName')?.value.trim(),email=$('acsStaffEmail')?.value.trim(),role=$('acsStaffRole')?.value,password=$('acsStaffPassword')?.value;
+      if(!name||!email||!password)return setMsg('acsStaffMsg','Name, email and temporary password are required.');
+      create.disabled=true; setMsg('acsStaffMsg','Creating staff…');
+      try{const {data,error}=await supabase.functions.invoke('create-admin-staff',{body:{name,email,role,password}});if(error)throw error;if(data?.error)throw new Error(data.error);setMsg('acsStaffMsg','Staff created successfully ✅',true);['acsStaffName','acsStaffEmail','acsStaffPassword'].forEach(id=>{const e=$(id);if(e)e.value='';});await loadRoles();}catch(e){setMsg('acsStaffMsg',e?.message||'Staff creation failed.');}finally{create.disabled=false;}
+    };
+  }
+  const assign=$('acsAssignRole');
+  if(assign && assign.dataset.bound!=='1'){
+    assign.dataset.bound='1'; assign.onclick=async()=>{const id=$('acsAdminUserSelect')?.value,role=$('acsNewRole')?.value;if(!id)return setMsg('acsRoleMsg','Select an admin/staff account.');const {error}=await supabase.rpc('admin_update_staff',{p_admin_id:id,p_role:role,p_status:'active'});if(error)return setMsg('acsRoleMsg',error.message);setMsg('acsRoleMsg','Role assigned successfully ✅',true);await loadRoles();};
   }
 }
 

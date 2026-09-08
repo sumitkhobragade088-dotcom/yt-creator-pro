@@ -146,11 +146,6 @@ document.documentElement.classList.add("yt-admin-boot");
 #view-free-user-service .free-user-channel-card b{display:block}.free-user-channel-card small{display:block;color:#667085;margin-top:3px}
 @media(max-width:760px){#view-free-user-service .free-service-form-grid{grid-template-columns:1fr}#view-free-user-service .free-user-manage-grid{grid-template-columns:1fr}}
 </style>
-
-<style id="staff-role-control-sidebar-fix">
-.yt-premium-nav-btn.active-role-control{outline:2px solid currentColor;outline-offset:-3px;font-weight:900}
-.acs-role-perm.selected-role{box-shadow:0 0 0 3px rgba(22,163,74,.16);border-radius:12px}
-</style>
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -166,10 +161,10 @@ document.documentElement.classList.add("yt-admin-boot");
 
     <nav class="yt-premium-nav">
       <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
-      <button class="yt-premium-nav-btn" data-view="control-suite">🛡️ <span>Admin Control Suite</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-staff-control-role="manager" onclick="openStaffRoleControl('manager');return false;">🟢 <span>Manager</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-staff-control-role="operator" onclick="openStaffRoleControl('operator');return false;">🟡 <span>Operator</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-staff-control-role="support" onclick="openStaffRoleControl('support');return false;">🩷 <span>Support</span></button>
+      <button class="yt-premium-nav-btn" data-view="control-suite" data-fixed-order="2">🛡️ <span>Admin Control Suite</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="manager" data-fixed-order="3">🟢 <span>Manager</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="operator" data-fixed-order="4">🟡 <span>Operator</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="support" data-fixed-order="5">🩷 <span>Support</span></button>
       <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
       <button class="yt-premium-nav-btn" data-view="free-user-service">🎁 <span>Free User Service</span></button>
       <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>
@@ -1142,24 +1137,6 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>
 
 <script>
-// Admin sidebar role-management buttons: stay inside Admin Dashboard.
-// Staff members still use the single Admin/Staff Login page and their own role dashboard.
-window.openStaffRoleControl = function(role){
-  const suite = document.querySelector('.yt-premium-nav-btn[data-view="control-suite"]');
-  if (suite) suite.click();
-  const roleTab = document.querySelector('[data-acs-tab="roles"]');
-  if (roleTab) roleTab.click();
-  document.querySelectorAll('[data-staff-control-role]').forEach(b=>b.classList.toggle('active-role-control', b.dataset.staffControlRole===role));
-  const editor = document.getElementById('acsPermissionEditor');
-  if (editor) {
-    const target = editor.querySelector('.acs-role-perm');
-    const blocks = editor.querySelectorAll('.acs-role-perm');
-    const index = {super_admin:0,manager:1,operator:2,support:3}[role];
-    blocks.forEach((b,i)=>b.classList.toggle('selected-role', i===index));
-    (blocks[index]||target)?.scrollIntoView({behavior:'smooth',block:'nearest'});
-  }
-};
-
 (function(){
   const freshLogin=sessionStorage.getItem("yt_admin_fresh_login")==="1";
   if(freshLogin){
@@ -1193,5 +1170,6 @@ window.openStaffRoleControl = function(role){
 <script type="module" src="../assets/js/admin-public-notifications.js"></script>
 <script type="module" src="../assets/js/feature-center.js"></script>
 <script type="module">import("../assets/js/admin-control-suite.js").then(m=>m.initAdminControlSuite()).catch(console.error);</script>
+<script type="module" src="../assets/js/staff-role-control.js"></script>
 </body>
 </html>

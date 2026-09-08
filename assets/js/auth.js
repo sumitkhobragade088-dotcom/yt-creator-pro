@@ -116,7 +116,8 @@ if (loginForm) {
       // Admin/Staff accounts must use the Admin/Staff login, not the normal user portal.
       // This installation uses public.admin_users(id,email).
       const {data:adminRow}=await supabase.from("admin_users").select("id,status").eq("id",data.user.id).maybeSingle();
-      if(adminRow){
+      const {data:staffRow}=await supabase.from("admin_staff_roles").select("role,status").eq("admin_id",data.user.id).maybeSingle();
+      if(adminRow || staffRow){
         await supabase.auth.signOut();
         throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
       }
