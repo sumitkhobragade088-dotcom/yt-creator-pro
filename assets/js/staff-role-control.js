@@ -1,47 +1,70 @@
 const ROLE_LABELS={manager:'Manager',operator:'Operator',support:'Support'};
 
 function openRoleControl(role){
-  const safe=ROLE_LABELS[role]?role:'manager';
-  window.location.href=`${location.origin}${location.pathname.replace(/\/admin\/index\.html$/,'')}/admin/${safe}-control.html`;
+  const safe=ROLE_LABELS[role] ? role : null;
+  if(!safe) return;
+  const target=new URL(`./${safe}-control.html`,window.location.href);
+  window.location.assign(target.href);
 }
 
-document.querySelectorAll('[data-role-control]').forEach(btn=>{
-  btn.addEventListener('click',e=>{
-    e.preventDefault();
-    e.stopPropagation();
-    openRoleControl(btn.dataset.roleControl);
+function bindRoleControls(){
+  document.querySelectorAll('[data-role-control]').forEach(btn=>{
+    if(btn.dataset.roleControlBound==='1') return;
+    btn.dataset.roleControlBound='1';
+    btn.addEventListener('click',e=>{
+      e.preventDefault();
+      e.stopPropagation();
+      openRoleControl(btn.dataset.roleControl);
+    },true);
   });
-});
+}
 
-// Keep the first five Admin controls physically at the top.  This is DOM order,
-// not only CSS order, so later CMS/sidebar rendering cannot push them down.
-(function lockPrimaryAdminNav(){
+function lockPrimaryAdminNav(){
   const nav=document.querySelector('.yt-premium-nav');
-  if(!nav)return;
-  let running=false;
-  const enforce=()=>{
-    if(running)return;
-    const dashboard=nav.querySelector('[data-view="dashboard"]');
-    const suite=nav.querySelector('[data-fixed-order="2"]');
-    const manager=nav.querySelector('[data-fixed-order="3"]');
-    const operator=nav.querySelector('[data-fixed-order="4"]');
-    const support=nav.querySelector('[data-fixed-order="5"]');
-    if(!dashboard||!suite||!manager||!operator||!support)return;
-    running=true;
-    [suite,manager,operator,support].forEach((el,i)=>{
-      el.style.order=String(i+1);
+  if(!nav) return;
+  const fixed=[
+    nav.querySelector('[data-view="dashboard"]'),
+    nav.querySelector('[data-fixed-order="2"]'),
+    nav.querySelector('[data-fixed-order="3"]'),
+    nav.querySelector('[data-fixed-order="4"]'),
+    nav.querySelector('[data-fixed-order="5"]')
+  ].filter(Boolean);
+  const fixedSet=new Set(fixed);
+  fixed.forEach((el,i)=>{
+    el.hidden=false;
+    el.style.order=String(i);
+  });
+  [...nav.children].forEach((el,i)=>{
+    if(!fixedSet.has(el) && el.classList.contains('yt-premium-nav-btn')){
+      el.style.order=String(10+i);
+    }
+  });
+}
+
+function enforceAdminNav(){
+  bindRoleControls();
+  lockPrimaryAdminNav();
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded',enforceAdminNav,{once:true});
+}else{
+  enforceAdminNav();
+}
+setTimeout(enforceAdminNav,50);
+setTimeout(enforceAdminNav,300);
+setTimeout(enforceAdminNav,1000);
+
+const nav=document.querySelector('.yt-premium-nav');
+if(nav){
+  let queued=false;
+  const observer=new MutationObserver(()=>{
+    if(queued) return;
+    queued=true;
+    requestAnimationFrame(()=>{
+      queued=false;
+      enforceAdminNav();
     });
-    dashboard.style.order='0';
-    let cursor=dashboard.nextElementSibling;
-    [suite,manager,operator,support].forEach(el=>{
-      if(el!==cursor){nav.insertBefore(el,cursor||null);}
-      cursor=el.nextElementSibling;
-    });
-    running=false;
-  };
-  enforce();
-  new MutationObserver(enforce).observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','hidden']});
-  setTimeout(enforce,100);
-  setTimeout(enforce,500);
-  setTimeout(enforce,1500);
-})();
+  });
+  observer.observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','hidden']});
+}

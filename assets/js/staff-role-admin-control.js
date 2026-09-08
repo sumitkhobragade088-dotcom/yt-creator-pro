@@ -19,15 +19,65 @@ const PERMISSIONS=[
 let existing=new Set();
 
 async function requireSuperAdmin(){
- const {data:{session}}=await supabase.auth.getSession();
- const user=session?.user;
- if(!user){location.href='login.html';return null;}
- const {data:admin,error}=await supabase.from('admin_users').select('id,email,status').eq('id',user.id).maybeSingle();
- if(error||!admin||String(admin.status||'active').toLowerCase()!=='active'){location.href='login.html';return null;}
- const {data:staff}=await supabase.from('admin_staff_roles').select('role,status').eq('admin_id',user.id).maybeSingle();
- if(staff?.role && staff.role!=='super_admin'){alert('Only Super Admin can manage staff roles.');location.href='index.html';return null;}
- $('adminEmail').textContent=admin.email||'';
- return user;
+  const {data:{session}}=await supabase.auth.getSession();
+  const user=session?.user;
+  if(!user){
+    show('Admin session not found. Please sign in again.');
+    return null;
+  }
+
+  const {data:admin,error}=await supabase
+    .from('admin_users')
+    .select('id,email,status')
+    .eq('id',user.id)
+    .maybeSingle();
+
+  if(error){
+    console.error('Admin authorization query failed:',error);
+    show('Unable to verify Admin access: '+error.message);
+    return null;
+  }
+
+  if(!admin){
+    show('This account is not authorized as an Admin.');
+    return null;
+  }
+
+  const adminStatus=String(admin.status||'active').trim().toLowerCase();
+  if(adminStatus!=='active'){
+    show(`Admin account is ${adminStatus.toUpperCase()}. Access is blocked.`);
+    return null;
+  }
+
+  // The same Super Admin identity used by the existing Admin Login is allowed.
+  // If a role record exists, it must explicitly be super_admin.
+  const {data:staff,error:staffError}=await supabase
+    .from('admin_staff_roles')
+    .select('role,status')
+    .eq('admin_id',user.id)
+    .maybeSingle();
+
+  if(staffError){
+    console.warn('Optional staff-role lookup failed:',staffError.message);
+  }
+
+  const role=String(staff?.role||'').toLowerCase();
+  if(role && role!=='super_admin'){
+    show('Only Super Admin can manage staff roles.');
+    return null;
+  }
+
+  const isKnownSuperAdmin=String(admin.email||'').toLowerCase()==='sumitkhobragade088@gmail.com'
+    || role==='super_admin'
+    || sessionStorage.getItem('yt_admin_role')==='super_admin';
+
+  if(!isKnownSuperAdmin){
+    show('Only Super Admin can manage staff roles.');
+    return null;
+  }
+
+  $('adminEmail').textContent=admin.email||user.email||'';
+  return user;
 }
 
 async function load(){

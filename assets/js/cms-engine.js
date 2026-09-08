@@ -130,6 +130,24 @@ async function applyAdmin(){
     const existing=[...nav.querySelectorAll('[data-view]')];
     existing.forEach(b=>{const k=b.dataset.view,v=adminNavConfig(c,k),sp=b.querySelector('span');if(v.label&&sp)sp.textContent=v.label;if(v.icon){const txt=[...b.childNodes].find(n=>n.nodeType===3);if(txt)txt.nodeValue=v.icon+' '}b.hidden=!!v.hidden});
     sortByOrder(existing,c.order||[],el=>el.dataset.view);
+
+    // SYSTEM-LOCKED ADMIN PRIMARY NAV:
+    // Dashboard must remain #1, followed by Admin Control Suite, Manager,
+    // Operator and Support. CMS navigation order must never push these
+    // protected controls down or interleave other items with them.
+    const fixedNav = [
+      nav.querySelector('[data-view="dashboard"]'),
+      nav.querySelector('[data-fixed-order="2"]'),
+      nav.querySelector('[data-fixed-order="3"]'),
+      nav.querySelector('[data-fixed-order="4"]'),
+      nav.querySelector('[data-fixed-order="5"]')
+    ].filter(Boolean);
+    const fixedSet = new Set(fixedNav);
+    fixedNav.forEach((el,i)=>{ el.hidden=false; el.style.order=String(i); });
+    existing.forEach((el,i)=>{
+      if(!fixedSet.has(el)) el.style.order=String(10+i);
+    });
+
     for(const x of (c.customPages||[]).filter(cmsLive).sort((a,b)=>(a.order??999)-(b.order??999))){
       if(nav.querySelector(`[data-cms-custom-page="${x.id}"]`))continue;
       const b=document.createElement('button');b.className='yt-premium-nav-btn';b.dataset.cmsCustomPage=x.id;b.style.order=String(x.order??999);b.innerHTML=`${esc(x.icon||'🧩')} <span>${esc(x.label)}</span>`;nav.appendChild(b);applyCmsVisibility(b,x);
