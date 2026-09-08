@@ -2,107 +2,42 @@ import { supabase } from "./supabase.js";
 
 const ADMIN_EMAIL = "sumitkhobragade088@gmail.com";
 const $ = (id) => document.getElementById(id);
+function showMessage(text, ok=false){const el=$("adminMessage");if(el){el.textContent=text;el.className=ok?"message ok":"message";}}
 
-function esc(v=""){
-  return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+async function getAccess(user){
+  if(!user?.id) return {authorized:false,status:"unauthorized",role:null};
+  const {data:admin,error}=await supabase.from("admin_users").select("id,email,status").eq("id",user.id).maybeSingle();
+  if(error || !admin) return {authorized:false,status:"unauthorized",role:null};
+  const status=String(admin.status||"active").trim().toLowerCase();
+  const {data:assignment}=await supabase.from("admin_role_assignments").select("role").eq("admin_user_id",user.id).maybeSingle();
+  const role=assignment?.role || (String(admin.email||"").toLowerCase()===ADMIN_EMAIL.toLowerCase()?"super_admin":null);
+  if(status==="inactive") return {authorized:false,status:"inactive",role};
+  if(status==="suspended") return {authorized:false,status:"suspended",role};
+  if(status!=="active") return {authorized:false,status:"unauthorized",role};
+  return {authorized:true,status:"active",role};
 }
-function fmt(n){ return Number(n||0).toLocaleString("en-IN"); }
-function dateText(v){
-  if(!v) return "-";
-  const d=new Date(v);
-  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
-}
-function setText(id,value){ if($(id)) $(id).textContent=value; }
-const ADMIN_TIMEOUT=8000;
-function withTimeout(promise,ms=ADMIN_TIMEOUT,label="Request"){
-  return Promise.race([
-    Promise.resolve(promise),
-    new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${label} timeout. Please try again.`)),ms))
-  ]);
-}
-async function safeAdminQuery(query,fallback=[],label="Data"){
+
+const form=$("adminLoginForm");
+if(form){form.addEventListener("submit",async e=>{
+  e.preventDefault(); const btn=form.querySelector('button[type="submit"]'); if(btn)btn.disabled=true; showMessage("Signing in...");
   try{
-    const res=await withTimeout(query,ADMIN_TIMEOUT,label);
-    if(res?.error) throw res.error;
-    return res?.data ?? fallback;
-  }catch(e){
-    console.error(label,e);
-    return fallback;
-  }
-}
-
-function showMessage(text, ok=false) {
-  const el = $("adminMessage");
-  if (!el) return;
-  el.textContent = text;
-  el.className = ok ? "message ok" : "message";
-}
-
-async function getAdminAccessState(user){
-  if(!user?.id) return {authorized:false,status:'unknown',role:null};
-  try{
-    // IMPORTANT: this installation's real admin_users columns are id,email.
-    // Staff/Admin authorization is based on the authenticated user's UUID.
-    const {data:admin,error}=await supabase
-      .from('admin_users')
-      .select('id,email,status')
-      .eq('id',user.id)
-      .maybeSingle();
-    if(error || !admin) return {authorized:false,status:'unauthorized',role:null};
-
-    const status=String(admin.status||'active').trim().toLowerCase();
-    let role=null;
-    const roleRes=await supabase
-      .from('admin_role_assignments')
-      .select('role')
-      .eq('admin_user_id',user.id)
-      .maybeSingle();
-    if(!roleRes.error && roleRes.data) role=roleRes.data.role||null;
-
-    if(status==='inactive') return {authorized:false,status:'inactive',role};
-    if(status==='suspended') return {authorized:false,status:'suspended',role};
-    if(status==='active') return {authorized:true,status:'active',role:role||((String(admin.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'super_admin':null)};
-    return {authorized:false,status:'unauthorized',role};
-  }catch(e){
-    console.error('[Admin access]',e);
-    return {authorized:false,status:'error',role:null};
-  }
-}
-
-async function isAdmin(user){
-  const state=await getAdminAccessState(user);
-  return state.authorized;
-}
-
-const form = $("adminLoginForm");
-if (form) {
-  form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-    showMessage("Signing in...");
-    const submit=form.querySelector('button[type="submit"]');
-    if(submit)submit.disabled=true;
-    try{
-      const email = $("adminEmail").value.trim();
-      const password = $("adminPassword").value;
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-      const access=await getAdminAccessState(data?.user);
-      if (!access.authorized) {
-        try{await withTimeout(supabase.auth.signOut(),4000,"Sign out");}catch(_){}
-        if(access.status==='inactive'){showMessage("Staff account is INACTIVE. Login is blocked.");if(submit)submit.disabled=false;return;}
-        if(access.status==='suspended'){showMessage("Staff account is SUSPENDED. Login is blocked.");if(submit)submit.disabled=false;return;}
-        throw new Error("This account is not authorized as admin/staff.");
-      }
-      showMessage("Admin login successful.", true);
-      sessionStorage.setItem("yt_admin_view","dashboard");
-      sessionStorage.setItem("yt_admin_fresh_login","1");
-      setTimeout(() => location.href = "index.html", 120);
-    }catch(err){
-      showMessage(err?.message||"Admin login failed.");
-      if(submit)submit.disabled=false;
+    const email=$("adminEmail")?.value.trim(); const password=$("adminPassword")?.value||"";
+    const {data,error}=await supabase.auth.signInWithPassword({email,password}); if(error)throw error;
+    const access=await getAccess(data?.user);
+    if(!access.authorized){await supabase.auth.signOut().catch(()=>{});
+      if(access.status==="inactive"){showMessage("Staff account is INACTIVE. Login is blocked.");return;}
+      if(access.status==="suspended"){showMessage("Staff account is SUSPENDED. Login is blocked.");return;}
+      showMessage("This account is not authorized as admin/staff.");return;
     }
-  });
-}
+    sessionStorage.setItem("yt_admin_role",access.role||"super_admin");
+    sessionStorage.setItem("yt_admin_fresh_login","1");
+    showMessage(`Login successful — ${access.role||"admin"}.`,true);
+    const target=access.role==="manager"?"../staff-manager.html":access.role==="operator"?"../staff-operator.html":access.role==="support"?"../staff-support.html":"index.html";
+    setTimeout(()=>location.href=target,150);
+  }catch(err){showMessage(err?.message||"Login failed.");}finally{if(btn)btn.disabled=false;}
+});}
+
+async function isAdmin(user){const a=await getAccess(user);return a.authorized;}
 
 let dashboardCache={customers:[],access:[],requests:[]};
 
