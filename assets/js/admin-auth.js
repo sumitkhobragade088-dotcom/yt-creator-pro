@@ -38,42 +38,38 @@ function showMessage(text, ok=false) {
   el.className = ok ? "message ok" : "message";
 }
 
-async function getAdminAccessState(user) {
+async function getAdminAccessState(user){
   if(!user?.id) return {authorized:false,status:'unknown',role:null};
   try{
-    const {data,error}=await supabase.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();
-    if(error || !data) return {authorized:false,status:'unauthorized',role:null};
-
-    const {data:staff}=await supabase
-      .from('admin_staff_roles')
-      .select('role,status')
-      .eq('admin_id',user.id)
+    // IMPORTANT: this installation's real admin_users columns are id,email.
+    // Staff/Admin authorization is based on the authenticated user's UUID.
+    const {data:admin,error}=await supabase
+      .from('admin_users')
+      .select('id,email,status')
+      .eq('id',user.id)
       .maybeSingle();
+    if(error || !admin) return {authorized:false,status:'unauthorized',role:null};
 
-    // Staff status is authoritative. Inactive/Suspended staff must never
-    // enter the Admin Panel, and the login page reports the exact state.
-    if(String(staff?.status||'').toLowerCase() === 'inactive') {
-      return {authorized:false,status:'inactive',role:staff.role||null};
-    }
-    if(String(staff?.status||'').toLowerCase() === 'suspended') {
-      return {authorized:false,status:'suspended',role:staff.role||null};
-    }
-    if(String(staff?.status||'').toLowerCase() === 'active') {
-      return {authorized:true,status:'active',role:staff.role||null};
-    }
+    const status=String(admin.status||'active').trim().toLowerCase();
+    let role=null;
+    const roleRes=await supabase
+      .from('admin_role_assignments')
+      .select('role')
+      .eq('admin_user_id',user.id)
+      .maybeSingle();
+    if(!roleRes.error && roleRes.data) role=roleRes.data.role||null;
 
-    // Primary Super Admin may have no staff-role row on legacy installs.
-    if(String(user.email||'').toLowerCase() === ADMIN_EMAIL) {
-      return {authorized:true,status:'active',role:'super_admin'};
-    }
-
-    return {authorized:false,status:'unauthorized',role:null};
-  }catch(_){
+    if(status==='inactive') return {authorized:false,status:'inactive',role};
+    if(status==='suspended') return {authorized:false,status:'suspended',role};
+    if(status==='active') return {authorized:true,status:'active',role:role||((String(admin.email||'').toLowerCase()===ADMIN_EMAIL.toLowerCase())?'super_admin':null)};
+    return {authorized:false,status:'unauthorized',role};
+  }catch(e){
+    console.error('[Admin access]',e);
     return {authorized:false,status:'error',role:null};
   }
 }
 
-async function isAdmin(user) {
+async function isAdmin(user){
   const state=await getAdminAccessState(user);
   return state.authorized;
 }
@@ -93,16 +89,8 @@ if (form) {
       const access=await getAdminAccessState(data?.user);
       if (!access.authorized) {
         try{await withTimeout(supabase.auth.signOut(),4000,"Sign out");}catch(_){}
-        if(access.status === 'inactive') {
-          showMessage("Staff account is INACTIVE. Login is blocked.");
-          if(submit)submit.disabled=false;
-          return;
-        }
-        if(access.status === 'suspended') {
-          showMessage("Staff account is SUSPENDED. Login is blocked.");
-          if(submit)submit.disabled=false;
-          return;
-        }
+        if(access.status==='inactive'){showMessage("Staff account is INACTIVE. Login is blocked.");if(submit)submit.disabled=false;return;}
+        if(access.status==='suspended'){showMessage("Staff account is SUSPENDED. Login is blocked.");if(submit)submit.disabled=false;return;}
         throw new Error("This account is not authorized as admin/staff.");
       }
       showMessage("Admin login successful.", true);

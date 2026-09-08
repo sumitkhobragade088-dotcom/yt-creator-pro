@@ -113,6 +113,14 @@ if (loginForm) {
       if (error) throw error;
       if (!data?.user) throw new Error("Login response invalid.");
 
+      // Admin/Staff accounts must use the Admin/Staff login, not the normal user portal.
+      // This installation uses public.admin_users(id,email).
+      const {data:adminRow}=await supabase.from("admin_users").select("id,status").eq("id",data.user.id).maybeSingle();
+      if(adminRow){
+        await supabase.auth.signOut();
+        throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
+      }
+
       // Do not block login on profile/table queries.
       ensureCustomerProfile(data.user).catch(console.error);
       msg("Login successful.", true);

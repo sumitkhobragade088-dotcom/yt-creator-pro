@@ -8,8 +8,8 @@ const dateText = v => v ? new Date(v).toLocaleString('en-IN',{dateStyle:'medium'
 async function isAdmin(){
   const {data:{session}} = await supabase.auth.getSession();
   if(!session?.user) return false;
-  const {data,error}=await supabase.from('admin_users').select('id').eq('id',session.user.id).maybeSingle();
-  return !error && !!data;
+  const {data,error}=await supabase.from('admin_users').select('id,status').eq('id',session.user.id).maybeSingle();
+  return !error && !!data && String(data.status||'active').toLowerCase()==='active';
 }
 
 async function log(action,targetType,targetId,details={}){
@@ -18,67 +18,23 @@ async function log(action,targetType,targetId,details={}){
 
 function setMsg(id,msg,good=false){ const e=$(id); if(e){e.textContent=msg;e.className=good?'good-text':'error-text';} }
 
-function confirmDanger(message){ return window.confirm(String(message||'Are you sure?') + '\n\nThis action cannot be undone from this screen.'); }
-
-function bindAction(el,event,fn){ if(!el || el.dataset.acsBound==='1') return; el.dataset.acsBound='1'; el.addEventListener(event,async e=>{ try{await fn(e);}catch(err){console.error('[Admin Control Suite]',err);alert(err?.message||'Admin Control Suite error');} }); }
-
 async function loadRoles(){
+  const [roles,perms,assign]=await Promise.all([
+    supabase.from('admin_role_assignments').select('id,admin_user_id,role,created_at').order('created_at'),
+    supabase.from('admin_permissions').select('permission_key,label').order('permission_key'),
+    supabase.from('admin_users').select('id,email').order('email')
+  ]);
   const body=$('acsRolesBody'); if(!body)return;
-  try{
-    const {data,error}=await supabase.rpc('admin_staff_list');
-    if(error) throw error;
-    const rows=data||[];
-    body.innerHTML=rows.map(r=>{
-      const isPrimary=String(r.email||'').toLowerCase()==='sumitkhobragade088@gmail.com';
-      const role=r.role||'operator';
-      const status=r.status||'active';
-      const activity=status==='active'?'🟢 Active':status==='inactive'?'⚪ Inactive':'🔴 Suspended';
-      return `<tr>
-        <td><b>${esc(r.full_name||'-')}</b><br><span class="acs-sub">${esc(r.email||r.admin_id||'')}</span></td>
-        <td><select data-staff-role="${esc(r.admin_id)}" ${isPrimary?'disabled':''}>${['manager','operator','support'].map(x=>`<option value="${x}" ${x===role?'selected':''}>${x}</option>`).join('')}</select></td>
-        <td><select data-staff-status="${esc(r.admin_id)}" ${isPrimary?'disabled':''}><option value="active" ${status==='active'?'selected':''}>🟢 Active</option><option value="inactive" ${status==='inactive'?'selected':''}>⚪ Inactive</option><option value="suspended" ${status==='suspended'?'selected':''}>🔴 Suspended</option></select></td>
-        <td>${dateText(r.created_at)}</td>
-        <td class="acs-actions">${isPrimary?'<span class="acs-safe-note">👑 Super Admin protected</span>':`<button class="btn primary" data-save-staff="${esc(r.admin_id)}">Save</button> <button class="btn danger" data-delete-staff="${esc(r.admin_id)}">Delete</button>`}</td>
-      </tr>`;
-    }).join('')||'<tr><td colspan="5">No staff accounts yet.</td></tr>';
-
-    body.querySelectorAll('[data-save-staff]').forEach(btn=>btn.onclick=async()=>{
-      const id=btn.dataset.saveStaff;
-      const role=body.querySelector(`[data-staff-role="${id}"]`)?.value;
-      const status=body.querySelector(`[data-staff-status="${id}"]`)?.value;
-      if(!confirmDanger(`Save staff changes?\nRole: ${role}\nActivity: ${status}`)) return;
-      const {error}=await supabase.rpc('admin_update_staff',{p_admin_id:id,p_role:role,p_status:status});
-      if(error)return alert(error.message);
-      await log('staff_updated','admin_staff_roles',id,{role,status});
-      await loadRoles();
-    });
-    body.querySelectorAll('[data-delete-staff]').forEach(btn=>btn.onclick=async()=>{
-      const id=btn.dataset.deleteStaff;
-      if(!confirmDanger('WARNING: This removes this person from Admin Staff access. Their Supabase login is not deleted. Continue?')) return;
-      const {error}=await supabase.rpc('admin_remove_staff',{p_admin_id:id});
-      if(error)return alert(error.message);
-      await log('staff_removed','admin_staff_roles',id,{reason:'Removed from admin staff'});
-      await loadRoles();
-    });
-
-    const p=$('acsPermissionList');
-    const {data:perms,error:pe}=await supabase.from('admin_permissions').select('permission_key,label').order('permission_key');
-    if(!pe && p)p.innerHTML=(perms||[]).map(x=>`<span class="acs-pill">${esc(x.label||x.permission_key)}</span>`).join('');
-    const editor=$('acsPermissionEditor');
-    if(editor && !editor.dataset.loaded){
-      const allPerms=perms||[]; const rolesList=['super_admin','manager','operator','support'];
-      const rp=(await supabase.from('admin_role_permissions').select('role,permission_key')).data||[];
-      const existing=new Set(rp.map(x=>x.role+'|'+x.permission_key));
-      editor.innerHTML=rolesList.map(role=>`<div class="acs-permission-role"><div class="acs-permission-role-head"><b>${role}</b><small>${role==='super_admin'?'Full control':role==='manager'?'Management':role==='operator'?'Operations':'Support'}</small></div><div class="acs-permission-grid">${allPerms.map(x=>`<label><input type="checkbox" data-rp-role="${role}" data-rp-key="${esc(x.permission_key)}" ${existing.has(role+'|'+x.permission_key)?'checked':''}> ${esc(x.label||x.permission_key)}</label>`).join('')}</div></div>`).join('');
-      editor.querySelectorAll('[data-rp-role]').forEach(ch=>ch.addEventListener('change',async()=>{
-        const role=ch.dataset.rpRole,key=ch.dataset.rpKey;
-        const {error}=await supabase.rpc('admin_set_role_permission',{p_role:role,p_permission_key:key,p_enabled:ch.checked});
-        if(error){ch.checked=!ch.checked;alert(error.message);}
-      }));
-      editor.dataset.loaded='1';
-    }
-  }catch(e){
-    body.innerHTML=`<tr><td colspan="5" class="error-text">${esc(e.message||'Staff list failed. Run the staff SQL migration.')}</td></tr>`;
+  if(roles.error||perms.error||assign.error){body.innerHTML='<tr><td colspan="4">Role tables are not installed. Run the supplied SQL first.</td></tr>';return;}
+  const emails=new Map((assign.data||[]).map(u=>[u.id,u.email]));
+  body.innerHTML=(roles.data||[]).map(r=>`<tr><td>${esc(emails.get(r.admin_user_id)||r.admin_user_id)}</td><td><select data-role-id="${r.id}">${['super_admin','manager','operator','support'].map(x=>`<option ${x===r.role?'selected':''}>${x}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><button class="btn primary" data-save-role="${r.id}">Save</button></td></tr>`).join('')||'<tr><td colspan="4">No admin roles found.</td></tr>';
+  body.querySelectorAll('[data-save-role]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.saveRole;const role=body.querySelector(`[data-role-id="${id}"]`).value;const {error}=await supabase.from('admin_role_assignments').update({role}).eq('id',id);if(error)return alert(error.message);await log('role_updated','admin_role_assignments',id,{role});await loadRoles();});
+  const p=$('acsPermissionList'); if(p)p.innerHTML=(perms.data||[]).map(x=>`<span class="acs-pill">${esc(x.label||x.permission_key)}</span>`).join('');
+  const pe=$('acsPermissionEditor'); if(pe){
+    const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['super_admin','manager','operator','support'];
+    const rp=(await supabase.from('admin_role_permissions').select('role,permission_key')).data||[]; const existing=new Set(rp.map(x=>x.role+'|'+x.permission_key));
+    pe.innerHTML=rolesList.map(role=>`<div class="acs-role-perm"><b>${role}</b>${allPerms.map(k=>`<label><input type="checkbox" data-rp-role="${role}" data-rp-key="${k}" ${existing.has(role+'|'+k)?'checked':''}> ${esc(k)}</label>`).join('')}</div>`).join('');
+    pe.querySelectorAll('[data-rp-role]').forEach(ch=>ch.addEventListener('change',async()=>{const role=ch.dataset.rpRole,key=ch.dataset.rpKey;if(ch.checked){const {error}=await supabase.from('admin_role_permissions').upsert({role,permission_key:key});if(error){ch.checked=false;alert(error.message);}}else{const {error}=await supabase.from('admin_role_permissions').delete().eq('role',role).eq('permission_key',key);if(error){ch.checked=true;alert(error.message);}}}));
   }
 }
 
@@ -90,7 +46,6 @@ async function loadApplications(){
   body.querySelectorAll('[data-history-app]').forEach(btn=>btn.onclick=async()=>{const {data,error}=await supabase.from('application_status_history').select('old_status,new_status,note,changed_at').eq('request_id',btn.dataset.historyApp).order('changed_at',{ascending:false});if(error)return alert(error.message);alert((data||[]).map(x=>`${dateText(x.changed_at)} — ${x.old_status||'NEW'} → ${x.new_status}${x.note?' — '+x.note:''}`).join('\n')||'No status history.');});
   body.querySelectorAll('[data-trash-app]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Move this application to Trash?'))return;const {error}=await supabase.rpc('admin_soft_delete_record',{p_table:'service_requests',p_id:btn.dataset.trashApp});if(error)return alert(error.message);await log('application_trashed','service_requests',btn.dataset.trashApp);await loadApplications();loadTrash();});
   body.querySelectorAll('[data-save-app]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.saveApp;const status=body.querySelector(`[data-status="${id}"]`).value;const note=body.querySelector(`[data-note="${id}"]`).value.trim();const {error}=await supabase.from('service_requests').update({status}).eq('id',id);if(error)return alert(error.message);if(note)await supabase.from('request_notes').insert({request_id:id,note});await log('application_status_updated','service_requests',id,{status,note});await loadApplications();});
-  bindAction($('acsApplicationsDeleteAll'),'click',async()=>{if(!confirmDanger('WARNING: Delete ALL applications?\n\nThey will be moved to Trash and can be restored.'))return;const {data,error}=await supabase.rpc('admin_soft_delete_all',{p_table:'service_requests'});if(error)return alert(error.message);await log('applications_delete_all','service_requests',null,{count:data});setMsg('acsApplicationsMsg',`${Number(data||0)} application(s) moved to Trash.`,true);await loadApplications();await loadTrash();});
 }
 
 async function loadRevenue(){
@@ -98,15 +53,10 @@ async function loadRevenue(){
   let q=supabase.from('payments').select('id,service_name,amount,status,created_at,payment_mode').order('created_at',{ascending:false}).limit(500);
   if(from)q=q.gte('created_at',`${from}T00:00:00`); if(to)q=q.lt('created_at',`${to}T23:59:59`);
   const {data,error}=await q; if(error){setMsg('acsRevenueMsg',error.message);return;}
-  const rows=data||[];
-  const {data:archived}=await supabase.rpc('admin_get_archived_payments');
-  const archivedSet=new Set((archived||[]).map(x=>x.payment_id));
-  const visibleRows=rows.filter(x=>!archivedSet.has(x.id));
-  const success=visibleRows.filter(x=>['success','successful','paid','completed'].includes(String(x.status).toLowerCase()));
+  const rows=data||[]; const success=rows.filter(x=>['success','successful','paid','completed'].includes(String(x.status).toLowerCase()));
   const total=success.reduce((n,x)=>n+Number(x.amount||0),0);
-  $('acsRevenueTotal').textContent=money(total); $('acsRevenueCount').textContent=success.length; $('acsRevenueFailed').textContent=visibleRows.filter(x=>['failed','failure','cancelled'].includes(String(x.status).toLowerCase())).length;
-  const body=$('acsRevenueBody'); if(body)body.innerHTML=visibleRows.map(x=>`<tr><td>${esc(x.service_name)}</td><td>${money(x.amount)}</td><td>${esc(x.status)}</td><td>${esc(x.payment_mode||'-')}</td><td>${dateText(x.created_at)}</td><td><button class="btn danger" data-archive-payment="${esc(x.id)}">Delete</button></td></tr>`).join('')||'<tr><td colspan="6">No payments.</td></tr>';
-  if(body) body.querySelectorAll('[data-archive-payment]').forEach(btn=>btn.onclick=async()=>{if(!confirmDanger('WARNING: Remove this payment from the Revenue view?\n\nThe original payment ledger will remain intact.'))return;const {error}=await supabase.rpc('admin_archive_payment',{p_payment_id:btn.dataset.archivePayment});if(error)return alert(error.message);await log('revenue_archived','payments',btn.dataset.archivePayment);await loadRevenue();});
+  $('acsRevenueTotal').textContent=money(total); $('acsRevenueCount').textContent=success.length; $('acsRevenueFailed').textContent=rows.filter(x=>['failed','failure','cancelled'].includes(String(x.status).toLowerCase())).length;
+  const body=$('acsRevenueBody'); if(body)body.innerHTML=rows.map(x=>`<tr><td>${esc(x.service_name)}</td><td>${money(x.amount)}</td><td>${esc(x.status)}</td><td>${esc(x.payment_mode||'-')}</td><td>${dateText(x.created_at)}</td></tr>`).join('')||'<tr><td colspan="5">No payments.</td></tr>';
 }
 
 async function globalSearch(){
@@ -121,19 +71,15 @@ async function loadAudit(){
   const body=$('acsAuditBody'); if(!body)return;
   const {data,error}=await supabase.from('activity_logs').select('id,actor_type,action,target_type,target_id,details,created_at').order('created_at',{ascending:false}).limit(200);
   if(error){body.innerHTML=`<tr><td colspan="6">${esc(error.message)}</td></tr>`;return;}
-  body.innerHTML=(data||[]).map(x=>`<tr><td>${dateText(x.created_at)}</td><td>${esc(x.actor_type)}</td><td>${esc(x.action)}</td><td>${esc(x.target_type||'-')}</td><td>${esc(x.target_id||'-')}</td><td><code>${esc(JSON.stringify(x.details||{}))}</code></td><td><button class="btn danger" data-delete-audit="${esc(x.id)}">Delete</button></td></tr>`).join('')||'<tr><td colspan="7">No audit records.</td></tr>';
-  body.querySelectorAll('[data-delete-audit]').forEach(btn=>btn.onclick=async()=>{if(!confirmDanger('WARNING: Permanently delete this audit record?'))return;const {error}=await supabase.rpc('admin_delete_audit',{p_id:btn.dataset.deleteAudit});if(error)return alert(error.message);await loadAudit();});
-  bindAction($('acsAuditDeleteAll'),'click',async()=>{if(!confirmDanger('WARNING: Permanently delete ALL audit logs?\n\nThis cannot be restored.'))return;const {data,error}=await supabase.rpc('admin_delete_all_audit');if(error)return alert(error.message);setMsg('acsAuditMsg',`${Number(data||0)} audit record(s) deleted.`,true);await loadAudit();});
+  body.innerHTML=(data||[]).map(x=>`<tr><td>${dateText(x.created_at)}</td><td>${esc(x.actor_type)}</td><td>${esc(x.action)}</td><td>${esc(x.target_type||'-')}</td><td>${esc(x.target_id||'-')}</td><td><code>${esc(JSON.stringify(x.details||{}))}</code></td></tr>`).join('')||'<tr><td colspan="6">No audit records.</td></tr>';
 }
 
 async function loadTrash(){
   const body=$('acsTrashBody'); if(!body)return;
   const {data,error}=await supabase.from('admin_trash').select('*').order('deleted_at',{ascending:false}).limit(100);
   if(error){body.innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`;return;}
-  body.innerHTML=(data||[]).map(x=>`<tr><td>${esc(x.table_name)}</td><td>${esc(x.record_id)}</td><td>${esc(x.summary||'-')}</td><td>${dateText(x.deleted_at)}</td><td><button class="btn primary" data-restore="${esc(x.id)}">Restore</button> <button class="btn danger" data-permanent-delete="${esc(x.id)}">Permanent Delete</button></td></tr>`).join('')||'<tr><td colspan="5">Trash is empty.</td></tr>';
-  body.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{if(!confirmDanger('Restore this record?'))return;const {error}=await supabase.rpc('admin_restore_record',{p_trash_id:b.dataset.restore});if(error)return alert(error.message);await log('record_restored','admin_trash',b.dataset.restore);await loadTrash();});
-  body.querySelectorAll('[data-permanent-delete]').forEach(b=>b.onclick=async()=>{if(!confirmDanger('WARNING: Permanently delete this record?\n\nThis cannot be undone.'))return;const {error}=await supabase.rpc('admin_permanent_delete_trash',{p_trash_id:b.dataset.permanentDelete});if(error)return alert(error.message);await log('trash_permanent_delete','admin_trash',b.dataset.permanentDelete);await loadTrash();});
-  bindAction($('acsTrashEmpty'),'click',async()=>{if(!confirmDanger('WARNING: EMPTY ALL TRASH?\n\nEvery currently trashed record will be permanently deleted.'))return;const {data,error}=await supabase.rpc('admin_empty_trash');if(error)return alert(error.message);setMsg('acsTrashMsg',`${Number(data||0)} trash item(s) permanently deleted.`,true);await loadTrash();});
+  body.innerHTML=(data||[]).map(x=>`<tr><td>${esc(x.table_name)}</td><td>${esc(x.record_id)}</td><td>${esc(x.summary||'-')}</td><td>${dateText(x.deleted_at)}</td><td><button class="btn primary" data-restore="${x.id}">Restore</button></td></tr>`).join('')||'<tr><td colspan="5">Trash is empty.</td></tr>';
+  body.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{if(!confirm('Restore this record?'))return;const {error}=await supabase.rpc('admin_restore_record',{p_trash_id:b.dataset.restore});if(error)return alert(error.message);await log('record_restored','admin_trash',b.dataset.restore);loadTrash();});
 }
 
 async function healthCheck(){
@@ -156,28 +102,6 @@ async function downloadCsv(){
   const blob=new Blob([csv],{type:'text/csv'}); const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='payments-report.csv';a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
 
-async function createStaff(){
-  const name=$('acsStaffName')?.value.trim();
-  const email=$('acsStaffEmail')?.value.trim().toLowerCase();
-  const role=$('acsStaffRole')?.value;
-  const password=$('acsStaffPassword')?.value||'';
-  if(!name || name.length<2) return setMsg('acsStaffMsg','Staff name is required.');
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email||'')) return setMsg('acsStaffMsg','Enter a valid staff email.');
-  if(!['manager','operator','support'].includes(role)) return setMsg('acsStaffMsg','Only Manager, Operator or Support can be created here.');
-  if(password.length<8) return setMsg('acsStaffMsg','Temporary password must be at least 8 characters.');
-  if(!confirmDanger(`WARNING: Create a real staff login for ${email} as ${role}?\n\nThe temporary password will allow Admin Login access according to the selected role.`)) return;
-  setMsg('acsStaffMsg','Creating staff account…');
-  try{
-    const {data,error}=await supabase.functions.invoke('create-admin-staff',{body:{name,email,role,password,mode:'direct'}});
-    if(error) throw error;
-    if(data?.error) throw new Error(data.error);
-    setMsg('acsStaffMsg',`Staff created successfully: ${email}`,true);
-    $('acsStaffName').value=''; $('acsStaffEmail').value=''; $('acsStaffPassword').value='';
-    await log('staff_created','admin_staff_roles',data?.user_id||null,{email,role});
-    await loadRoles();
-  }catch(e){setMsg('acsStaffMsg',e.message||'Staff creation failed.')}
-}
-
 export async function initAdminControlSuite(){
   // The parent Admin Dashboard already performs authentication/protection.
   // Do NOT gate initialization on a second admin_users lookup: that lookup can
@@ -197,7 +121,6 @@ export async function initAdminControlSuite(){
   bind($('acsRefresh'),'click',()=>Promise.allSettled([loadApplications(),loadRoles(),loadRevenue(),loadAudit(),loadTrash(),healthCheck()]));
   bind($('acsSearchBtn'),'click',globalSearch);
   bind($('acsSearchInput'),'keydown',e=>{ if(e.key==='Enter') return globalSearch(); });
-  bind($('acsCreateStaff'),'click',createStaff);
   bind($('acsRevenueRefresh'),'click',loadRevenue);
   bind($('acsRevenueCsv'),'click',downloadCsv);
   bind($('acsHealthRefresh'),'click',healthCheck);
