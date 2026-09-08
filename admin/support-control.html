@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Support Control | YT Creator Pro</title>
+<link rel="stylesheet" href="../assets/css/style.css">
+<style>
+body{background:#f6f8fb}
+.control-wrap{max-width:1200px;margin:0 auto;padding:24px}
+.control-head{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:18px}
+.control-title{display:flex;align-items:center;gap:14px} .control-icon{font-size:34px}
+.control-title h1{margin:0;font-size:28px} .control-title p{margin:5px 0 0;color:#667085}
+.card{background:#fff;border:1px solid #e4e7ec;border-radius:16px;padding:18px;margin-bottom:18px;box-shadow:0 4px 16px rgba(16,24,40,.05)}
+.card h2{margin:0 0 6px} .toolbar{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{border:0;border-radius:10px;padding:10px 14px;cursor:pointer;font-weight:800} .primary{background:#111827;color:#fff} .danger{background:#fee4e2;color:#b42318} .save{background:#e7f6ec;color:#16794c}
+input[type=search],select{padding:10px;border:1px solid #d0d5dd;border-radius:10px}
+table{width:100%;border-collapse:collapse} th,td{padding:12px;border-bottom:1px solid #eaecf0;text-align:left} th{background:#f9fafb}
+.chip{padding:5px 9px;border-radius:999px;font-weight:800;font-size:11px} .chip.active{background:#dcfae6;color:#087443} .chip.inactive{background:#fff4cc;color:#8a5b00} .chip.suspended{background:#fee4e2;color:#b42318}
+.perm-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:10px;max-height:520px;overflow:auto}
+.perm{display:flex;gap:10px;align-items:flex-start;border:1px solid #e4e7ec;border-radius:12px;padding:11px;background:#fff;cursor:pointer}
+.perm input{margin-top:3px;width:18px;height:18px} .perm b{display:block} .perm small{color:#667085}
+.msg{min-height:20px;margin-top:10px} .msg.ok{color:#087443}
+@media(max-width:700px){.control-wrap{padding:14px}.control-title h1{font-size:22px}table{font-size:13px}}
+</style>
+</head>
+<body data-control-role="support">
+<div class="control-wrap">
+<header class="control-head">
+ <div class="control-title"><div class="control-icon">🩷</div><div><h1 id="roleTitle">Support Control</h1><p id="roleSub">Complete Support-specific dashboard, staff status and A–Z permission control.</p></div></div>
+ <div class="toolbar"><button id="back" class="btn">← Admin Dashboard</button><button id="logout" class="btn danger">Logout</button></div>
+</header>
+<div id="message" class="msg"></div>
+<section class="card">
+ <h2>👥 Support Staff Control</h2>
+ <p>Manage only Support staff accounts: status, access and removal.</p>
+ <div style="overflow:auto"><table><thead><tr><th>Staff</th><th>Status</th><th>Updated</th><th>Action</th></tr></thead><tbody id="staffBody"><tr><td colspan="4">Loading…</td></tr></tbody></table></div>
+</section>
+<section class="card">
+ <h2>🔐 Support A–Z Permissions</h2>
+ <p>These permissions control what the Support Dashboard can show and use.</p>
+ <div class="toolbar"><button id="selectAll" class="btn primary">Select All</button><button id="clearAll" class="btn danger">Clear All</button><input id="search" type="search" placeholder="Search permission…"><b><span id="count">0</span> permissions</b></div>
+ <div id="permissionGrid" class="perm-grid" style="margin-top:14px"></div>
+</section>
+</div>
+<script type="module" src="../assets/js/staff-role-admin-control.js"></script>
+</body>
+</html>

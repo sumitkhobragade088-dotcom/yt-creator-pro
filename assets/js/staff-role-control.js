@@ -1,12 +1,18 @@
-const ROLE_LABELS={manager:'Manager',operator:'Operator',support:'Support'};
-function openRoleControl(role){
-  const nav=document.querySelector('.yt-premium-nav-btn[data-view="control-suite"]');
-  if(typeof window.showPremiumAdminView==='function') window.showPremiumAdminView('control-suite');
-  else nav?.click();
-  sessionStorage.setItem('yt_acs_role_focus',role);
-  const go=()=>{const tab=document.querySelector('[data-acs-tab="roles"]');if(tab)tab.click();const card=document.querySelector(`[data-role-card="${role}"]`);if(card){card.click();return true}return false};
-  let n=0; const timer=setInterval(()=>{if(go()||++n>30)clearInterval(timer)},100);
+const ROLE_CONTROL_PAGES={manager:"manager-control.html",operator:"operator-control.html",support:"support-control.html"};
+document.querySelectorAll("[data-role-control]").forEach(btn=>{
+  btn.addEventListener("click",e=>{
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    const page=ROLE_CONTROL_PAGES[btn.dataset.roleControl];
+    if(page) window.location.href=page;
+  },true);
+});
+const nav=document.querySelector(".yt-premium-nav");
+if(nav){
+  const enforce=()=>{
+    nav.querySelectorAll(".yt-premium-nav-btn[data-fixed-top]").forEach(x=>x.style.setProperty("order","0","important"));
+    nav.querySelectorAll(".yt-premium-nav-btn:not([data-fixed-top])").forEach(x=>x.style.setProperty("order","1","important"));
+  };
+  enforce();
+  new MutationObserver(enforce).observe(nav,{childList:true,subtree:true});
 }
-document.querySelectorAll('[data-role-control]').forEach(btn=>btn.addEventListener('click',e=>{e.preventDefault();openRoleControl(btn.dataset.roleControl)}));
-const nav=document.querySelector('.yt-premium-nav');
-if(nav){const enforce=()=>{const wanted=['[data-view="dashboard"]','[data-fixed-order="2"]','[data-fixed-order="3"]','[data-fixed-order="4"]','[data-fixed-order="5"]'];wanted.forEach((sel,i)=>{const el=nav.querySelector(sel);if(el)el.style.order=String(i)});};enforce();new MutationObserver(enforce).observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});}
