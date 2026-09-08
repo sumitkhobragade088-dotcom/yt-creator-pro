@@ -146,15 +146,6 @@ document.documentElement.classList.add("yt-admin-boot");
 #view-free-user-service .free-user-channel-card b{display:block}.free-user-channel-card small{display:block;color:#667085;margin-top:3px}
 @media(max-width:760px){#view-free-user-service .free-service-form-grid{grid-template-columns:1fr}#view-free-user-service .free-user-manage-grid{grid-template-columns:1fr}}
 </style>
-
-<style id="staff-control-nav-lock">
-.yt-premium-nav > .yt-premium-nav-btn[data-fixed-top="1"],
-.yt-premium-nav > .yt-premium-nav-btn[data-fixed-top="2"],
-.yt-premium-nav > .yt-premium-nav-btn[data-fixed-top="3"],
-.yt-premium-nav > .yt-premium-nav-btn[data-fixed-top="4"],
-.yt-premium-nav > .yt-premium-nav-btn[data-fixed-top="5"]{order:0!important}
-.yt-premium-nav > .yt-premium-nav-btn:not([data-fixed-top]){order:1!important}
-</style>
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -169,11 +160,11 @@ document.documentElement.classList.add("yt-admin-boot");
     </div>
 
     <nav class="yt-premium-nav">
-      <button class="yt-premium-nav-btn active" data-view="dashboard" data-fixed-top="1">🏠 <span>Dashboard</span></button>
-      <button class="yt-premium-nav-btn" data-view="control-suite" data-fixed-top="2">🛡️ <span>Admin Control Suite</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-role-control="manager" data-fixed-top="3">🟢 <span>Manager</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-role-control="operator" data-fixed-top="4">🟡 <span>Operator</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-role-control="support" data-fixed-top="5">🩷 <span>Support</span></button>
+      <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
+      <button class="yt-premium-nav-btn" data-view="control-suite" data-fixed-order="2">🛡️ <span>Admin Control Suite</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="manager" data-fixed-order="3">🟢 <span>Manager</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="operator" data-fixed-order="4">🟡 <span>Operator</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="support" data-fixed-order="5">🩷 <span>Support</span></button>
       <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
       <button class="yt-premium-nav-btn" data-view="free-user-service">🎁 <span>Free User Service</span></button>
       <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>

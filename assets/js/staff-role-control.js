@@ -1,39 +1,47 @@
 const ROLE_LABELS={manager:'Manager',operator:'Operator',support:'Support'};
 
 function openRoleControl(role){
-  const page={manager:'manager-control.html',operator:'operator-control.html',support:'support-control.html'}[role];
-  if(!page)return;
-  sessionStorage.setItem('yt_staff_admin_role_focus',role);
-  window.location.href=page;
+  const safe=ROLE_LABELS[role]?role:'manager';
+  window.location.href=`${location.origin}${location.pathname.replace(/\/admin\/index\.html$/,'')}/admin/${safe}-control.html`;
 }
 
 document.querySelectorAll('[data-role-control]').forEach(btn=>{
-  btn.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openRoleControl(btn.dataset.roleControl);});
+  btn.addEventListener('click',e=>{
+    e.preventDefault();
+    e.stopPropagation();
+    openRoleControl(btn.dataset.roleControl);
+  });
 });
 
-/* Keep the first five Admin sidebar items permanently pinned.
-   CMS may append/reorder other items later, so all remaining items are
-   assigned a higher CSS order and the first five are re-applied. */
-const nav=document.querySelector('.yt-premium-nav');
-if(nav){
+// Keep the first five Admin controls physically at the top.  This is DOM order,
+// not only CSS order, so later CMS/sidebar rendering cannot push them down.
+(function lockPrimaryAdminNav(){
+  const nav=document.querySelector('.yt-premium-nav');
+  if(!nav)return;
+  let running=false;
   const enforce=()=>{
-    const all=[...nav.querySelectorAll('.yt-premium-nav-btn')];
-    const pinned=[
-      nav.querySelector('[data-view="dashboard"]'),
-      nav.querySelector('[data-view="control-suite"]'),
-      nav.querySelector('[data-role-control="manager"]'),
-      nav.querySelector('[data-role-control="operator"]'),
-      nav.querySelector('[data-role-control="support"]')
-    ].filter(Boolean);
-    const pinnedSet=new Set(pinned);
-    pinned.forEach((el,i)=>{if(el.style.order!==String(i))el.style.order=String(i);});
-    let n=5;
-    all.forEach(el=>{
-      if(pinnedSet.has(el))return;
-      if(el.style.order!==String(n))el.style.order=String(n);
-      n++;
+    if(running)return;
+    const dashboard=nav.querySelector('[data-view="dashboard"]');
+    const suite=nav.querySelector('[data-fixed-order="2"]');
+    const manager=nav.querySelector('[data-fixed-order="3"]');
+    const operator=nav.querySelector('[data-fixed-order="4"]');
+    const support=nav.querySelector('[data-fixed-order="5"]');
+    if(!dashboard||!suite||!manager||!operator||!support)return;
+    running=true;
+    [suite,manager,operator,support].forEach((el,i)=>{
+      el.style.order=String(i+1);
     });
+    dashboard.style.order='0';
+    let cursor=dashboard.nextElementSibling;
+    [suite,manager,operator,support].forEach(el=>{
+      if(el!==cursor){nav.insertBefore(el,cursor||null);}
+      cursor=el.nextElementSibling;
+    });
+    running=false;
   };
   enforce();
-  new MutationObserver(enforce).observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['style','hidden']});
-}
+  new MutationObserver(enforce).observe(nav,{childList:true,subtree:true,attributes:true,attributeFilter:['style','class','hidden']});
+  setTimeout(enforce,100);
+  setTimeout(enforce,500);
+  setTimeout(enforce,1500);
+})();
