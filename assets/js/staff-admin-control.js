@@ -24,8 +24,30 @@ async function requireSuperAdmin(){
     supabase.from('admin_staff_roles').select('role,status').eq('admin_id',session.user.id).maybeSingle()
   ]);
   if(ue||!u) throw new Error('Admin account could not be verified.');
-  if(String(u.status||'active').toLowerCase()!=='active') throw new Error('Admin account is not active.');
-  if(re||r?.role!=='super_admin'||String(r?.status||'').toLowerCase()!=='active') throw new Error('Only Super Admin can open this control center.');
+
+  const adminStatus=String(u.status||'active').trim().toLowerCase();
+  if(adminStatus!=='active') throw new Error('Admin account is not active.');
+
+  /*
+   * Keep the same Super Admin identity rule used by admin-auth.js:
+   * the configured primary admin may have no admin_staff_roles row.
+   * A staff role (manager/operator/support) must never open this page.
+   */
+  const primaryAdminEmail='sumitkhobragade088@gmail.com';
+  const emailIsSuperAdmin=String(u.email||'').trim().toLowerCase()===primaryAdminEmail;
+  const role=String(r?.role||'').trim().toLowerCase();
+  const roleStatus=String(r?.status||'').trim().toLowerCase();
+
+  if(role && role!=='super_admin'){
+    throw new Error('Only Super Admin can open this control center.');
+  }
+  if(role==='super_admin' && roleStatus!=='active'){
+    throw new Error('Super Admin account is not active.');
+  }
+  if(!emailIsSuperAdmin && role!=='super_admin'){
+    throw new Error('Only Super Admin can open this control center.');
+  }
+
   currentUser=session.user;
 }
 
