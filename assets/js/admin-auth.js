@@ -39,13 +39,35 @@ function showMessage(text, ok=false) {
 }
 
 async function isAdmin(user) {
-  if(!user?.id) return false;
-  try{
-    const {data,error}=await supabase.from('admin_users').select('id').eq('id',user.id).maybeSingle();
-    if(error || !data) return false;
-    const {data:staff}=await supabase.from('admin_staff_roles').select('role,status').eq('admin_id',user.id).maybeSingle();
-    return !staff || ['active'].includes(staff.status||'active');
-  }catch(_){ return false; }
+  if (!user?.id) return false;
+  try {
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('id,email')
+      .eq('id', user.id)
+      .maybeSingle();
+
+    if (error || !data) return false;
+
+    // A staff record must be ACTIVE. Inactive/suspended staff
+    // are not allowed to enter Admin Dashboard.
+    const { data: staff, error: staffError } = await supabase
+      .from('admin_staff_roles')
+      .select('role,status')
+      .eq('admin_id', user.id)
+      .maybeSingle();
+
+    if (staffError) return false;
+
+    // Primary Super Admin remains protected even if no staff row exists.
+    const isPrimary = String(data.email || '').toLowerCase() === 'sumitkhobragade088@gmail.com';
+    if (isPrimary) return true;
+
+    if (!staff) return false;
+    return String(staff.status || '').toLowerCase() === 'active';
+  } catch (_) {
+    return false;
+  }
 }
 
 const form = $("adminLoginForm");
