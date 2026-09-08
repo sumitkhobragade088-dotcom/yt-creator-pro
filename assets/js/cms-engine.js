@@ -37,15 +37,24 @@ async function read(key){
   try{const v=JSON.parse(localStorage.getItem('ytcms_'+key)||'null');if(v)return normalizeSetting(key,mergeDeep(clone(DEFAULTS[key]||{}),v))}catch(_){ }
   return normalizeSetting(key,clone(DEFAULTS[key]||{}));
 }
-async function currentAdminUser(){
+async function currentAdminUser(requiredPermission='website_cms.manage'){
   const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
   if(sessionError) throw sessionError;
   const user=sessionData?.session?.user||null;
-  if(String(user?.email||'').toLowerCase()!==ADMIN_EMAIL) throw new Error('Admin authorization required');
+  if(!user) throw new Error('Admin authorization required');
+  const email=String(user.email||'').toLowerCase();
+  const {data:au,error:ae}=await supabase.from('admin_users').select('id,email').eq('id',user.id).maybeSingle();
+  if(ae||!au) throw new Error('Admin authorization required');
+  if(email===ADMIN_EMAIL) return user;
+  const {data:sr,error:se}=await supabase.from('admin_staff_roles').select('role,status').eq('admin_id',user.id).maybeSingle();
+  if(se||!sr||sr.status!=='active') throw new Error('Active admin staff access required');
+  if(sr.role==='super_admin') return user;
+  const {data:rp,error:pe}=await supabase.from('admin_role_permissions').select('permission_key').eq('role',sr.role).eq('permission_key',requiredPermission).maybeSingle();
+  if(pe||!rp) throw new Error(`Permission required: ${requiredPermission}`);
   return user;
 }
 async function write(key,value){
-  await currentAdminUser();
+  await currentAdminUser(key==='admin_cms'||key==='admin_theme'?'roles.manage':'website_cms.manage');
   const {error}=await supabase.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'});
   if(error) throw error;
   localStorage.setItem('ytcms_'+key,JSON.stringify(value));
