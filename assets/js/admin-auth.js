@@ -41,7 +41,7 @@ function showMessage(text, ok=false) {
 async function getAdminAccessState(user) {
   if(!user?.id) return {authorized:false,status:'unknown',role:null};
   try{
-    const {data,error}=await supabase.from('admin_users').select('id').eq('id',user.id).maybeSingle();
+    const {data,error}=await supabase.from('admin_users').select('user_id').eq('user_id',user.id).maybeSingle();
     if(error || !data) return {authorized:false,status:'unauthorized',role:null};
 
     const {data:staff}=await supabase
@@ -52,13 +52,13 @@ async function getAdminAccessState(user) {
 
     // Staff status is authoritative. Inactive/Suspended staff must never
     // enter the Admin Panel, and the login page reports the exact state.
-    if(staff?.status === 'inactive') {
+    if(String(staff?.status||'').toLowerCase() === 'inactive') {
       return {authorized:false,status:'inactive',role:staff.role||null};
     }
-    if(staff?.status === 'suspended') {
+    if(String(staff?.status||'').toLowerCase() === 'suspended') {
       return {authorized:false,status:'suspended',role:staff.role||null};
     }
-    if(staff?.status === 'active') {
+    if(String(staff?.status||'').toLowerCase() === 'active') {
       return {authorized:true,status:'active',role:staff.role||null};
     }
 
