@@ -1,14 +1,1 @@
-ADMIN SIDEBAR — CHANGED ONLY
-
-Replace only:
-assets/js/staff-role-control.js
-
-Fix:
-- Same existing Admin sidebar behavior on Admin/role-control pages.
-- No delayed JS menu reordering/reflow after page load.
-- Existing fixed menu order is left to the existing stylesheet.
-- Clicked role/page remains highlighted.
-- Refresh keeps the current role/page highlight.
-- Existing navigation and working functions are otherwise untouched.
-
-Do not replace any other file.
+Replace ONLY admin/manage-channel.html and assets/js/staff-role-control.js. No SQL. No other files. Common sidebar is copied exactly from admin/index.html; active state is handled without changing the existing dashboard flow.
