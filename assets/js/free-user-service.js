@@ -26,9 +26,17 @@ function syncServiceUI(){
 async function isAdmin(){const {data:{user}}=await supabase.auth.getUser();return !!user;}
 async function loadCustomers(){
   if(!(await isAdmin()))return;
-  const {data,error}=await supabase.from("customers").select("id,full_name,email").order("full_name",{ascending:true});
+
+  // Free User Service must show only normal website customers.
+  // Admin/super-admin and staff accounts are stored in admin_users; exclude
+  // any matching customer.user_id without changing the existing customer flow.
+  const {data:adminRows,error:adminError}=await supabase.from("admin_users").select("id");
+  if(adminError){msg(`Customer list load failed: ${adminError.message}`);return;}
+  const adminIds=new Set((adminRows||[]).map(r=>String(r.id)));
+
+  const {data,error}=await supabase.from("customers").select("id,user_id,full_name,email").order("full_name",{ascending:true});
   if(error){msg(`Customer list load failed: ${error.message}`);return;}
-  customers=data||[];
+  customers=(data||[]).filter(c=>!c.user_id || !adminIds.has(String(c.user_id)));
   const sel=$("freeServiceCustomer");if(!sel)return;
   sel.innerHTML='<option value="">Select customer…</option>'+customers.map(c=>`<option value="${esc(c.id)}">${esc(c.full_name||c.email||c.id)}${c.email?` • ${esc(c.email)}`:""}</option>`).join("");
 }
