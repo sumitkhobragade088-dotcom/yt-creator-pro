@@ -1,14 +1,1 @@
-REPLACE ONLY THESE FILES:
-1. assets/js/admin-auth.js
-2. assets/js/admin-public-notifications.js
-
-Run USER-ADMIN-FLOW-FINAL-CORRECTED.sql as one complete script in Supabase SQL Editor.
-Do not run fragments of the SQL.
-
-The SQL uses the actual customers schema: id, user_id, full_name, email, mobile,
-channel_name, channel_url, created_at, is_deleted, deleted_at.
-
-It does not use customers.updated_at.
-It creates the missing admin_list_normal_customers RPC using admin_users.id.
-It excludes admin/staff accounts from the normal customer list and safely backfills
-missing normal-user customer rows.
+Replace ONLY these two files in the currently deployed project. Hard-refresh the Admin Dashboard after deployment. No database data or UI layout is changed by this patch.
