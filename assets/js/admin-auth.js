@@ -110,14 +110,22 @@ async function loadAdminDashboard(){
 
 function renderCustomers(rows){
   const body=$("customersBody"); if(!body) return;
-  body.innerHTML=rows.length?rows.map(c=>`
-    <tr>
+  const requestCounts=new Map();
+  (dashboardCache.requests||[]).forEach(r=>{
+    if(!r.customer_id) return;
+    requestCounts.set(r.customer_id,(requestCounts.get(r.customer_id)||0)+1);
+  });
+  body.innerHTML=rows.length?rows.map(c=>{
+    const count=requestCounts.get(c.id)||0;
+    return `<tr>
       <td><b>${esc(c.full_name||"-")}</b></td>
       <td>${esc(c.email||"-")}</td>
       <td>${esc(c.mobile||"-")}</td>
       <td>${esc(c.channel_name||"-")}</td>
+      <td><span class="yt-status-chip ${count?"good":"pending"}">${count}</span></td>
       <td>${dateText(c.created_at)}</td>
-    </tr>`).join(""):'<tr><td colspan="5">No customers yet.</td></tr>';
+    </tr>`;
+  }).join(""):'<tr><td colspan="6">No customers yet.</td></tr>';
 }
 
 function renderChannels(customers,access){
@@ -296,7 +304,9 @@ async function loadAdminUserRequests(){
   ]);
   const pm=new Map(payments.map(p=>[p.request_id,p]));
   const cm=new Map(customers.map(c=>[c.id,c]));
-  const rows=requests.filter(r=>adminStatus(pm.get(r.id)?.status)==="paid");
+  // Show every service request in Admin Dashboard, including payment-pending ones.
+  // This keeps the complete customer -> service -> payment -> processing flow visible.
+  const rows=requests;
   setText("userRequestsSectionCount",rows.length);
   const body=$("userRequestsBody"); if(!body)return;
   body.innerHTML=rows.length?rows.map(r=>{
@@ -305,8 +315,8 @@ async function loadAdminUserRequests(){
     return `<tr>
       <td>${esc(c.full_name||c.email||"-")}</td>
       <td>${esc(r.service_type||"Service")}</td>
-      <td><span class="yt-status-chip good">Paid ${adminMoney(p.amount)}</span></td>
-      <td><span class="yt-status-chip">${esc(current)}</span></td>
+      <td><span class="yt-status-chip ${adminStatus(p.status)==="paid"?"good":adminStatus(p.status)==="failed"?"bad":"pending"}">${adminStatus(p.status)==="paid"?`Paid ${adminMoney(p.amount)}`:esc(p.status||"Not paid")}</span></td>
+      <td><span class="yt-status-chip ${current==="completed"?"good":current==="rejected"?"bad":"pending"}">${esc(current)}</span></td>
       <td>${dateText(r.created_at)}</td>
       <td>
         <select data-request-status="${esc(r.id)}">
