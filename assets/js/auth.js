@@ -113,16 +113,56 @@ if (loginForm) {
       if (error) throw error;
       if (!data?.user) throw new Error("Login response invalid.");
 
-      // Admin/Staff accounts must use the Admin/Staff login, not the normal user portal.
-      // This installation uses public.admin_users(id,email).
-      const {data:adminRow}=await supabase.from("admin_users").select("id,status").eq("id",data.user.id).maybeSingle();
-      const {data:staffRow}=await supabase.from("admin_staff_roles").select("role,status").eq("admin_id",data.user.id).maybeSingle();
-      if(adminRow || staffRow){
-        await supabase.auth.signOut();
-        throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
+      // Keep the public website login separate from Admin/Staff access.
+      // These checks are intentionally fail-open for normal users: if a role
+      // lookup is blocked by RLS/network rules, a genuine website user must
+      // still be able to sign in normally.
+      const uid = data.user.id;
+      let restricted = false;
+      let restrictedStatus = "";
+      try {
+        const [staffRes, adminRes] = await Promise.all([
+          timeout(
+            supabase.from("admin_staff_roles")
+              .select("role,status")
+              .eq("admin_id", uid)
+              .maybeSingle(),
+            TIMEOUT, "Access check"
+          ),
+          timeout(
+            supabase.from("admin_users")
+              .select("status")
+              .eq("id", uid)
+              .maybeSingle(),
+            TIMEOUT, "Admin access check"
+          )
+        ]);
+
+        const staff = staffRes?.data;
+        const admin = adminRes?.data;
+        if (staff?.role && ["manager","operator","support"].includes(String(staff.role).toLowerCase())) {
+          restricted = true;
+          restrictedStatus = String(staff.status || "active").toLowerCase();
+        } else if (admin) {
+          restricted = true;
+          restrictedStatus = String(admin.status || "active").toLowerCase();
+        }
+      } catch (accessCheckError) {
+        console.warn("Public login access check skipped:", accessCheckError);
       }
 
-      // Do not block login on profile/table queries.
+      if (restricted) {
+        await supabase.auth.signOut().catch(() => {});
+        if (restrictedStatus === "suspended") {
+          throw new Error("This account is suspended. Please use the Admin/Staff Login page.");
+        }
+        if (restrictedStatus === "inactive") {
+          throw new Error("This account is inactive. Please use the Admin/Staff Login page.");
+        }
+        throw new Error("This account is authorized for Admin/Staff access only. Please use the Admin/Staff Login page.");
+      }
+
+      // Do not block normal user login on customer profile/table queries.
       ensureCustomerProfile(data.user).catch(console.error);
       msg("Login successful.", true);
       sessionStorage.setItem("yt_user_view","dashboard");
@@ -237,11 +277,10 @@ async function loadDashboard() {
 
 async function loadServices() {
   const catalog = $("userServiceCatalog");
-  const optionsBox = $("userServiceOptions");
   const select = $("userServiceType");
-  if (!catalog || !optionsBox || !select) return;
+  if (!catalog || !select) return;
   if (!dashboardCustomer) {
-    optionsBox.innerHTML = '<div class="yt-service-empty">Customer profile unavailable.</div>';
+    catalog.innerHTML = '<div class="yt-service-loading">Customer profile unavailable.</div>';
     return;
   }
 
@@ -256,60 +295,34 @@ async function loadServices() {
 
   const rows = cachedServices || [];
   select.innerHTML = rows.map(s =>
-    `<option value="${esc(s.service_name || s.name || "Service")}">${esc(s.service_name || s.name || "Service")}</option>`
+    `<option value="${esc(s.service_name)}">${esc(s.service_name || s.name || "Service")} — ${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</option>`
   ).join("");
-
-  optionsBox.innerHTML = rows.length ? rows.map(s => `
-    <label class="yt-user-service-check">
-      <input type="checkbox" data-user-service-value="${esc(s.service_name || s.name || "Service")}">
-      <span class="svc-main">
-        <span class="svc-name">${esc(s.service_name || s.name || "Service")}</span>
-        <span class="svc-desc">${esc(s.description || "Creator service")}</span>
-      </span>
-      <span class="svc-price">${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</span>
-    </label>`).join("") : '<div class="yt-service-empty">No active services available.</div>';
-
-  optionsBox.querySelectorAll("[data-user-service-value]").forEach(box => {
-    box.addEventListener("change", () => {
-      const name = box.dataset.userServiceValue || "";
-      const opt = [...select.options].find(o => o.value === name);
-      if (opt) opt.selected = box.checked;
-      updateUserServiceTotal();
-    });
-  });
-
-  const dropdown = $("userServiceDropdown");
-  const toggle = $("userServiceDropdownToggle");
-  toggle?.addEventListener("click", () => dropdown?.classList.toggle("open"));
-
-  $("selectAllUserServices")?.addEventListener("click", () => {
-    [...select.options].forEach(o => o.selected = true);
-    optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = true);
-    updateUserServiceTotal();
-  });
-
-  $("clearAllUserServices")?.addEventListener("click", () => {
-    [...select.options].forEach(o => o.selected = false);
-    optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = false);
-    updateUserServiceTotal();
-  });
-
   catalog.innerHTML = rows.length ? rows.map(s => `
-    <button type="button" data-service-pick="${esc(s.service_name || s.name || "Service")}">
+    <button type="button" data-service-pick="${esc(s.service_name)}">
       <span>▶️</span><b>${esc(s.service_name || s.name || "Service")}</b>
-      <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</strong></small>
+      <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge)}</strong></small>
     </button>`).join("") : '<div class="yt-service-loading">No active services available.</div>';
+
+  const selectAll = $("selectAllUserServices");
+  selectAll?.addEventListener("click", () => {
+    [...select.options].forEach(o => o.selected = true);
+    catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.add("selected"));
+    updateUserServiceTotal();
+  });
 
   catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
     btn.addEventListener("click", () => {
       const name = btn.dataset.servicePick || "";
-      const opt = [...select.options].find(o => o.value === name);
-      if (!opt) return;
-      opt.selected = !opt.selected;
-      const check = optionsBox.querySelector(`[data-user-service-value="${CSS.escape(name)}"]`);
-      if (check) check.checked = opt.selected;
-      btn.classList.toggle("selected", opt.selected);
-      updateUserServiceTotal();
+      if (select.multiple) {
+        const opt = [...select.options].find(o => o.value === name);
+        if (opt) opt.selected = !opt.selected;
+        btn.classList.toggle("selected", !!opt?.selected);
+        updateUserServiceTotal();
+      } else {
+        select.value = name;
+        catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
+        btn.classList.add("selected");
+      }
     });
   });
 }
@@ -319,15 +332,9 @@ function updateUserServiceTotal(){
   if(!select) return;
   const selected=[...select.selectedOptions].map(o=>o.value).filter(Boolean);
   const total=selected.reduce((sum,name)=>sum+Number(serviceChargeMap.get(name)||0),0);
-  const totalEl=$("userServiceTotalAmount"); if(totalEl) totalEl.textContent=money(total);
-  const countEl=$("userServiceSelectedCount"); if(countEl) countEl.textContent=`${selected.length} selected`;
-  const toggle=$("userServiceDropdownToggle"); if(toggle) toggle.textContent=selected.length ? `${selected.length} service${selected.length>1?"s":""} selected` : "Select services…";
+  const totalEl=$("userServiceTotal"); if(totalEl) totalEl.textContent=money(total);
+  const countEl=$("userServiceSelectedCount"); if(countEl) countEl.textContent=String(selected.length);
 }
-
-document.addEventListener("click",e=>{
-  const dd=$("userServiceDropdown");
-  if(dd&&!dd.contains(e.target))dd.classList.remove("open");
-});
 
 async function startPayU(paymentId, btn=null) {
   const old = btn?.textContent || "";
