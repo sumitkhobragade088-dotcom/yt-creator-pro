@@ -26,10 +26,10 @@ async function loadRoles(){
   ]);
   const body=$('acsRolesBody'); if(!body)return;
   if(roles.error||perms.error||users.error){body.innerHTML='<tr><td colspan="5">Role/permission data could not be loaded. Run STAFF-DASHBOARDS-TOTAL-LOCK.sql once.</td></tr>';return;}
+  const {data:{user:currentUser}}=await supabase.auth.getUser();
+  const currentAdminId=currentUser?.id||null;
   const userMap=new Map((users.data||[]).map(u=>[u.id,u]));
-  // Only real staff roles belong in the Staff management UI.
-  // Super Admin is protected and must never appear as a staff account.
-  const roleRows=(roles.data||[]).filter(r=>['manager','operator','support'].includes(String(r.role||'').toLowerCase()));
+  const roleRows=(roles.data||[]).filter(r=>['manager','operator','support'].includes(String(r.role||'').toLowerCase()) && r.admin_id!==currentAdminId);
   const roleMeta={
     manager:{icon:'🟢',title:'Manager',desc:'Management-level access controlled entirely by Super Admin.'},
     operator:{icon:'🟡',title:'Operator',desc:'Operational access controlled entirely by Super Admin.'},
@@ -64,11 +64,7 @@ async function loadRoles(){
     const id=btn.dataset.deleteStaff; if(!confirm('WARNING: Delete this staff access? The Supabase Auth account will NOT be deleted. Continue?'))return;
     const {error}=await supabase.rpc('admin_remove_staff',{p_admin_id:id}); if(error)return alert(error.message); await log('staff_access_deleted','admin_staff_roles',id); await loadRoles();
   });
-  const select=$('acsAdminUserSelect'); if(select){
-    const staffIds=new Set(roleRows.map(r=>r.admin_id));
-    const staffUsers=(users.data||[]).filter(u=>staffIds.has(u.id));
-    select.innerHTML='<option value="">Select staff account…</option>'+ staffUsers.map(u=>`<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');
-  }
+  const select=$('acsAdminUserSelect'); if(select){select.innerHTML='<option value="">Select admin/staff account…</option>'+ (roleRows||[]).map(r=>userMap.get(r.admin_id)).filter(Boolean).map(u=>`<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');}
   const pe=$('acsPermissionEditor');
   if(pe){
     const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['manager','operator','support'];
