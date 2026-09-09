@@ -2,26 +2,27 @@ import { supabase } from "./supabase.js";
 
 const ADMIN_EMAIL = "sumitkhobragade088@gmail.com";
 const $ = (id) => document.getElementById(id);
-function esc(v=""){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
-function fmt(n){return Number(n||0).toLocaleString("en-IN");}
-function dateText(v){if(!v)return "-";const d=new Date(v);return Number.isNaN(d.getTime())?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});}
-function setText(id,value){if($(id))$(id).textContent=value;}
-const ADMIN_TIMEOUT=8000;
-function withTimeout(promise,ms=ADMIN_TIMEOUT,label="Request"){
+const ADMIN_TIMEOUT = 8000;
+function withTimeout(promise, ms=ADMIN_TIMEOUT, label="Request"){
   return Promise.race([
     Promise.resolve(promise),
     new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${label} timeout. Please try again.`)),ms))
   ]);
 }
-function safeAdminQuery(query,fallback=[],label="Data"){
-  return withTimeout(query,ADMIN_TIMEOUT,label).then(res=>{
+async function safeAdminQuery(query,fallback=null,label="Data"){
+  try{
+    const res=await withTimeout(query,ADMIN_TIMEOUT,label);
     if(res?.error)throw res.error;
-    return res?.data??fallback;
-  }).catch(e=>{
+    return res?.data ?? fallback;
+  }catch(e){
     console.error(label,e);
     return fallback;
-  });
+  }
 }
+function setText(id,value){const el=$(id);if(el)el.textContent=value==null?"":String(value);}
+function esc(v=""){return String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));}
+function dateText(value){if(!value)return "-";const d=new Date(value);return Number.isNaN(d.getTime())?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});}
+function fmt(value){const n=Number(value);return Number.isFinite(n)?n.toLocaleString("en-IN"):"0";}
 function showMessage(text, ok=false){const el=$("adminMessage");if(el){el.textContent=text;el.className=ok?"message ok":"message";}}
 
 async function getAccess(user){
@@ -130,22 +131,14 @@ async function loadAdminDashboard(){
 
 function renderCustomers(rows){
   const body=$("customersBody"); if(!body) return;
-  const requestCounts=new Map();
-  (dashboardCache.requests||[]).forEach(r=>{
-    if(!r.customer_id) return;
-    requestCounts.set(r.customer_id,(requestCounts.get(r.customer_id)||0)+1);
-  });
-  body.innerHTML=rows.length?rows.map(c=>{
-    const count=requestCounts.get(c.id)||0;
-    return `<tr>
+  body.innerHTML=rows.length?rows.map(c=>`
+    <tr>
       <td><b>${esc(c.full_name||"-")}</b></td>
       <td>${esc(c.email||"-")}</td>
       <td>${esc(c.mobile||"-")}</td>
       <td>${esc(c.channel_name||"-")}</td>
-      <td><span class="yt-status-chip ${count?"good":"pending"}">${count}</span></td>
       <td>${dateText(c.created_at)}</td>
-    </tr>`;
-  }).join(""):'<tr><td colspan="6">No customers yet.</td></tr>';
+    </tr>`).join(""):'<tr><td colspan="5">No customers yet.</td></tr>';
 }
 
 function renderChannels(customers,access){
@@ -316,7 +309,106 @@ async function loadAdminPayments(){
   }).join(""):'<tr><td colspan="7">No payments yet.</td></tr>';
 }
 
+function requestUpdateModal(){
+  let modal=$("adminRequestUpdateModal");
+  if(modal)return modal;
+  modal=document.createElement("div");
+  modal.id="adminRequestUpdateModal";
+  modal.innerHTML=`<div class="yt-req-modal-backdrop" data-close-request-modal></div>
+  <div class="yt-req-modal" role="dialog" aria-modal="true" aria-labelledby="adminRequestUpdateTitle">
+    <div class="yt-req-modal-head"><div><span>USER REQUEST</span><h3 id="adminRequestUpdateTitle">Update Request</h3><p id="adminRequestUpdateMeta"></p></div><button type="button" class="yt-req-modal-x" data-close-request-modal aria-label="Close">×</button></div>
+    <div class="yt-req-modal-body">
+      <label>Status</label>
+      <select id="adminRequestUpdateStatus"><option value="pending">Pending</option><option value="processing">Processing</option><option value="on_hold">On Hold</option><option value="completed">Completed</option><option value="rejected">Rejected</option></select>
+      <label>Description / Note</label>
+      <textarea id="adminRequestUpdateNote" rows="5" placeholder="Write an update for the user…"></textarea>
+      <label>Screenshot (optional)</label>
+      <input id="adminRequestUpdateFile" type="file" accept="image/jpeg,image/png">
+      <small>JPG/PNG only, maximum 10 MB. The uploaded screenshot will be visible only in this user's My Requests.</small>
+      <div id="adminRequestUpdateFileName" class="yt-req-file-name"></div>
+      <div id="adminRequestUpdateMessage" class="yt-req-modal-message"></div>
+    </div>
+    <div class="yt-req-modal-foot"><button type="button" class="btn" data-close-request-modal>Cancel</button><button type="button" class="btn primary" id="adminRequestUpdateSave">Save Update</button></div>
+  </div>`;
+  document.body.appendChild(modal);
+  modal.querySelectorAll("[data-close-request-modal]").forEach(x=>x.addEventListener("click",()=>closeRequestUpdateModal()));
+  modal.querySelector("#adminRequestUpdateFile")?.addEventListener("change",()=>{
+    const f=modal.querySelector("#adminRequestUpdateFile")?.files?.[0];
+    setText("adminRequestUpdateFileName",f?`Selected: ${f.name}`:"");
+  });
+  return modal;
+}
+
+let activeRequestUpdate=null;
+function closeRequestUpdateModal(){
+  const modal=$("adminRequestUpdateModal");
+  if(modal)modal.remove();
+  activeRequestUpdate=null;
+}
+
+function openRequestUpdateModal(request,customer){
+  const modal=requestUpdateModal();
+  activeRequestUpdate={request,customer};
+  setText("adminRequestUpdateTitle",`Update: ${request.service_type||"Service"}`);
+  setText("adminRequestUpdateMeta",`${customer?.full_name||customer?.email||"Customer"} · Request ${String(request.id||"").slice(0,8).toUpperCase()}`);
+  const status=$("adminRequestUpdateStatus"); if(status)status.value=adminStatus(request.status)==="payment_pending"?"pending":adminStatus(request.status);
+  if($("adminRequestUpdateNote"))$("adminRequestUpdateNote").value="";
+  if($("adminRequestUpdateFile"))$("adminRequestUpdateFile").value="";
+  setText("adminRequestUpdateFileName","");
+  setText("adminRequestUpdateMessage","");
+  requestUpdateModal().querySelector("#adminRequestUpdateSave").onclick=saveRequestUpdate;
+}
+
+async function saveRequestUpdate(){
+  const modal=$("adminRequestUpdateModal"), ctx=activeRequestUpdate;
+  if(!modal||!ctx)return;
+  const save=$("adminRequestUpdateSave"), status=$("adminRequestUpdateStatus")?.value||"pending", note=$("adminRequestUpdateNote")?.value.trim()||"", file=$("adminRequestUpdateFile")?.files?.[0]||null;
+  if(file && (!/^image\/(jpeg|png)$/.test(file.type) || file.size>10*1024*1024)){
+    setText("adminRequestUpdateMessage","Only JPG/PNG images up to 10 MB are allowed.");
+    return;
+  }
+  save.disabled=true; save.textContent="Saving…"; setText("adminRequestUpdateMessage","Saving update…");
+  try{
+    const {data:sessionData}=await supabase.auth.getSession();
+    const session=sessionData?.session;
+    if(!session?.user?.id)throw new Error("Admin session expired. Please login again.");
+    const requestId=ctx.request.id, customerId=ctx.request.customer_id;
+    if(file){
+      const safe=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+      const path=`${customerId}/admin-updates/${requestId}/${Date.now()}-${safe}`;
+      const up=await supabase.storage.from("user-documents").upload(path,file,{upsert:false,contentType:file.type});
+      if(up.error)throw up.error;
+      const doc=await supabase.from("request_documents").insert({customer_id:customerId,request_id:requestId,file_name:`Admin Update - ${file.name}`,storage_path:path,mime_type:file.type,file_size:file.size});
+      if(doc.error)throw doc.error;
+    }
+    const upd=await supabase.from("service_requests").update({status}).eq("id",requestId);
+    if(upd.error)throw upd.error;
+    if(note){
+      const ins=await supabase.from("request_notes").insert({request_id:requestId,note,created_by:session.user.id});
+      if(ins.error)throw ins.error;
+    }
+    if(!note && !file){
+      const ins=await supabase.from("request_notes").insert({request_id:requestId,note:`Status updated to ${status.replaceAll("_"," ")}.`,created_by:session.user.id});
+      if(ins.error)throw ins.error;
+    }
+    setText("adminRequestUpdateMessage","Update saved successfully ✓");
+    setTimeout(()=>{closeRequestUpdateModal();loadAdminUserRequests();},350);
+  }catch(e){
+    console.error("Admin request update",e);
+    setText("adminRequestUpdateMessage",e?.message||"Update failed. Please try again.");
+    save.disabled=false; save.textContent="Save Update";
+  }
+}
+
+function injectRequestUpdateStyles(){
+  if($("adminRequestUpdateStyles"))return;
+  const style=document.createElement("style"); style.id="adminRequestUpdateStyles";
+  style.textContent=`#adminRequestUpdateModal{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;padding:18px}#adminRequestUpdateModal .yt-req-modal-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.52)}#adminRequestUpdateModal .yt-req-modal{position:relative;width:min(620px,96vw);max-height:92vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(15,23,42,.25);border:1px solid #e3e8f2}#adminRequestUpdateModal .yt-req-modal-head,#adminRequestUpdateModal .yt-req-modal-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 20px;border-bottom:1px solid #edf1f7}#adminRequestUpdateModal .yt-req-modal-foot{border-top:1px solid #edf1f7;border-bottom:0;justify-content:flex-end}#adminRequestUpdateModal .yt-req-modal-head span{font-size:11px;font-weight:800;letter-spacing:.08em;color:#d64b5b}#adminRequestUpdateModal h3{margin:4px 0 3px;font-size:22px;color:#172033}#adminRequestUpdateModal p{margin:0;color:#718096;font-size:12px}#adminRequestUpdateModal .yt-req-modal-body{padding:20px}#adminRequestUpdateModal label{display:block;margin:0 0 7px;font-size:12px;font-weight:800;color:#26344d}#adminRequestUpdateModal label:not(:first-child){margin-top:16px}#adminRequestUpdateModal select,#adminRequestUpdateModal textarea,#adminRequestUpdateModal input[type=file]{width:100%;box-sizing:border-box;border:1px solid #d8e0ec;border-radius:10px;background:#fff;padding:10px 12px;color:#172033}#adminRequestUpdateModal textarea{resize:vertical;min-height:120px}#adminRequestUpdateModal small{display:block;margin-top:7px;color:#718096;line-height:1.4}#adminRequestUpdateModal .yt-req-file-name{margin-top:8px;font-size:12px;color:#2563eb;word-break:break-word}#adminRequestUpdateModal .yt-req-modal-message{min-height:20px;margin-top:12px;font-size:13px;font-weight:700;color:#b42318}#adminRequestUpdateModal .yt-req-modal-x{border:0;background:transparent;font-size:28px;line-height:1;color:#64748b;cursor:pointer;padding:2px 8px}`;
+  document.head.appendChild(style);
+}
+
 async function loadAdminUserRequests(){
+  injectRequestUpdateStyles();
   const [requests,payments,customers]=await Promise.all([
     safeAdminQuery(supabase.from("service_requests").select("id,customer_id,service_type,status,created_at").order("created_at",{ascending:false}),[],"User requests"),
     safeAdminQuery(supabase.from("payments").select("request_id,status,amount").order("created_at",{ascending:false}),[],"Request payments"),
@@ -324,9 +416,7 @@ async function loadAdminUserRequests(){
   ]);
   const pm=new Map(payments.map(p=>[p.request_id,p]));
   const cm=new Map(customers.map(c=>[c.id,c]));
-  // Show every service request in Admin Dashboard, including payment-pending ones.
-  // This keeps the complete customer -> service -> payment -> processing flow visible.
-  const rows=requests;
+  const rows=requests.filter(r=>adminStatus(pm.get(r.id)?.status)==="paid");
   setText("userRequestsSectionCount",rows.length);
   const body=$("userRequestsBody"); if(!body)return;
   body.innerHTML=rows.length?rows.map(r=>{
@@ -335,8 +425,8 @@ async function loadAdminUserRequests(){
     return `<tr>
       <td>${esc(c.full_name||c.email||"-")}</td>
       <td>${esc(r.service_type||"Service")}</td>
-      <td><span class="yt-status-chip ${adminStatus(p.status)==="paid"?"good":adminStatus(p.status)==="failed"?"bad":"pending"}">${adminStatus(p.status)==="paid"?`Paid ${adminMoney(p.amount)}`:esc(p.status||"Not paid")}</span></td>
-      <td><span class="yt-status-chip ${current==="completed"?"good":current==="rejected"?"bad":"pending"}">${esc(current)}</span></td>
+      <td><span class="yt-status-chip good">Paid ${adminMoney(p.amount)}</span></td>
+      <td><span class="yt-status-chip">${esc(current)}</span></td>
       <td>${dateText(r.created_at)}</td>
       <td>
         <select data-request-status="${esc(r.id)}">
@@ -346,21 +436,12 @@ async function loadAdminUserRequests(){
       </td>
     </tr>`;
   }).join(""):'<tr><td colspan="6">No paid user requests yet.</td></tr>';
-
   body.querySelectorAll("[data-save-request]").forEach(btn=>{
-    btn.addEventListener("click",async()=>{
+    btn.addEventListener("click",()=>{
       const id=btn.dataset.saveRequest;
-      const select=body.querySelector(`[data-request-status="${CSS.escape(id)}"]`);
-      const old=btn.textContent;btn.disabled=true;btn.textContent="Saving...";
-      try{
-        const res=await withTimeout(supabase.from("service_requests").update({status:select.value}).eq("id",id),8000,"Update request");
-        if(res?.error)throw res.error;
-        btn.textContent="Updated ✓";
-        setTimeout(loadAdminUserRequests,300);
-      }catch(e){
-        alert(e?.message||"Status update failed.");
-        btn.disabled=false;btn.textContent=old;
-      }
+      const req=rows.find(x=>x.id===id); if(!req)return;
+      const select=body.querySelector(`[data-request-status="${CSS.escape(id)}"]`); if(select)req.status=select.value;
+      openRequestUpdateModal(req,cm.get(req.customer_id)||{});
     });
   });
 }

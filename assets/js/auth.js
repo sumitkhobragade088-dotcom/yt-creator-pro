@@ -84,7 +84,7 @@ if (registerForm) {
       if (error) throw error;
 
       if (data.session && data.user) {
-        await ensureCustomerProfile(data.user);
+        ensureCustomerProfile(data.user).catch(console.error);
         msg("Account created successfully. Redirecting...", true);
         sessionStorage.setItem("yt_user_view","dashboard");
         setTimeout(() => location.href = "dashboard.html", 200);
@@ -113,57 +113,17 @@ if (loginForm) {
       if (error) throw error;
       if (!data?.user) throw new Error("Login response invalid.");
 
-      // Keep the public website login separate from Admin/Staff access.
-      // These checks are intentionally fail-open for normal users: if a role
-      // lookup is blocked by RLS/network rules, a genuine website user must
-      // still be able to sign in normally.
-      const uid = data.user.id;
-      let restricted = false;
-      let restrictedStatus = "";
-      try {
-        const [staffRes, adminRes] = await Promise.all([
-          timeout(
-            supabase.from("admin_staff_roles")
-              .select("role,status")
-              .eq("admin_id", uid)
-              .maybeSingle(),
-            TIMEOUT, "Access check"
-          ),
-          timeout(
-            supabase.from("admin_users")
-              .select("status")
-              .eq("id", uid)
-              .maybeSingle(),
-            TIMEOUT, "Admin access check"
-          )
-        ]);
-
-        const staff = staffRes?.data;
-        const admin = adminRes?.data;
-        if (staff?.role && ["manager","operator","support"].includes(String(staff.role).toLowerCase())) {
-          restricted = true;
-          restrictedStatus = String(staff.status || "active").toLowerCase();
-        } else if (admin) {
-          restricted = true;
-          restrictedStatus = String(admin.status || "active").toLowerCase();
-        }
-      } catch (accessCheckError) {
-        console.warn("Public login access check skipped:", accessCheckError);
+      // Admin/Staff accounts must use the Admin/Staff login, not the normal user portal.
+      // This installation uses public.admin_users(id,email).
+      const {data:adminRow}=await supabase.from("admin_users").select("id,status").eq("id",data.user.id).maybeSingle();
+      const {data:staffRow}=await supabase.from("admin_staff_roles").select("role,status").eq("admin_id",data.user.id).maybeSingle();
+      if(adminRow || staffRow){
+        await supabase.auth.signOut();
+        throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
       }
 
-      if (restricted) {
-        await supabase.auth.signOut().catch(() => {});
-        if (restrictedStatus === "suspended") {
-          throw new Error("This account is suspended. Please use the Admin/Staff Login page.");
-        }
-        if (restrictedStatus === "inactive") {
-          throw new Error("This account is inactive. Please use the Admin/Staff Login page.");
-        }
-        throw new Error("This account is authorized for Admin/Staff access only. Please use the Admin/Staff Login page.");
-      }
-
-      // Do not block normal user login on customer profile/table queries.
-      await ensureCustomerProfile(data.user);
+      // Do not block login on profile/table queries.
+      ensureCustomerProfile(data.user).catch(console.error);
       msg("Login successful.", true);
       sessionStorage.setItem("yt_user_view","dashboard");
       setTimeout(() => location.href = "dashboard.html", 120);
@@ -290,38 +250,24 @@ async function loadServices() {
       supabase.from("service_charges").select("*"),
       [], "Services"
     );
-    cachedServices = (cachedServices || [])
-      .filter(s => s.is_active !== false)
-      .sort((a,b) =>
-        (Number(a.sort_order ?? 999999)-Number(b.sort_order ?? 999999)) ||
-        String(a.service_name||a.name||"").localeCompare(String(b.service_name||b.name||""))
-      );
-    serviceChargeMap = new Map(
-      (cachedServices || []).map(s => [
-        s.service_name || s.name,
-        Number(s.charge ?? s.amount ?? s.price ?? s.service_charge ?? 0)
-      ])
-    );
+    cachedServices = (cachedServices || []).filter(s => s.is_active !== false).sort((a,b)=>(Number(a.sort_order ?? 999999)-Number(b.sort_order ?? 999999))||String(a.service_name||a.name||"").localeCompare(String(b.service_name||b.name||"")));
+    serviceChargeMap = new Map((cachedServices || []).map(s => [s.service_name || s.name, Number(s.charge ?? s.amount ?? s.price ?? s.service_charge ?? 0)]));
   }
 
   const rows = cachedServices || [];
-  select.innerHTML = rows.map(s => {
-    const name = s.service_name || s.name || "Service";
-    return `<option value="${esc(name)}">${esc(name)}</option>`;
-  }).join("");
+  select.innerHTML = rows.map(s =>
+    `<option value="${esc(s.service_name || s.name || "Service")}">${esc(s.service_name || s.name || "Service")}</option>`
+  ).join("");
 
-  optionsBox.innerHTML = rows.length ? rows.map(s => {
-    const name = s.service_name || s.name || "Service";
-    return `
-      <label class="yt-user-service-check">
-        <input type="checkbox" data-user-service-value="${esc(name)}">
-        <span class="svc-main">
-          <span class="svc-name">${esc(name)}</span>
-          <span class="svc-desc">${esc(s.description || "Creator service")}</span>
-        </span>
-        <span class="svc-price">${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</span>
-      </label>`;
-  }).join("") : '<div class="yt-service-empty">No active services available.</div>';
+  optionsBox.innerHTML = rows.length ? rows.map(s => `
+    <label class="yt-user-service-check">
+      <input type="checkbox" data-user-service-value="${esc(s.service_name || s.name || "Service")}">
+      <span class="svc-main">
+        <span class="svc-name">${esc(s.service_name || s.name || "Service")}</span>
+        <span class="svc-desc">${esc(s.description || "Creator service")}</span>
+      </span>
+      <span class="svc-price">${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</span>
+    </label>`).join("") : '<div class="yt-service-empty">No active services available.</div>';
 
   optionsBox.querySelectorAll("[data-user-service-value]").forEach(box => {
     box.addEventListener("change", () => {
@@ -334,44 +280,25 @@ async function loadServices() {
 
   const dropdown = $("userServiceDropdown");
   const toggle = $("userServiceDropdownToggle");
-  if (toggle && dropdown && !toggle.dataset.bound) {
-    toggle.dataset.bound = "1";
-    toggle.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      dropdown.classList.toggle("open");
-      toggle.setAttribute("aria-expanded", dropdown.classList.contains("open") ? "true" : "false");
-    });
-  }
+  toggle?.addEventListener("click", () => dropdown?.classList.toggle("open"));
 
-  const selectAll = $("selectAllUserServices");
-  if (selectAll && !selectAll.dataset.bound) {
-    selectAll.dataset.bound = "1";
-    selectAll.addEventListener("click", () => {
-      [...select.options].forEach(o => o.selected = true);
-      optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = true);
-      updateUserServiceTotal();
-    });
-  }
+  $("selectAllUserServices")?.addEventListener("click", () => {
+    [...select.options].forEach(o => o.selected = true);
+    optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = true);
+    updateUserServiceTotal();
+  });
 
-  const clearAll = $("clearAllUserServices");
-  if (clearAll && !clearAll.dataset.bound) {
-    clearAll.dataset.bound = "1";
-    clearAll.addEventListener("click", () => {
-      [...select.options].forEach(o => o.selected = false);
-      optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = false);
-      updateUserServiceTotal();
-    });
-  }
+  $("clearAllUserServices")?.addEventListener("click", () => {
+    [...select.options].forEach(o => o.selected = false);
+    optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = false);
+    updateUserServiceTotal();
+  });
 
-  catalog.innerHTML = rows.length ? rows.map(s => {
-    const name = s.service_name || s.name || "Service";
-    return `
-      <button type="button" data-service-pick="${esc(name)}">
-        <span>▶️</span><b>${esc(name)}</b>
-        <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</strong></small>
-      </button>`;
-  }).join("") : '<div class="yt-service-loading">No active services available.</div>';
+  catalog.innerHTML = rows.length ? rows.map(s => `
+    <button type="button" data-service-pick="${esc(s.service_name || s.name || "Service")}">
+      <span>▶️</span><b>${esc(s.service_name || s.name || "Service")}</b>
+      <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</strong></small>
+    </button>`).join("") : '<div class="yt-service-loading">No active services available.</div>';
 
   catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
     btn.addEventListener("click", () => {
@@ -379,62 +306,28 @@ async function loadServices() {
       const opt = [...select.options].find(o => o.value === name);
       if (!opt) return;
       opt.selected = !opt.selected;
-      const check = optionsBox.querySelector(
-        `[data-user-service-value="${CSS.escape(name)}"]`
-      );
+      const check = optionsBox.querySelector(`[data-user-service-value="${CSS.escape(name)}"]`);
       if (check) check.checked = opt.selected;
       btn.classList.toggle("selected", opt.selected);
       updateUserServiceTotal();
     });
   });
-
-  updateUserServiceTotal();
 }
 
 function updateUserServiceTotal(){
-  const select = $("userServiceType");
+  const select=$("userServiceType");
   if(!select) return;
-  const selected = [...select.selectedOptions].map(o=>o.value).filter(Boolean);
-  const total = selected.reduce(
-    (sum,name)=>sum+Number(serviceChargeMap.get(name)||0), 0
-  );
-  const totalEl = $("userServiceTotalAmount");
-  if(totalEl) totalEl.textContent = money(total);
-  const countEl = $("userServiceSelectedCount");
-  if(countEl) countEl.textContent = `${selected.length} selected`;
-  const toggle = $("userServiceDropdownToggle");
-  if(toggle) toggle.textContent = selected.length
-    ? `${selected.length} service${selected.length>1?"s":""} selected`
-    : "Select services…";
-
-  const optionsBox = $("userServiceOptions");
-  if(optionsBox){
-    optionsBox.querySelectorAll("[data-user-service-value]").forEach(box => {
-      const name = box.dataset.userServiceValue || "";
-      const opt = [...select.options].find(o => o.value === name);
-      box.checked = !!opt?.selected;
-    });
-  }
-  const catalog = $("userServiceCatalog");
-  if(catalog){
-    catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
-      const name = btn.dataset.servicePick || "";
-      const opt = [...select.options].find(o => o.value === name);
-      btn.classList.toggle("selected", !!opt?.selected);
-    });
-  }
+  const selected=[...select.selectedOptions].map(o=>o.value).filter(Boolean);
+  const total=selected.reduce((sum,name)=>sum+Number(serviceChargeMap.get(name)||0),0);
+  const totalEl=$("userServiceTotalAmount"); if(totalEl) totalEl.textContent=money(total);
+  const countEl=$("userServiceSelectedCount"); if(countEl) countEl.textContent=`${selected.length} selected`;
+  const toggle=$("userServiceDropdownToggle"); if(toggle) toggle.textContent=selected.length ? `${selected.length} service${selected.length>1?"s":""} selected` : "Select services…";
 }
 
-if (!document.documentElement.dataset.userServiceDropdownBound) {
-  document.documentElement.dataset.userServiceDropdownBound = "1";
-  document.addEventListener("click", e => {
-    const dd = $("userServiceDropdown");
-    if(dd && !dd.contains(e.target)){
-      dd.classList.remove("open");
-      $("userServiceDropdownToggle")?.setAttribute("aria-expanded","false");
-    }
-  });
-}
+document.addEventListener("click",e=>{
+  const dd=$("userServiceDropdown");
+  if(dd&&!dd.contains(e.target))dd.classList.remove("open");
+});
 
 async function startPayU(paymentId, btn=null) {
   const old = btn?.textContent || "";
@@ -521,10 +414,18 @@ function payStatus(p) {
 
 async function loadRequestsAndPayments() {
   if (!dashboardCustomer) return;
-  const [reqs, payments] = await Promise.all([
+  const [reqs, requestNotes, requestDocuments, payments] = await Promise.all([
     safeQuery(
       supabase.from("service_requests").select("id,service_type,status,created_at").eq("customer_id",dashboardCustomer.id).order("created_at",{ascending:false}),
       [], "Requests"
+    ),
+    safeQuery(
+      supabase.from("request_notes").select("id,request_id,note,created_at").order("created_at",{ascending:false}),
+      [], "Request updates"
+    ),
+    safeQuery(
+      supabase.from("request_documents").select("id,request_id,file_name,storage_path,mime_type,created_at").order("created_at",{ascending:false}),
+      [], "Request screenshots"
     ),
     safeQuery(
       supabase.from("payments").select("id,request_id,service_name,amount,currency,status,txnid,mihpayid,error_message,created_at,updated_at").eq("customer_id",dashboardCustomer.id).order("created_at",{ascending:false}),
@@ -562,6 +463,8 @@ async function loadRequestsAndPayments() {
       const pst=payStatus(p);
       const payLabel=pst==="paid"?"Paid":pst==="failed"?"Failed":(pst==="cancelled"||pst==="canceled")?"Cancelled":"Pending";
       const payClass=pst==="paid"?"paid":pst==="failed"?"failed":(pst==="cancelled"||pst==="canceled")?"cancelled":"pending";
+      const notes=(requestNotes||[]).filter(n=>n.request_id===r.id);
+      const docs=(requestDocuments||[]).filter(d=>d.request_id===r.id && String(d.storage_path||"").includes("/admin-updates/"));
       return `<div class="yt-user-request-card">
         <div class="yt-user-request-main">
           <b>${esc(r.service_type||"Service")}</b>
@@ -569,6 +472,8 @@ async function loadRequestsAndPayments() {
             <span>Request: ${esc(String(r.id||"").slice(0,8).toUpperCase())}</span>
             <span>${esc(dateText(r.created_at))}</span>
           </div>
+          ${notes.length?`<div class="yt-user-request-updates"><strong>Admin Update</strong>${notes.map(n=>`<div class="yt-user-request-note"><span>${esc(n.note)}</span><time>${esc(dateText(n.created_at))}</time></div>`).join("")}</div>`:""}
+          ${docs.length?`<div class="yt-user-request-screenshots"><strong>Screenshot</strong>${docs.map(d=>`<button type="button" class="yt-user-request-file" data-admin-request-file="${esc(d.storage_path)}">📷 ${esc(d.file_name||"View screenshot")}</button>`).join("")}</div>`:""}
         </div>
         <div class="yt-user-status-stack">
           <span class="yt-user-status-chip ${statusClass(r.status)}">${esc(prettyStatus(r.status))}</span>
@@ -576,6 +481,16 @@ async function loadRequestsAndPayments() {
         </div>
       </div>`;
     }).join("") : '<div class="yt-user-empty-state">No service requests yet.</div>';
+    list.querySelectorAll("[data-admin-request-file]").forEach(btn=>btn.addEventListener("click",async()=>{
+      btn.disabled=true;
+      try{
+        const {data,error}=await supabase.storage.from("user-documents").createSignedUrl(btn.dataset.adminRequestFile,300);
+        if(error)throw error;
+        if(!data?.signedUrl)throw new Error("Screenshot URL unavailable.");
+        window.open(data.signedUrl,"_blank","noopener,noreferrer");
+      }catch(e){alert(e?.message||"Unable to open screenshot.");}
+      finally{btn.disabled=false;}
+    }));
   }
 
   // Payments: show Paid / Pending / Failed / Cancelled clearly with retry actions.
