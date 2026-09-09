@@ -62,7 +62,17 @@ async function loadRoles(){
     const id=btn.dataset.deleteStaff; if(!confirm('WARNING: Delete this staff access? The Supabase Auth account will NOT be deleted. Continue?'))return;
     const {error}=await supabase.rpc('admin_remove_staff',{p_admin_id:id}); if(error)return alert(error.message); await log('staff_access_deleted','admin_staff_roles',id); await loadRoles();
   });
-  const select=$('acsAdminUserSelect'); if(select){select.innerHTML='<option value="">Select admin/staff account…</option>'+ (users.data||[]).map(u=>`<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');}
+  const select=$('acsAdminUserSelect');
+  if(select){
+    // Super Admin is protected and must never appear in the role-assignment
+    // selector. Only accounts that already have a non-super-admin staff role
+    // can be selected for Manager / Operator / Support reassignment.
+    const staffIds = new Set(roleRows.filter(r => r.role !== 'super_admin').map(r => r.admin_id));
+    const staffUsers = (users.data || []).filter(u => staffIds.has(u.id));
+    select.innerHTML = '<option value="">Select staff account…</option>' +
+      staffUsers.map(u => `<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');
+    if(!staffUsers.length) select.innerHTML = '<option value="">No staff account available</option>';
+  }
   const pe=$('acsPermissionEditor');
   if(pe){
     const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['manager','operator','support'];
