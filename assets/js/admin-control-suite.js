@@ -67,8 +67,25 @@ async function loadRoles(){
     // Super Admin is protected and must never appear in the role-assignment
     // selector. Only accounts that already have a non-super-admin staff role
     // can be selected for Manager / Operator / Support reassignment.
-    const staffIds = new Set(roleRows.filter(r => r.role !== 'super_admin').map(r => r.admin_id));
-    const staffUsers = (users.data || []).filter(u => staffIds.has(u.id));
+    // The currently logged-in Super Admin must NEVER appear in the staff selector,
+    // even if an old/duplicate role row exists or the role casing differs.
+    const { data: { session: currentSession } } = await supabase.auth.getSession();
+    const currentAdminId = currentSession?.user?.id || null;
+    const superAdminIds = new Set(
+      roleRows
+        .filter(r => String(r.role || '').trim().toLowerCase() === 'super_admin')
+        .map(r => r.admin_id)
+    );
+    if (currentAdminId) superAdminIds.add(currentAdminId);
+
+    const staffIds = new Set(
+      roleRows
+        .filter(r => !superAdminIds.has(r.admin_id) && String(r.role || '').trim().toLowerCase() !== 'super_admin')
+        .map(r => r.admin_id)
+    );
+    const staffUsers = (users.data || []).filter(u =>
+      staffIds.has(u.id) && !superAdminIds.has(u.id) && u.id !== currentAdminId
+    );
     select.innerHTML = '<option value="">Select staff account…</option>' +
       staffUsers.map(u => `<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');
     if(!staffUsers.length) select.innerHTML = '<option value="">No staff account available</option>';
