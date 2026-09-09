@@ -1,0 +1,20 @@
+YT Creator Pro — USER → ADMIN FLOW FINAL FIX
+
+Replace ONLY these files at the same paths:
+1. assets/js/admin-auth.js
+2. assets/js/admin-public-notifications.js
+
+Run ONLY this SQL once in Supabase SQL Editor:
+3. USER-ADMIN-FLOW-FINAL-FIX.sql
+
+Do not replace the whole ZIP/project.
+Do not change layout, colors, routes, Supabase Auth, PayU/Render, or existing service data.
+
+What this fixes:
+- Normal registration creates/keeps a customers profile linked to auth user_id.
+- Missing normal customer profiles are safely backfilled.
+- Admin Dashboard Users/Customers shows normal users.
+- Admin/Super Admin/Staff accounts are excluded from normal Users/Customers.
+- Service requests remain linked through customer_id and are visible in Admin flow.
+- Fixes missing Admin Dashboard JS helper functions (setText, safeAdminQuery, etc.).
+- Includes the known clean admin-public-notifications.js file.

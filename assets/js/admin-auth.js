@@ -2,6 +2,27 @@ import { supabase } from "./supabase.js";
 
 const ADMIN_EMAIL = "sumitkhobragade088@gmail.com";
 const $ = (id) => document.getElementById(id);
+
+function esc(v=""){
+  return String(v ?? "").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;", "'":"&#39;"}[m]));
+}
+function fmt(n){ return Number(n||0).toLocaleString("en-IN"); }
+function dateText(v){
+  if(!v) return "-";
+  const d=new Date(v);
+  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});
+}
+function setText(id,value){ if($(id)) $(id).textContent=value ?? ""; }
+async function safeAdminQuery(query,fallback=[],label="Data"){
+  try{
+    const res=await Promise.race([
+      Promise.resolve(query),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error(`${label} timeout. Please try again.`)),8000))
+    ]);
+    if(res?.error) throw res.error;
+    return res?.data ?? fallback;
+  }catch(e){ console.error(`[Admin ${label}]`,e); return fallback; }
+}
 function showMessage(text, ok=false){const el=$("adminMessage");if(el){el.textContent=text;el.className=ok?"message ok":"message";}}
 
 async function getAccess(user){
@@ -58,7 +79,7 @@ async function loadAdminDashboard(){
   setText("adminEmailView", user.email || "");
 
   const [customers,access,requests] = await Promise.all([
-    safeAdminQuery(supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at").order("created_at",{ascending:false}),[],"Customers"),
+    safeAdminQuery(supabase.rpc("admin_list_normal_customers"),[],"Customers"),
     safeAdminQuery(supabase.from("channel_access").select("*").order("updated_at",{ascending:false}),[],"Channel access"),
     safeAdminQuery(supabase.from("service_requests").select("*").order("created_at",{ascending:false}),[],"Service requests")
   ]);
@@ -72,7 +93,7 @@ async function loadAdminDashboard(){
   const monetizationCases=access.filter(a=>String(a.monetization_status||"").trim()!=="");
   const approved=access.filter(a=>["approved","monetized","active","completed","complete","done"].includes(String(a.monetization_status||"").toLowerCase()));
   const adsenseLinked=access.filter(a=>a.adsense_access);
-  const validRequests=requests.filter(r=>String(r.status||"").toLowerCase()!=="payment_pending");
+  const validRequests=requests;
   const pendingReq=validRequests.filter(r=>String(r.status||"").toLowerCase()==="pending");
   const completedReq=validRequests.filter(r=>["completed","complete","done","approved"].includes(String(r.status||"").toLowerCase()));
   const totalViews=access.reduce((sum,a)=>sum+Number(a.views||0),0);
@@ -270,7 +291,7 @@ async function loadAdminServicesCatalog(){
 async function loadAdminPayments(){
   const [payments,customers]=await Promise.all([
     safeAdminQuery(supabase.from("payments").select("*").order("created_at",{ascending:false}),[],"Payments"),
-    safeAdminQuery(supabase.from("customers").select("id,full_name,email"),[],"Payment customers")
+    safeAdminQuery(supabase.rpc("admin_list_normal_customers"),[],"Payment customers")
   ]);
   const cm=new Map(customers.map(c=>[c.id,c]));
   const paid=payments.filter(p=>adminStatus(p.status)==="paid");
@@ -300,7 +321,7 @@ async function loadAdminUserRequests(){
   const [requests,payments,customers]=await Promise.all([
     safeAdminQuery(supabase.from("service_requests").select("id,customer_id,service_type,status,created_at").order("created_at",{ascending:false}),[],"User requests"),
     safeAdminQuery(supabase.from("payments").select("request_id,status,amount").order("created_at",{ascending:false}),[],"Request payments"),
-    safeAdminQuery(supabase.from("customers").select("id,full_name,email"),[],"Request customers")
+    safeAdminQuery(supabase.rpc("admin_list_normal_customers"),[],"Request customers")
   ]);
   const pm=new Map(payments.map(p=>[p.request_id,p]));
   const cm=new Map(customers.map(c=>[c.id,c]));
