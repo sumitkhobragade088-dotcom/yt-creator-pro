@@ -28,11 +28,13 @@ Deno.serve(async req=>{
     if(!['manager','operator','support'].includes(role)) return json({error:'Only Manager, Operator or Support can be created as staff.'},400);
     if(password.length<8) return json({error:'Temporary password must be at least 8 characters.'},400);
 
-    const {data:existing}=await admin.auth.admin.listUsers({page:1,perPage:1000});
-    if((existing?.users||[]).some(u=>(u.email||'').toLowerCase()===email)) return json({error:'An account with this email already exists. Use role assignment instead.'},409);
+    const {data:existing,error:existingError}=await admin.auth.admin.listUsers({page:1,perPage:1000});
+    if(existingError) return json({error:`Unable to check existing accounts: ${existingError.message}`},502);
+    const duplicate=(existing?.users||[]).find(u=>(u.email||'').toLowerCase()===email);
+    if(duplicate) return json({error:'An account with this email already exists. Create Staff requires a new email, or use Assign Role for an existing authorized account.'},409);
 
     const {data:created,error:ce}=await admin.auth.admin.createUser({email,password,email_confirm:true,user_metadata:{full_name:name,staff_role:role}});
-    if(ce||!created?.user) return json({error:ce?.message||'Unable to create Auth account.'},400);
+    if(ce||!created?.user) return json({error:`Unable to create staff Auth account: ${ce?.message||'Unknown Auth error.'}`},400);
     const uid=created.user.id;
 
     const {error:ae}=await admin.from('admin_users').upsert({id:uid,email},{onConflict:'id'});

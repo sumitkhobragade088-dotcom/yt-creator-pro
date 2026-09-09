@@ -62,34 +62,7 @@ async function loadRoles(){
     const id=btn.dataset.deleteStaff; if(!confirm('WARNING: Delete this staff access? The Supabase Auth account will NOT be deleted. Continue?'))return;
     const {error}=await supabase.rpc('admin_remove_staff',{p_admin_id:id}); if(error)return alert(error.message); await log('staff_access_deleted','admin_staff_roles',id); await loadRoles();
   });
-  const select=$('acsAdminUserSelect');
-  if(select){
-    // Super Admin is protected and must never appear in the role-assignment
-    // selector. Only accounts that already have a non-super-admin staff role
-    // can be selected for Manager / Operator / Support reassignment.
-    // The currently logged-in Super Admin must NEVER appear in the staff selector,
-    // even if an old/duplicate role row exists or the role casing differs.
-    const { data: { session: currentSession } } = await supabase.auth.getSession();
-    const currentAdminId = currentSession?.user?.id || null;
-    const superAdminIds = new Set(
-      roleRows
-        .filter(r => String(r.role || '').trim().toLowerCase() === 'super_admin')
-        .map(r => r.admin_id)
-    );
-    if (currentAdminId) superAdminIds.add(currentAdminId);
-
-    const staffIds = new Set(
-      roleRows
-        .filter(r => !superAdminIds.has(r.admin_id) && String(r.role || '').trim().toLowerCase() !== 'super_admin')
-        .map(r => r.admin_id)
-    );
-    const staffUsers = (users.data || []).filter(u =>
-      staffIds.has(u.id) && !superAdminIds.has(u.id) && u.id !== currentAdminId
-    );
-    select.innerHTML = '<option value="">Select staff account…</option>' +
-      staffUsers.map(u => `<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');
-    if(!staffUsers.length) select.innerHTML = '<option value="">No staff account available</option>';
-  }
+  const select=$('acsAdminUserSelect'); if(select){select.innerHTML='<option value="">Select admin/staff account…</option>'+ (users.data||[]).map(u=>`<option value="${u.id}">${esc(u.email)}${u.status&&String(u.status).toLowerCase()!=='active'?' — '+esc(u.status):''}</option>`).join('');}
   const pe=$('acsPermissionEditor');
   if(pe){
     const allPerms=(perms.data||[]).map(x=>x.permission_key); const rolesList=['manager','operator','support'];
@@ -108,7 +81,7 @@ async function loadRoles(){
       const name=$('acsStaffName')?.value.trim(),email=$('acsStaffEmail')?.value.trim(),role=$('acsStaffRole')?.value,password=$('acsStaffPassword')?.value;
       if(!name||!email||!password)return setMsg('acsStaffMsg','Name, email and temporary password are required.');
       create.disabled=true; setMsg('acsStaffMsg','Creating staff…');
-      try{const {data,error}=await supabase.functions.invoke('create-admin-staff',{body:{name,email,role,password}});if(error)throw error;if(data?.error)throw new Error(data.error);setMsg('acsStaffMsg','Staff created successfully ✅',true);['acsStaffName','acsStaffEmail','acsStaffPassword'].forEach(id=>{const e=$(id);if(e)e.value='';});await loadRoles();}catch(e){setMsg('acsStaffMsg',e?.message||'Staff creation failed.');}finally{create.disabled=false;}
+      try{const {data,error}=await supabase.functions.invoke('create-admin-staff',{body:{name,email,role,password}});if(error){let detail='';try{if(error.context?.json) {const body=await error.context.json();detail=body?.error||body?.message||'';}else if(error.context?.text){detail=await error.context.text();}}catch(_){}throw new Error(detail||error.message||'Create Staff failed.');}if(data?.error)throw new Error(data.error);if(data?.ok!==true)throw new Error('Create Staff failed: no success confirmation was returned.');setMsg('acsStaffMsg','Staff created successfully ✅',true);['acsStaffName','acsStaffEmail','acsStaffPassword'].forEach(id=>{const e=$(id);if(e)e.value='';});await loadRoles();}catch(e){console.error('[Create Staff]',e);setMsg('acsStaffMsg',e?.message||'Staff creation failed.');}finally{create.disabled=false;}
     };
   }
   const assign=$('acsAssignRole');
