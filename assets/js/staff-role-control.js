@@ -1,15 +1,2 @@
-/* Admin sidebar role-control routing. Existing button markup is intentionally untouched. */
-(() => {
-  const routes = { manager:'manager-control.html', operator:'operator-control.html', support:'support-control.html' };
-  // Ordering is defined statically in style.css so there is no first-paint
-  // jump. This file only handles the existing button routing.
-  document.querySelectorAll('[data-role-control]').forEach(btn => {
-    if (btn.dataset.roleControlBound === '1') return;
-    btn.dataset.roleControlBound = '1';
-    btn.addEventListener('click', e => {
-      e.preventDefault(); e.stopPropagation();
-      const role = btn.dataset.roleControl;
-      if (routes[role]) window.location.assign(routes[role]);
-    }, true);
-  });
-})();
+/* Shared Admin-shell routing for role control pages. Existing Admin Dashboard buttons are untouched. */
+(() => { const routes={manager:'manager-control.html',operator:'operator-control.html',support:'support-control.html'}; const goAdmin=v=>{try{sessionStorage.setItem('yt_admin_view',v)}catch(_){} location.href='index.html'}; const nav=document.querySelector('.yt-premium-nav'); if(nav&&!document.getElementById('yt-role-control-fixed-order')){const s=document.createElement('style');s.id='yt-role-control-fixed-order';s.textContent='.yt-premium-nav{display:grid!important}.yt-premium-nav [data-view="dashboard"]{order:0!important}.yt-premium-nav [data-view="control-suite"]{order:1!important}.yt-premium-nav [data-role-control="manager"]{order:2!important}.yt-premium-nav [data-role-control="operator"]{order:3!important}.yt-premium-nav [data-role-control="support"]{order:4!important}';document.head.appendChild(s)} document.querySelectorAll('[data-role-control]').forEach(b=>{if(b.dataset.bound)return;b.dataset.bound='1';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();const r=b.dataset.roleControl;if(routes[r])location.href=routes[r]},true)});document.querySelectorAll('.yt-premium-nav [data-view]').forEach(b=>{if(b.dataset.boundView)return;b.dataset.boundView='1';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();goAdmin(b.dataset.view||'dashboard')},true)});document.getElementById('ytPremiumSidebarToggle')?.addEventListener('click',()=>document.getElementById('ytPremiumSidebar')?.classList.toggle('open'));})();
