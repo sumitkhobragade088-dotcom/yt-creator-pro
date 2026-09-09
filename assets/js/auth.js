@@ -84,7 +84,7 @@ if (registerForm) {
       if (error) throw error;
 
       if (data.session && data.user) {
-        ensureCustomerProfile(data.user).catch(console.error);
+        await ensureCustomerProfile(data.user);
         msg("Account created successfully. Redirecting...", true);
         sessionStorage.setItem("yt_user_view","dashboard");
         setTimeout(() => location.href = "dashboard.html", 200);
@@ -163,7 +163,7 @@ if (loginForm) {
       }
 
       // Do not block normal user login on customer profile/table queries.
-      ensureCustomerProfile(data.user).catch(console.error);
+      await ensureCustomerProfile(data.user);
       msg("Login successful.", true);
       sessionStorage.setItem("yt_user_view","dashboard");
       setTimeout(() => location.href = "dashboard.html", 120);
@@ -277,10 +277,11 @@ async function loadDashboard() {
 
 async function loadServices() {
   const catalog = $("userServiceCatalog");
+  const optionsBox = $("userServiceOptions");
   const select = $("userServiceType");
-  if (!catalog || !select) return;
+  if (!catalog || !optionsBox || !select) return;
   if (!dashboardCustomer) {
-    catalog.innerHTML = '<div class="yt-service-loading">Customer profile unavailable.</div>';
+    optionsBox.innerHTML = '<div class="yt-service-empty">Customer profile unavailable.</div>';
     return;
   }
 
@@ -289,51 +290,150 @@ async function loadServices() {
       supabase.from("service_charges").select("*"),
       [], "Services"
     );
-    cachedServices = (cachedServices || []).filter(s => s.is_active !== false).sort((a,b)=>(Number(a.sort_order ?? 999999)-Number(b.sort_order ?? 999999))||String(a.service_name||a.name||"").localeCompare(String(b.service_name||b.name||"")));
-    serviceChargeMap = new Map((cachedServices || []).map(s => [s.service_name || s.name, Number(s.charge ?? s.amount ?? s.price ?? s.service_charge ?? 0)]));
+    cachedServices = (cachedServices || [])
+      .filter(s => s.is_active !== false)
+      .sort((a,b) =>
+        (Number(a.sort_order ?? 999999)-Number(b.sort_order ?? 999999)) ||
+        String(a.service_name||a.name||"").localeCompare(String(b.service_name||b.name||""))
+      );
+    serviceChargeMap = new Map(
+      (cachedServices || []).map(s => [
+        s.service_name || s.name,
+        Number(s.charge ?? s.amount ?? s.price ?? s.service_charge ?? 0)
+      ])
+    );
   }
 
   const rows = cachedServices || [];
-  select.innerHTML = rows.map(s =>
-    `<option value="${esc(s.service_name)}">${esc(s.service_name || s.name || "Service")} — ${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</option>`
-  ).join("");
-  catalog.innerHTML = rows.length ? rows.map(s => `
-    <button type="button" data-service-pick="${esc(s.service_name)}">
-      <span>▶️</span><b>${esc(s.service_name || s.name || "Service")}</b>
-      <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge)}</strong></small>
-    </button>`).join("") : '<div class="yt-service-loading">No active services available.</div>';
+  select.innerHTML = rows.map(s => {
+    const name = s.service_name || s.name || "Service";
+    return `<option value="${esc(name)}">${esc(name)}</option>`;
+  }).join("");
+
+  optionsBox.innerHTML = rows.length ? rows.map(s => {
+    const name = s.service_name || s.name || "Service";
+    return `
+      <label class="yt-user-service-check">
+        <input type="checkbox" data-user-service-value="${esc(name)}">
+        <span class="svc-main">
+          <span class="svc-name">${esc(name)}</span>
+          <span class="svc-desc">${esc(s.description || "Creator service")}</span>
+        </span>
+        <span class="svc-price">${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</span>
+      </label>`;
+  }).join("") : '<div class="yt-service-empty">No active services available.</div>';
+
+  optionsBox.querySelectorAll("[data-user-service-value]").forEach(box => {
+    box.addEventListener("change", () => {
+      const name = box.dataset.userServiceValue || "";
+      const opt = [...select.options].find(o => o.value === name);
+      if (opt) opt.selected = box.checked;
+      updateUserServiceTotal();
+    });
+  });
+
+  const dropdown = $("userServiceDropdown");
+  const toggle = $("userServiceDropdownToggle");
+  if (toggle && dropdown && !toggle.dataset.bound) {
+    toggle.dataset.bound = "1";
+    toggle.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      dropdown.classList.toggle("open");
+      toggle.setAttribute("aria-expanded", dropdown.classList.contains("open") ? "true" : "false");
+    });
+  }
 
   const selectAll = $("selectAllUserServices");
-  selectAll?.addEventListener("click", () => {
-    [...select.options].forEach(o => o.selected = true);
-    catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.add("selected"));
-    updateUserServiceTotal();
-  });
+  if (selectAll && !selectAll.dataset.bound) {
+    selectAll.dataset.bound = "1";
+    selectAll.addEventListener("click", () => {
+      [...select.options].forEach(o => o.selected = true);
+      optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = true);
+      updateUserServiceTotal();
+    });
+  }
+
+  const clearAll = $("clearAllUserServices");
+  if (clearAll && !clearAll.dataset.bound) {
+    clearAll.dataset.bound = "1";
+    clearAll.addEventListener("click", () => {
+      [...select.options].forEach(o => o.selected = false);
+      optionsBox.querySelectorAll("[data-user-service-value]").forEach(x => x.checked = false);
+      updateUserServiceTotal();
+    });
+  }
+
+  catalog.innerHTML = rows.length ? rows.map(s => {
+    const name = s.service_name || s.name || "Service";
+    return `
+      <button type="button" data-service-pick="${esc(name)}">
+        <span>▶️</span><b>${esc(name)}</b>
+        <small>${esc(s.description || "Creator service")} · <strong>${money(s.charge ?? s.amount ?? s.price ?? s.service_charge)}</strong></small>
+      </button>`;
+  }).join("") : '<div class="yt-service-loading">No active services available.</div>';
 
   catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
     btn.addEventListener("click", () => {
       const name = btn.dataset.servicePick || "";
-      if (select.multiple) {
-        const opt = [...select.options].find(o => o.value === name);
-        if (opt) opt.selected = !opt.selected;
-        btn.classList.toggle("selected", !!opt?.selected);
-        updateUserServiceTotal();
-      } else {
-        select.value = name;
-        catalog.querySelectorAll("[data-service-pick]").forEach(x => x.classList.remove("selected"));
-        btn.classList.add("selected");
-      }
+      const opt = [...select.options].find(o => o.value === name);
+      if (!opt) return;
+      opt.selected = !opt.selected;
+      const check = optionsBox.querySelector(
+        `[data-user-service-value="${CSS.escape(name)}"]`
+      );
+      if (check) check.checked = opt.selected;
+      btn.classList.toggle("selected", opt.selected);
+      updateUserServiceTotal();
     });
   });
+
+  updateUserServiceTotal();
 }
 
 function updateUserServiceTotal(){
-  const select=$("userServiceType");
+  const select = $("userServiceType");
   if(!select) return;
-  const selected=[...select.selectedOptions].map(o=>o.value).filter(Boolean);
-  const total=selected.reduce((sum,name)=>sum+Number(serviceChargeMap.get(name)||0),0);
-  const totalEl=$("userServiceTotal"); if(totalEl) totalEl.textContent=money(total);
-  const countEl=$("userServiceSelectedCount"); if(countEl) countEl.textContent=String(selected.length);
+  const selected = [...select.selectedOptions].map(o=>o.value).filter(Boolean);
+  const total = selected.reduce(
+    (sum,name)=>sum+Number(serviceChargeMap.get(name)||0), 0
+  );
+  const totalEl = $("userServiceTotalAmount");
+  if(totalEl) totalEl.textContent = money(total);
+  const countEl = $("userServiceSelectedCount");
+  if(countEl) countEl.textContent = `${selected.length} selected`;
+  const toggle = $("userServiceDropdownToggle");
+  if(toggle) toggle.textContent = selected.length
+    ? `${selected.length} service${selected.length>1?"s":""} selected`
+    : "Select services…";
+
+  const optionsBox = $("userServiceOptions");
+  if(optionsBox){
+    optionsBox.querySelectorAll("[data-user-service-value]").forEach(box => {
+      const name = box.dataset.userServiceValue || "";
+      const opt = [...select.options].find(o => o.value === name);
+      box.checked = !!opt?.selected;
+    });
+  }
+  const catalog = $("userServiceCatalog");
+  if(catalog){
+    catalog.querySelectorAll("[data-service-pick]").forEach(btn => {
+      const name = btn.dataset.servicePick || "";
+      const opt = [...select.options].find(o => o.value === name);
+      btn.classList.toggle("selected", !!opt?.selected);
+    });
+  }
+}
+
+if (!document.documentElement.dataset.userServiceDropdownBound) {
+  document.documentElement.dataset.userServiceDropdownBound = "1";
+  document.addEventListener("click", e => {
+    const dd = $("userServiceDropdown");
+    if(dd && !dd.contains(e.target)){
+      dd.classList.remove("open");
+      $("userServiceDropdownToggle")?.setAttribute("aria-expanded","false");
+    }
+  });
 }
 
 async function startPayU(paymentId, btn=null) {
