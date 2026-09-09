@@ -1,9 +1,14 @@
-ADMIN LOGIN — LEFT PANEL MATCH FIX (CHANGED ONLY)
+ADMIN SIDEBAR — CHANGED ONLY
 
-Replace ONLY:
-assets/css/admin-login-multicolor-fix.css
+Replace only:
+assets/js/staff-role-control.js
 
-Change:
-- Left Admin Login visual panel now uses the EXACT same multi-color gradient as the "Login to Admin" button.
-- Right-side login card/form is NOT changed.
-- Authentication, routing, Supabase, admin-auth.js, user login, dashboard, sidebar, services and all other working files are NOT changed.
+Fix:
+- Same existing Admin sidebar behavior on Admin/role-control pages.
+- No delayed JS menu reordering/reflow after page load.
+- Existing fixed menu order is left to the existing stylesheet.
+- Clicked role/page remains highlighted.
+- Refresh keeps the current role/page highlight.
+- Existing navigation and working functions are otherwise untouched.
+
+Do not replace any other file.

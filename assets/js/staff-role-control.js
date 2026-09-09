@@ -1,29 +1,54 @@
-/* Minimal Admin sidebar bridge. Does not reorder the sidebar or intercept Dashboard view buttons on index.html. */
-(()=>{
-  const routes={manager:"manager-control.html",operator:"operator-control.html",support:"support-control.html"};
-  const nav=document.querySelector(".yt-premium-nav");
-  if(!nav)return;
-  const path=location.pathname.split("/").pop().toLowerCase();
-  const role=Object.keys(routes).find(r=>routes[r].toLowerCase()===path)||null;
-  if(role){
-    nav.querySelectorAll(".yt-premium-nav-btn").forEach(b=>{
-      const active=b.dataset.roleControl===role;
-      b.classList.toggle("active",active);
-      if(active)b.setAttribute("aria-current","page"); else b.removeAttribute("aria-current");
+/* Shared Admin sidebar behavior: fixed order, persistent active state, no delayed/reflowing menu. */
+(() => {
+  const routes = {
+    manager: "manager-control.html",
+    operator: "operator-control.html",
+    support: "support-control.html"
+  };
+
+  const role = String(document.body?.dataset?.role || "").toLowerCase();
+
+  const setActive = (view) => {
+    document.querySelectorAll(".yt-premium-nav-btn").forEach((b) => {
+      const active = b.dataset.view === view || b.dataset.roleControl === view;
+      b.classList.toggle("active", active);
+      if (active) b.setAttribute("aria-current", "page");
+      else b.removeAttribute("aria-current");
     });
-  }
-  nav.querySelectorAll("[data-role-control]").forEach(b=>{
-    b.addEventListener("click",()=>{
-      const r=b.dataset.roleControl;
-      if(routes[r])location.href=routes[r];
-    });
+  };
+
+  // Do not inject/reorder the sidebar after paint. The existing stylesheet owns
+  // the fixed menu order so the sidebar never jumps/reflows for a few seconds.
+  if (role && routes[role]) setActive(role);
+
+  const goAdmin = (view) => {
+    try { sessionStorage.setItem("yt_admin_view", view); } catch (_) {}
+    location.href = "index.html";
+  };
+
+  document.querySelectorAll("[data-role-control]").forEach((button) => {
+    if (button.dataset.sidebarRoleBound) return;
+    button.dataset.sidebarRoleBound = "1";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const target = button.dataset.roleControl;
+      if (routes[target]) location.href = routes[target];
+    }, true);
   });
-  if(path!=="index.html")nav.querySelectorAll("[data-view]").forEach(b=>{
-    b.addEventListener("click",()=>{
-      try{sessionStorage.setItem("yt_admin_view",b.dataset.view||"dashboard");}catch(_){}
-      location.href="index.html";
-    });
+
+  document.querySelectorAll(".yt-premium-nav [data-view]").forEach((button) => {
+    if (button.dataset.sidebarViewBound) return;
+    button.dataset.sidebarViewBound = "1";
+    button.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const view = button.dataset.view || "dashboard";
+      goAdmin(view);
+    }, true);
   });
-  const t=document.getElementById("ytPremiumSidebarToggle");
-  if(t)t.addEventListener("click",()=>document.getElementById("ytPremiumSidebar")?.classList.toggle("open"));
+
+  document.getElementById("ytPremiumSidebarToggle")?.addEventListener("click", () => {
+    document.getElementById("ytPremiumSidebar")?.classList.toggle("open");
+  });
 })();
