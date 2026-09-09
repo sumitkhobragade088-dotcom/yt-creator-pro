@@ -1,1 +1,14 @@
-Replace ONLY these two files in the currently deployed project. Hard-refresh the Admin Dashboard after deployment. No database data or UI layout is changed by this patch.
+ADMIN SIDEBAR FIX — CHANGED ONLY
+
+Replace ONLY:
+assets/js/staff-role-control.js
+
+What this fixes:
+1. Same existing Admin sidebar order is preserved on role-control pages.
+2. The currently opened sidebar item is highlighted.
+3. Refresh keeps the current role-control page highlighted.
+4. Clicking Dashboard/other sidebar items keeps the existing routing flow.
+5. No Supabase, database, payment, service, user, request, or existing UI flow is changed.
+6. Super Admin fresh login remains Dashboard as already implemented in admin-auth.js/admin/index.html.
+
+WARNING: Do not replace any other file for this point.
