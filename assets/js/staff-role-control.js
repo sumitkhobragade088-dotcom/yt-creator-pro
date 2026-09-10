@@ -7,6 +7,7 @@
   };
 
   const role = String(document.body?.dataset?.role || "").toLowerCase();
+  const page = (location.pathname.split("/").pop() || "index.html").toLowerCase();
 
   const setActive = (view) => {
     document.querySelectorAll(".yt-premium-nav-btn").forEach((b) => {
@@ -20,11 +21,10 @@
   // Do not inject/reorder the sidebar after paint. The existing stylesheet owns
   // the fixed menu order so the sidebar never jumps/reflows for a few seconds.
   if (role && routes[role]) setActive(role);
-  else {
-    const path = String(location.pathname || "").toLowerCase();
-    const file = path.split("/").pop();
-    const view = file === "manage-channel.html" ? "manage" : (file === "index.html" ? (sessionStorage.getItem("yt_admin_view") || "dashboard") : "");
-    if (view) setActive(view);
+  else if (page === "manage-channel.html") setActive("manage");
+  else if (page === "index.html" || page === "") {
+    const saved = (() => { try { return sessionStorage.getItem("yt_admin_view") || "dashboard"; } catch (_) { return "dashboard"; } })();
+    setActive(saved.startsWith("cms-custom:") ? "cms" : saved);
   }
 
   const goAdmin = (view) => {
