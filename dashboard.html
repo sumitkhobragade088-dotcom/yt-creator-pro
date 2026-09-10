@@ -1,0 +1,620 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ff0000">
+<title>Creator Dashboard | YT Creator Pro</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+html.yt-user-boot body{visibility:hidden!important}
+</style>
+<script>
+document.documentElement.classList.add("yt-user-boot");
+</script>
+
+<style id="yt-user-request-payment-profile-access-fix">
+/* Admin-like scrollable user sidebar; no grid/main layout change. */
+.yt-demo-user-sidebar{
+  overflow-y:auto;
+  overflow-x:hidden;
+  scrollbar-width:thin;
+  scrollbar-color:#6f5ee8 transparent;
+}
+.yt-demo-user-sidebar::-webkit-scrollbar{width:7px}
+.yt-demo-user-sidebar::-webkit-scrollbar-track{background:transparent}
+.yt-demo-user-sidebar::-webkit-scrollbar-thumb{background:#6f5ee8;border-radius:999px}
+.yt-demo-user-sidebar::-webkit-scrollbar-thumb:hover{background:#8b5cf6}
+
+/* Professional My Requests + Payments cards. */
+#requestList,#userPaymentsList{display:grid;gap:12px}
+.yt-user-request-card,.yt-user-payment-card{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:16px;
+  align-items:center;
+  padding:16px 18px;
+  border:1px solid #e4e9f2;
+  border-radius:14px;
+  background:#fff;
+  box-shadow:0 8px 22px rgba(15,23,42,.05);
+}
+.yt-user-request-main,.yt-user-payment-main{min-width:0}
+.yt-user-request-main b,.yt-user-payment-main b{display:block;color:#172033;font-size:15px;margin-bottom:5px}
+.yt-user-request-meta,.yt-user-payment-meta{
+  display:flex;flex-wrap:wrap;gap:7px 12px;color:#718096;font-size:12px
+}
+.yt-user-status-stack{display:flex;align-items:flex-end;gap:7px;flex-direction:column}
+.yt-user-status-chip{
+  display:inline-flex;align-items:center;justify-content:center;
+  padding:6px 10px;border-radius:999px;font-size:11px;font-weight:900;
+  text-transform:uppercase;letter-spacing:.02em;white-space:nowrap
+}
+.yt-user-status-chip.paid,.yt-user-status-chip.completed{background:#e9fbf2;color:#087a45}
+.yt-user-status-chip.pending,.yt-user-status-chip.processing{background:#fff7df;color:#9a6500}
+.yt-user-status-chip.failed,.yt-user-status-chip.rejected,.yt-user-status-chip.cancelled{background:#fff0f0;color:#c62828}
+.yt-user-status-chip.on_hold{background:#f1edff;color:#6338c7}
+.yt-user-status-chip.neutral{background:#edf2f7;color:#4a5568}
+.yt-user-payment-card .yt-user-red-btn{padding:8px 12px;font-size:12px}
+.yt-user-empty-state{
+  padding:28px;text-align:center;border:1px dashed #d5dcea;border-radius:14px;
+  background:#fafcff;color:#6b7280
+}
+
+/* Customer profile. */
+.yt-customer-profile-grid>div{
+  border:1px solid #e5eaf2;
+  box-shadow:0 8px 20px rgba(15,23,42,.04);
+}
+.yt-customer-profile-grid .yt-profile-wide{grid-column:1/-1}
+.yt-customer-profile-grid .yt-profile-wide b{overflow-wrap:anywhere}
+
+/* Channel Access action feedback. */
+.yt-channel-access-message{margin:10px 0 0;font-weight:800;font-size:12px;color:#52617a}
+.yt-channel-access-message.ok{color:#087a45}
+.yt-channel-access-message.bad{color:#c62828}
+
+/* 12-second payment-success screen. */
+.yt-payment-success-overlay{
+  position:fixed;inset:0;z-index:5000;background:rgba(9,18,43,.72);
+  backdrop-filter:blur(5px);display:grid;place-items:center;padding:20px
+}
+.yt-payment-success-overlay[hidden]{display:none!important}
+.yt-payment-success-card{
+  width:min(480px,94vw);padding:34px;border-radius:22px;background:#fff;
+  text-align:center;box-shadow:0 28px 70px rgba(0,0,0,.24)
+}
+.yt-payment-success-icon{
+  width:72px;height:72px;margin:0 auto 16px;border-radius:50%;
+  display:grid;place-items:center;background:#e9fbf2;color:#08a25a;
+  font-size:40px;font-weight:1000
+}
+.yt-payment-success-kicker{font-size:11px;font-weight:900;letter-spacing:.12em;color:#08a25a}
+.yt-payment-success-card h2{margin:7px 0 8px;font-size:30px;color:#172033}
+.yt-payment-success-card p{margin:0 0 18px;color:#64748b}
+.yt-payment-success-status{
+  margin:0 0 18px;padding:13px;border-radius:12px;background:#f7f9fc;
+  border:1px solid #e8edf5
+}
+.yt-payment-success-status b,.yt-payment-success-status small{display:block}
+.yt-payment-success-status small{margin-top:4px;color:#738096}
+@media(max-width:700px){
+  .yt-user-request-card,.yt-user-payment-card{grid-template-columns:1fr}
+  .yt-user-status-stack{align-items:flex-start}
+}
+</style>
+
+
+<style id="yt-user-profile-edit-only">
+#user-view-profile .yt-profile-edit-card input{
+  width:100%;
+  box-sizing:border-box;
+  margin-top:7px;
+  padding:10px 11px;
+  border:1px solid #dfe5ef;
+  border-radius:10px;
+  background:#f7f9fc;
+  color:#172033;
+  font-weight:800;
+}
+#user-view-profile .yt-profile-edit-card input:not(:disabled){
+  background:#fff;
+  border-color:#6d5dfc;
+  box-shadow:0 0 0 3px rgba(109,93,252,.10);
+}
+#user-view-profile .yt-profile-actions{
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-top:14px;
+}
+</style>
+
+
+<style id="yt-user-bottom-profile-only">
+/* Only sidebar layout fixed: no overlap, all buttons remain visible. */
+.yt-demo-user-sidebar{
+  display:flex;
+  flex-direction:column;
+  overflow:hidden;
+}
+.yt-demo-user-nav{
+  flex:1 1 auto;
+  min-height:0;
+  overflow-y:auto;
+  overflow-x:hidden;
+  padding-bottom:12px;
+}
+.yt-demo-user-sidebar-bottom{
+  position:relative;
+  flex:0 0 122px;
+  min-height:122px;
+}
+.yt-demo-user-sidebar-bottom .yt-user-bottom-profile{
+  position:absolute;
+  left:14px;
+  right:14px;
+  bottom:62px;
+  z-index:5;
+  width:auto;
+  box-sizing:border-box;
+  border:0;
+  border-radius:11px;
+  padding:12px 13px;
+  background:rgba(255,255,255,.08);
+  color:#dbeafe;
+  display:flex;
+  gap:10px;
+  align-items:center;
+  text-align:left;
+  font-weight:850;
+  cursor:pointer;
+}
+.yt-demo-user-sidebar-bottom .yt-user-bottom-profile.active{
+  background:linear-gradient(135deg,#4320bc,#2343d8);
+  color:#fff;
+  box-shadow:inset 4px 0 #ff4fb3,0 7px 16px rgba(0,0,0,.15);
+}
+.yt-demo-user-sidebar-bottom .yt-demo-secure-note{
+  display:none;
+}
+</style>
+
+  <link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
+<style>
+.yt-service-select-hidden{display:none!important}.yt-professional-service-selector{padding:22px!important}.yt-service-selector-head{display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:12px}.yt-service-selector-head label{display:block;font-weight:900;font-size:15px}.yt-service-selector-head small{display:block;color:#667085;margin-top:4px}.yt-service-selector-head span{font-weight:800}.yt-user-service-dropdown{position:relative;max-width:100%}.yt-user-service-dropdown-toggle{width:100%;min-height:44px;text-align:left;border:1px solid #d9deea;border-radius:10px;background:#fff;padding:10px 38px 10px 12px;font-weight:800;cursor:pointer;position:relative}.yt-user-service-dropdown-toggle:after{content:"▾";position:absolute;right:13px;top:11px}.yt-user-service-dropdown-menu{display:none;position:absolute;z-index:1000;left:0;right:0;top:calc(100% + 5px);max-height:380px;overflow:auto;background:#fff;border:1px solid #d9deea;border-radius:11px;box-shadow:0 12px 30px rgba(0,0,0,.15);padding:6px}.yt-user-service-dropdown.open .yt-user-service-dropdown-menu{display:block}.yt-user-service-check{display:flex;align-items:flex-start;gap:11px;border:1px solid transparent;border-radius:9px;padding:11px;cursor:pointer;background:#fff}.yt-user-service-check:hover{background:#f7f9fc;border-color:#e4e8f0}.yt-user-service-check input{width:18px;height:18px;accent-color:#e11d48;margin-top:1px}.yt-user-service-check .svc-main{min-width:0;flex:1}.yt-user-service-check .svc-name{font-weight:800;display:block}.yt-user-service-check .svc-desc{display:block;color:#667085;font-size:12px;margin-top:3px}.yt-user-service-check .svc-price{margin-left:auto;font-weight:900;white-space:nowrap}.yt-service-selector-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-top:12px}.yt-service-total{margin-left:auto;text-align:right}.yt-service-total small{display:block;color:#667085}.yt-service-total b{font-size:20px}.yt-service-empty{padding:18px;text-align:center;color:#667085;border:1px dashed #d8dee9;border-radius:12px}.yt-service-selector-actions button{border:1px solid #d9deea;background:#fff;border-radius:9px;padding:9px 12px;font-weight:800;cursor:pointer}.yt-service-selector-actions button:hover{background:#f5f7fb}@media(max-width:760px){.yt-service-total{margin-left:0}}
+</style></head>
+
+<body id="creatorDashboard" class="yt-user-dashboard-page">
+<div class="yt-demo-user-shell">
+
+  <aside class="yt-demo-user-sidebar">
+    <div class="yt-demo-user-brand">
+      <div class="yt-demo-user-logo">▶</div>
+      <div>
+        <b>YT Creator Pro</b>
+        <small>Secure User Portal</small>
+      </div>
+    </div>
+
+    <div class="yt-demo-user-group-title">MY ACCOUNT</div>
+    <nav class="yt-demo-user-nav">
+      <button class="active" data-user-view="dashboard">🏠 <span>Dashboard</span></button>
+      <button data-user-view="services">🛠️ <span>Services</span></button>
+      <button data-user-view="requests">📋 <span>My Requests</span></button>
+      <button data-user-view="payments">💳 <span>Payments</span></button>
+      <button data-user-view="support">🧭 <span>Support & Activity</span></button>
+      <button data-user-view="channel">📺 <span>YouTube Channel</span></button>
+      <button data-user-view="access">🔐 <span>Channel Access</span></button>
+      <button data-user-view="monetization">💰 <span>Monetization</span></button>
+      <button data-user-view="adsense">💳 <span>AdSense</span></button>
+    </nav>
+
+    <div class="yt-demo-user-sidebar-bottom">
+      <button class="yt-user-bottom-profile" data-user-view="profile">👤 <span>My Profile</span></button>
+      <button onclick="logoutCreator()" style="position:absolute;left:14px;right:14px;bottom:14px;z-index:5;display:block;width:auto;box-sizing:border-box;margin:0;padding:11px;border:0;border-radius:11px;background:#172033;color:#fff;font-weight:900;cursor:pointer;text-align:center;line-height:1.2">↪ Logout</button>
+      <div class="yt-demo-secure-note">🛡 Secure Account<br><span>Protected creator portal</span></div>
+    </div>
+  </aside>
+
+  <button class="yt-demo-user-toggle" id="userDashboardToggle">☰</button>
+
+  <main class="yt-demo-user-main">
+    <header class="yt-demo-user-header">
+      <div>
+        <span class="yt-demo-user-eyebrow">USER PORTAL</span>
+        <h1 id="userDashboardTitle">Dashboard</h1>
+      </div>
+      <div class="yt-demo-user-header-actions">
+        <div class="yt-pref-controls" data-yt-pref-area="user">
+  <button class="yt-theme-toggle" type="button" aria-label="Dark Mode" title="Dark Mode"><span class="yt-theme-icon">🌙</span><span class="yt-theme-text">Dark</span></button>
+  <label class="yt-lang-control" title="Language"><span>🌐</span><select class="yt-lang-select" aria-label="Language"><option value="en">English</option><option value="hi">हिन्दी</option><option value="mr">मराठी</option></select></label>
+</div>
+        <button id="installUserDashboardApp" class="yt-user-install-btn" type="button">📱 Install App</button>
+      </div>
+      <div class="yt-demo-user-account">
+        <div class="yt-notification-wrap" data-notification-role="user">
+          <button class="yt-notification-bell" type="button" aria-label="Notifications">🔔<span class="yt-notification-count" hidden>0</span></button>
+          <div class="yt-notification-panel" hidden><div class="yt-notification-head"><b>Notifications</b><button type="button" data-notification-read-all>Mark all read</button></div><div class="yt-notification-list">Loading…</div></div>
+        </div>
+        <div class="yt-demo-avatar">YT</div>
+        <div><b id="userNameTop">Creator</b><small id="userEmail">Member Account</small></div>
+      </div>
+    </header>
+
+    <section class="yt-user-view active" id="user-view-dashboard">
+      <div class="yt-demo-welcome">
+        <div>
+          <span>USER DASHBOARD</span>
+          <h2>Welcome, <span id="userName">Creator</span></h2>
+          <p>Your YouTube creator support account, channel and service status in one place.</p>
+        </div>
+        <div class="yt-demo-welcome-play">▶</div>
+      </div>
+
+      <div class="yt-demo-search-box">
+        <div>
+          <span>FIND A SERVICE</span>
+          <h3>Search Services</h3>
+        </div>
+        <input id="userServiceSearch" type="search" placeholder="Monetization, Channel, AdSense...">
+        <button id="userServiceSearchBtn" type="button">Search</button>
+      </div>
+
+      <div class="yt-demo-stat-grid">
+        <div class="s-blue"><small>Channel</small><b id="channelNameView">Not connected</b><span>Registered channel</span></div>
+        <div class="s-yellow"><small>Subscribers</small><b id="ytSubscribers">0</b><span>Current total</span></div>
+        <div class="s-green"><small>Views</small><b id="ytViews">0</b><span>Channel views</span></div>
+        <div class="s-pink"><small>Videos</small><b id="ytVideos">0</b><span>Published content</span></div>
+      </div>
+
+      <div class="yt-demo-quick-grid">
+        <button data-user-view="services"><span>🛠️</span><b>Services</b><small>Submit a new request</small></button>
+        <button data-user-view="requests"><span>📋</span><b>My Requests</b><small>Track submitted requests</small></button>
+        <button data-user-view="payments"><span>💳</span><b>Payments</b><small>Payment status and retry</small></button>
+        <button data-user-view="channel"><span>📺</span><b>Channel Status</b><small>See connected channel</small></button>
+        <button data-user-view="access"><span>🔐</span><b>Channel Access</b><small>Google + manager access</small></button>
+        <button data-user-view="profile"><span>👤</span><b>My Profile</b><small>Account information</small></button>
+      </div>
+    </section>
+
+
+    <section class="yt-user-view" id="user-view-services">
+      <div class="yt-demo-section-head">
+        <div><span>SERVICES</span><h2>Creator Services</h2><p>Select one or more services and submit a new request.</p></div>
+      </div>
+      <div class="yt-demo-content-card yt-demo-service-submit yt-professional-service-selector">
+        <div class="yt-service-selector-head"><div><label>Choose Services</label><small>Select any number of services you need.</small></div><span id="userServiceSelectedCount">0 selected</span></div>
+        <select id="userServiceType" multiple aria-label="Select multiple services" class="yt-service-select-hidden"><option value="">Select Service</option></select>
+        <div class="yt-user-service-dropdown" id="userServiceDropdown">
+          <button id="userServiceDropdownToggle" type="button" class="yt-user-service-dropdown-toggle">Select services…</button>
+          <div id="userServiceOptions" class="yt-user-service-dropdown-menu" role="listbox" aria-multiselectable="true"><div class="yt-service-empty">Loading available services…</div></div>
+        </div>
+        <div class="yt-service-selector-actions"><button id="selectAllUserServices" type="button">☑ Select All</button><button id="clearAllUserServices" type="button">Clear All</button><div class="yt-service-total"><small>Total</small><b id="userServiceTotalAmount">₹0.00</b></div></div>
+        <button id="submitUserServiceRequest" class="yt-user-red-btn" type="button">Continue with Selected Services</button>
+        <p id="userServiceRequestMessage"></p>
+      </div>
+      <div class="yt-demo-service-cards" id="userServiceCatalog">
+        <div class="yt-service-loading">Open Services to load available services.</div>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-requests">
+      <div class="yt-demo-section-head">
+        <div><span>MY REQUESTS</span><h2>My Requests</h2><p>Track all your submitted service requests and their current status.</p></div>
+      </div>
+      <div id="userPaymentResult" class="yt-payment-result" hidden></div>
+      <div class="yt-demo-content-card">
+        <div id="requestList">No requests yet.</div>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-payments">
+      <div class="yt-demo-section-head">
+        <div><span>PAYMENTS</span><h2>My Payments</h2><p>Payment status, amount and retry actions.</p></div>
+      </div>
+      <div id="userPaymentResultNew" class="yt-payment-result" hidden></div>
+      <div class="yt-demo-content-card">
+        <div id="userPaymentsList">No payments yet.</div>
+      </div>
+    </section>
+
+
+    <section class="yt-user-view" id="user-view-support">
+      <div class="yt-demo-content-card">
+        <span class="yt-demo-section-kicker">SUPPORT CENTER</span>
+        <h2>Support & Activity</h2>
+        <p>Tickets, documents, request timeline, receipts, refunds, notification preferences and activity history.</p>
+      </div>
+
+      <div class="yt-feature-grid yt-feature-user-grid">
+        <article class="yt-feature-card" data-feature-module="support_tickets">
+          <div class="yt-feature-head"><h3>🎫 Support Ticket</h3></div>
+          <label>Subject<input id="fcTicketSubject" placeholder="How can we help?"></label>
+          <label>Message<textarea id="fcTicketMessage" rows="3"></textarea></label>
+          <button class="yt-feature-primary" id="fcCreateTicket" type="button">Create Ticket</button>
+          <div class="yt-feature-list" id="fcUserTickets"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="documents">
+          <div class="yt-feature-head"><h3>📎 Document Upload</h3></div>
+          <label>Request<select id="fcDocumentRequest"></select></label>
+          <label>Document<input id="fcDocumentFile" type="file" accept=".jpg,.jpeg,.png,.pdf"></label>
+          <button class="yt-feature-primary" id="fcUploadDocument" type="button">Upload Document</button>
+          <div class="yt-feature-list" id="fcUserDocuments"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="timeline">
+          <div class="yt-feature-head"><h3>🧭 Application Timeline</h3></div>
+          <label>Request<select id="fcTimelineRequest"></select></label>
+          <div class="yt-feature-list yt-feature-timeline" id="fcTimeline"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="receipts">
+          <div class="yt-feature-head"><h3>🧾 Payment Receipts</h3></div>
+          <div class="yt-feature-list" id="fcReceipts">Loading…</div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="refunds">
+          <div class="yt-feature-head"><h3>↩ Refund / Cancel Request</h3></div>
+          <label>Type<select id="fcRefundType"><option value="refund">Refund</option><option value="cancel">Cancel Request</option></select></label>
+          <label>Payment<select id="fcRefundPayment"></select></label>
+          <label>Reason<textarea id="fcRefundReason" rows="3"></textarea></label>
+          <button class="yt-feature-primary" id="fcCreateRefund" type="button">Submit Request</button>
+          <div class="yt-feature-list" id="fcUserRefunds"></div>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="notification_preferences">
+          <div class="yt-feature-head"><h3>🔔 Notification Preferences</h3></div>
+          <div class="yt-feature-toggle-grid" id="fcUserPrefs">
+            <label><input type="checkbox" data-pref-key="request_updates" checked> Request updates</label>
+            <label><input type="checkbox" data-pref-key="payment_updates" checked> Payment updates</label>
+            <label><input type="checkbox" data-pref-key="support_updates" checked> Support updates</label>
+            <label><input type="checkbox" data-pref-key="announcements" checked> Announcements</label>
+            <label><input type="checkbox" data-pref-key="email_enabled"> Email queue</label>
+          </div>
+          <button class="yt-feature-primary" id="fcSaveUserPrefs" type="button">Save Preferences</button>
+        </article>
+
+        <article class="yt-feature-card" data-feature-module="activity_logs">
+          <div class="yt-feature-head"><h3>🕘 My Activity</h3><button type="button" data-fc-refresh="activity">Refresh</button></div>
+          <div class="yt-feature-list" id="fcUserActivity">Loading…</div>
+        </article>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-channel">
+      <div class="yt-demo-section-head">
+        <div><span>YOUTUBE CHANNEL</span><h2>Channel Details</h2><p>Connected channel information and live statistics.</p></div>
+      </div>
+
+      <div class="yt-demo-content-card youtube-profile">
+        <div class="yt-profile-head">
+          <img id="ytChannelLogo" class="yt-logo" alt="YouTube Channel Logo">
+          <div>
+            <h2 id="ytChannelName">YouTube Channel</h2>
+            <span id="youtubeConnectStatus" class="status-badge">Not Connected</span>
+          </div>
+        </div>
+        <div class="yt-stats">
+          <div><small>Channel ID</small><b id="ytChannelId">-</b></div>
+          <div><small>Subscribers</small><b id="ytSubscribersChannel">0</b></div>
+          <div><small>Views</small><b id="ytViewsChannel">0</b></div>
+          <div><small>Videos</small><b id="ytVideosChannel">0</b></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-access">
+      <div class="yt-demo-section-head">
+        <div><span>SECURE ACCESS</span><h2>Channel Access</h2><p>Google connection and manager permission are handled here only.</p></div>
+      </div>
+
+      <div class="yt-demo-content-card">
+        <div class="yt-user-access-action-card">
+          <span>1</span>
+          <div><b>Connect YouTube Channel</b><p>Use secure Google permission to connect your channel.</p></div>
+          <div class="yt-user-access-buttons">
+            <button id="connectYouTubeBtn" class="yt-user-red-btn" onclick="connectYouTube()">Connect YouTube Channel</button>
+            <button id="updateChannelAccessBtn" class="yt-user-outline-btn" type="button" onclick="updateExistingChannelAccess()" style="display:none">Update Channel Data</button>
+            <button id="deleteChannelAccessBtn" class="yt-user-outline-btn yt-danger-outline" type="button" onclick="deleteExistingChannelAccess()" style="display:none">Delete Channel Access</button>
+          </div>
+          <p id="channelAccessActionMessage" class="yt-channel-access-message"></p>
+        </div>
+
+        <div class="yt-user-access-action-card manager">
+          <span>2</span>
+          <div>
+            <b>Give Manager Access</b>
+            <p>Use official YouTube Studio permission invite.</p>
+            <small>Manager Email</small>
+            <strong>sumitkhobragade088@gmail.com</strong>
+          </div>
+          <div class="yt-user-access-buttons">
+            <button id="copyUserManagerEmail" type="button" class="yt-user-outline-btn">Copy Email</button>
+            <a class="yt-user-red-btn" target="_blank" rel="noopener" href="https://studio.youtube.com/">Open YouTube Studio</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+
+    <section class="yt-user-view" id="user-view-monetization">
+      <div class="yt-demo-section-head">
+        <div><span>MONETIZATION</span><h2>Monetization</h2><p>Your monetization status and related requests.</p></div>
+      </div>
+      <div class="yt-demo-status-grid">
+        <div><small>Current Status</small><b id="userMonetizationStatus">Pending</b></div>
+        <div><small>Channel Subscribers</small><b id="userMonetizationSubscribers">0</b></div>
+        <div><small>Total Videos</small><b id="userMonetizationVideos">0</b></div>
+      </div>
+      <div class="yt-demo-content-card">
+        <h3>Monetization Requests</h3>
+        <div id="userMonetizationRequests">No monetization requests yet.</div>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-adsense">
+      <div class="yt-demo-section-head">
+        <div><span>ADSENSE</span><h2>AdSense</h2><p>Your AdSense access/status and related requests.</p></div>
+      </div>
+      <div class="yt-demo-status-grid">
+        <div><small>AdSense Status</small><b id="userAdsenseStatus">Not Linked</b></div>
+        <div><small>Monetization Status</small><b id="userAdsenseMonetizationStatus">Pending</b></div>
+      </div>
+      <div class="yt-demo-content-card">
+        <h3>AdSense Requests</h3>
+        <div id="userAdsenseRequests">No AdSense requests yet.</div>
+      </div>
+    </section>
+
+    <section class="yt-user-view" id="user-view-profile">
+      <div class="yt-demo-section-head">
+        <div><span>PROFILE</span><h2>My Profile</h2><p>View and update your creator account information.</p></div>
+      </div>
+
+      <div class="yt-demo-profile-grid yt-customer-profile-grid">
+        <div class="yt-profile-edit-card">
+          <small>Customer Name</small>
+          <input id="userNameProfileInput" type="text" disabled>
+        </div>
+        <div>
+          <small>Email</small><b id="userEmailProfile">-</b>
+        </div>
+        <div class="yt-profile-edit-card">
+          <small>Mobile</small>
+          <input id="userMobileProfileInput" type="tel" disabled>
+        </div>
+        <div>
+          <small>Joined Date</small><b id="userJoinedProfile">-</b>
+        </div>
+        <div>
+          <small>YouTube Channel</small><b id="userChannelProfile">-</b>
+        </div>
+        <div>
+          <small>Channel Status</small><b id="userChannelStatusProfile">Not connected</b>
+        </div>
+        <div class="yt-profile-wide">
+          <small>Channel URL</small><b id="channelUrlView">Not added</b>
+        </div>
+      </div>
+      <div class="yt-profile-actions">
+        <button id="editUserProfileBtn" type="button" class="yt-user-outline-btn">Edit Profile</button>
+        <button id="saveUserProfileBtn" type="button" class="yt-user-red-btn" hidden>Update Profile</button>
+      </div>
+      <p id="userProfileMessage" class="yt-channel-access-message"></p>
+    </section>
+
+  </main>
+</div>
+
+<div id="paymentSuccessOverlay" class="yt-payment-success-overlay" hidden>
+  <div class="yt-payment-success-card">
+    <div class="yt-payment-success-icon">✓</div>
+    <span class="yt-payment-success-kicker">PAYMENT COMPLETED</span>
+    <h2>Payment Successful</h2>
+    <p>Your service request has been submitted successfully.</p>
+    <div class="yt-payment-success-status">
+      <b>Request Ready</b>
+      <small>My Requests will open automatically in <span id="paymentSuccessCountdown">12</span> seconds.</small>
+    </div>
+    <button id="paymentSuccessMyRequestsBtn" type="button" class="yt-user-red-btn">Go to My Requests</button>
+  </div>
+</div>
+
+
+<script>
+const userViewTitles={
+  dashboard:"Dashboard",
+  services:"Services",
+  requests:"My Requests",
+  payments:"Payments",
+  support:"Support & Activity",
+  channel:"YouTube Channel",
+  access:"Channel Access",
+  monetization:"Monetization",
+  adsense:"AdSense",
+  profile:"My Profile"
+};
+function openUserView(name){
+  document.querySelectorAll(".yt-user-view").forEach(v=>v.classList.remove("active"));
+  document.querySelectorAll("[data-user-view]").forEach(b=>b.classList.remove("active"));
+  document.getElementById(`user-view-${name}`)?.classList.add("active");
+  document.querySelectorAll(`[data-user-view="${name}"]`).forEach(b=>b.classList.add("active"));
+  document.getElementById("userDashboardTitle").textContent=userViewTitles[name]||"Dashboard";
+  document.body.classList.remove("yt-user-sidebar-open");
+  window.scrollTo({top:0,behavior:"smooth"});
+  sessionStorage.setItem("yt_user_view",name);
+}
+document.querySelectorAll("[data-user-view]").forEach(btn=>{
+  btn.addEventListener("click",()=>openUserView(btn.dataset.userView));
+});
+document.getElementById("userDashboardToggle")?.addEventListener("click",()=>document.body.classList.toggle("yt-user-sidebar-open"));
+document.getElementById("copyUserManagerEmail")?.addEventListener("click",async()=>{
+  await navigator.clipboard.writeText("sumitkhobragade088@gmail.com");
+  alert("Manager email copied");
+});
+
+document.getElementById("userServiceSearchBtn")?.addEventListener("click",()=>{
+  openUserView("requests");
+});
+</script>
+<script>
+document.addEventListener("DOMContentLoaded",()=>{
+  const saved=sessionStorage.getItem("yt_user_view")||"dashboard";
+  if(document.getElementById(`user-view-${saved}`)) openUserView(saved);
+  document.documentElement.classList.remove("yt-user-view-restoring");
+});
+</script>
+
+<script src="assets/js/cms-deep-catalog.js"></script>
+<script type="module" src="assets/js/cms-engine.js"></script>
+<script type="module" src="assets/js/cms-deep.js"></script>
+<script type="module" src="assets/js/auth.js"></script>
+<script type="module" src="assets/js/cms-service-form-runtime.js"></script>
+<script type="module" src="assets/js/service-payment-flow.js"></script>
+<script type="module" src="assets/js/google-youtube.js"></script>
+<script>
+let dashboardInstallPrompt=null;
+window.addEventListener("beforeinstallprompt",e=>{
+  e.preventDefault(); dashboardInstallPrompt=e;
+  document.getElementById("installUserDashboardApp")?.classList.add("ready");
+});
+document.getElementById("installUserDashboardApp")?.addEventListener("click",async()=>{
+  if(dashboardInstallPrompt){
+    dashboardInstallPrompt.prompt();
+    await dashboardInstallPrompt.userChoice;
+    dashboardInstallPrompt=null;
+  }else{
+    alert("Chrome menu → Add to Home screen / Install app use karein.");
+  }
+});
+if("serviceWorker" in navigator){ navigator.serviceWorker.register("app-sw.js").catch(()=>{}); }
+</script>
+
+<script>
+(function(){
+  const saved=sessionStorage.getItem("yt_user_view")||"dashboard";
+  if(typeof openUserView==="function" && document.getElementById(`user-view-${saved}`)){
+    openUserView(saved);
+  }else{
+    document.querySelectorAll(".yt-user-view").forEach(v=>v.classList.remove("active"));
+    document.querySelectorAll("[data-user-view]").forEach(b=>b.classList.remove("active"));
+    document.getElementById(`user-view-${saved}`)?.classList.add("active");
+    document.querySelectorAll(`[data-user-view="${saved}"]`).forEach(b=>b.classList.add("active"));
+    const titles={
+      dashboard:"Dashboard",services:"Services",requests:"My Requests",payments:"Payments",support:"Support & Activity",channel:"YouTube Channel",
+      access:"Channel Access",monetization:"Monetization",adsense:"AdSense",profile:"My Profile"
+    };
+    const title=document.getElementById("userDashboardTitle");
+    if(title)title.textContent=titles[saved]||"Dashboard";
+  }
+  requestAnimationFrame(()=>document.documentElement.classList.remove("yt-user-boot"));
+})();
+</script>
+
+<script src="assets/js/theme-i18n.js"></script>
+<script type="module" src="assets/js/notifications.js"></script>
+<script type="module" src="assets/js/feature-center.js"></script>
+</body>

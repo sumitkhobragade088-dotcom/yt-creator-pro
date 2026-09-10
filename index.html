@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#ff0000">
+<title>YT Creator Pro | Creator Support Portal</title>
+<meta name="description" content="Professional YouTube creator support for channel management, monetization guidance, AdSense assistance and creator services.">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/cms-control.css">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/svg+xml" href="assets/icons/favicon-user.svg">
+</head>
+<body class="yt-user-home-page">
+<div id="ytPublicAnnouncementHost"></div>
+<header class="yt-user-public-header">
+  <a class="yt-user-public-brand" href="index.html">
+    <span class="yt-user-play-logo">▶</span>
+    <div><b>YT Creator Pro</b><small>Creator Support Portal</small></div>
+  </a>
+  <nav class="yt-user-public-nav">
+    <a class="active" href="index.html">Home</a>
+    <a href="index.html#services">Services</a>
+    <a href="contact.html">Contact</a>
+    <a href="login.html">Login</a>
+    <a class="register" href="register.html">Register</a>
+  </nav>
+</header>
+
+<main class="yt-user-public-main">
+  <section class="yt-user-home-hero">
+    <div class="yt-user-home-copy">
+      <span class="yt-user-home-kicker">YT CREATOR PRO • CREATOR SUPPORT</span>
+      <h1>Grow your YouTube journey with <em>professional support.</em></h1>
+      <p>Manage your creator services, submit requests, get channel support and track your service activity from one secure website account.</p>
+      <div class="yt-user-home-actions">
+        <a class="yt-user-red-btn" href="register.html">Create Account →</a>
+        <a class="yt-user-outline-btn" href="index.html#services">Browse Services</a>
+      </div>
+    </div>
+    <div class="yt-user-computer-stage" aria-hidden="true">
+      <div class="yt-user-computer">
+        <div class="yt-user-computer-bar"><i></i><i></i><i></i></div>
+        <div class="yt-user-computer-screen">
+          <span>WELCOME TO</span>
+          <h2>YT Creator Pro</h2>
+          <p>Secure • Professional • Creator-Focused</p>
+          <div class="yt-user-screen-play">▶</div>
+        </div>
+      </div>
+      <div class="yt-user-computer-stand"></div>
+      <div class="yt-user-computer-base"></div>
+    </div>
+  </section>
+
+  <section class="yt-user-public-section" id="services">
+    <div class="yt-user-section-title">
+      <span>SERVICES</span>
+      <h2>Creator Services</h2>
+      <p>Choose the service you need. Your available services are loaded from the current service catalog.</p>
+    </div>
+    <div class="yt-user-service-grid" id="publicServiceGrid">
+      <article><b>⏳</b><h3>Loading services…</h3><p>Please wait while the current service catalog loads.</p></article>
+    </div>
+  </section>
+
+  <section class="yt-user-public-section">
+    <div class="yt-user-section-title"><span>HOW IT WORKS</span><h2>Simple creator support flow</h2></div>
+    <div class="yt-user-process-row">
+      <span>1. Register / Login</span><span>2. Choose Service</span><span>3. Submit Request</span><span>4. Upload Details</span><span>5. Payment if required</span><span>6. Track Status</span>
+    </div>
+  </section>
+
+  <section class="yt-user-public-section">
+    <div class="yt-user-section-title"><span>SECURE ACCESS</span><h2>One account for your creator workspace</h2><p>Use your normal website account to access your dashboard, requests, services and YouTube tools.</p></div>
+    <div class="yt-user-home-actions">
+      <a class="yt-user-red-btn" href="login.html">Login to Dashboard →</a>
+      <a class="yt-user-outline-btn" href="register.html">Create New Account</a>
+    </div>
+  </section>
+</main>
+
+<footer class="yt-user-public-footer">
+  <span>Independent creator support service. Not affiliated with or endorsed by YouTube or Google.</span>
+  <a class="yt-public-footer-contact" href="contact.html">Contact Us</a>
+</footer>
+
+<script type="module">
+import { supabase } from './assets/js/supabase.js';
+const grid=document.getElementById('publicServiceGrid');
+const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+const money=v=>`₹${Number(v||0).toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+async function loadPublicServices(){
+  try{
+    const result=await Promise.race([
+      supabase.from('service_charges').select('*'),
+      new Promise((_,reject)=>setTimeout(()=>reject(new Error('timeout')),7000))
+    ]);
+    if(result?.error) throw result.error;
+    const rows=(result?.data||[]).filter(x=>x.is_active!==false).sort((a,b)=>Number(a.sort_order??999)-Number(b.sort_order??999));
+    if(!rows.length){
+      grid.innerHTML='<article><b>🛠️</b><h3>No services available</h3><p>Services are currently being updated. Please check again shortly.</p></article>';
+      return;
+    }
+    grid.innerHTML=rows.map((s,i)=>{
+      const name=s.name||s.service_name||s.title||`Service ${i+1}`;
+      const desc=s.description||s.details||'Professional creator support service.';
+      const charge=s.charge??s.price??0;
+      return `<article><b>${esc(s.icon||'🛠️')}</b><h3>${esc(name)}</h3><p>${esc(desc)}</p><p><strong>${money(charge)}</strong></p><a class="yt-user-outline-btn" href="login.html">Apply →</a></article>`;
+    }).join('');
+  }catch(e){
+    console.error('Public services load failed',e);
+    grid.innerHTML='<article><b>⚠️</b><h3>Services temporarily unavailable</h3><p>The service catalog could not be loaded right now. Please refresh or try again shortly.</p><a class="yt-user-outline-btn" href="login.html">Login</a></article>';
+  }
+}
+loadPublicServices();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('app-sw.js').catch(()=>{});
+</script>
+<script src="assets/js/cms-deep-catalog.js"></script>
+<script type="module" src="assets/js/cms-engine.js"></script>
+<script type="module" src="assets/js/cms-deep.js"></script>
+<script type="module" src="assets/js/public-features.js"></script>
+<script type="module" src="assets/js/public-notification-center.js"></script>
+</body>
+</html>
