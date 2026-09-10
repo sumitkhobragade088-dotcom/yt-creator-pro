@@ -145,20 +145,6 @@ document.documentElement.classList.add("yt-admin-boot");
 #view-free-user-service .free-user-channel-card{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #e4e8f0;border-radius:12px;padding:12px 14px;background:#fff}
 #view-free-user-service .free-user-channel-card b{display:block}.free-user-channel-card small{display:block;color:#667085;margin-top:3px}
 @media(max-width:760px){#view-free-user-service .free-service-form-grid{grid-template-columns:1fr}#view-free-user-service .free-user-manage-grid{grid-template-columns:1fr}}
-
-#view-free-user-service .free-user-actions-panel .yt-manager-head{margin-bottom:14px}
-#view-free-user-service .free-user-actions-panel .data-table th:last-child,#view-free-user-service .free-user-actions-panel .data-table td:last-child{white-space:nowrap}
-#view-free-user-service .free-user-actions-panel .free-user-action-btn{font-weight:800}
-@media(max-width:760px){#view-free-user-service .free-user-actions-panel{padding:16px!important}}
-</style>
-<style>
-.yt-customer-modal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(15,23,42,.62);padding:18px}.yt-customer-modal[hidden]{display:none}.yt-customer-modal-card{width:min(560px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:22px}.yt-customer-modal-head{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #eaecf0;padding-bottom:16px;margin-bottom:18px}.yt-customer-modal-head span{font-size:11px;font-weight:800;letter-spacing:.12em}.yt-customer-modal-head h2{margin:5px 0 3px}.yt-customer-modal-head p{margin:0;font-weight:700}.yt-customer-modal-head small{color:#667085}.yt-customer-modal form{display:grid;gap:14px}.yt-customer-modal label{display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #eaecf0;border-radius:10px}.yt-customer-modal label small{display:block;color:#667085}.yt-customer-modal select{margin-left:auto;padding:9px;border-radius:8px;border:1px solid #d0d5dd}.yt-customer-modal .danger-option{border-color:#fecdca}.yt-customer-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:8px}.yt-customer-modal-actions .primary{min-width:110px}.yt-status-chip.bad{background:#fee4e2;color:#b42318}
-.yt-customer-action-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px;border:1px solid #e4e7ec;border-radius:12px;background:#f8fafc}
-.yt-customer-action-details div{display:grid;gap:3px;min-width:0}
-.yt-customer-action-details span{font-size:11px;color:#667085;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
-.yt-customer-action-details b{font-size:13px;overflow-wrap:anywhere}
-.yt-customer-action-details[hidden]{display:none}
-@media(max-width:560px){.yt-customer-action-details{grid-template-columns:1fr}}
 </style>
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
@@ -316,41 +302,13 @@ document.documentElement.classList.add("yt-admin-boot");
     <section class="yt-premium-view" id="view-customers">
       <div class="yt-premium-section-head"><div><span>CUSTOMERS</span><h2>Users / Customers</h2><p>Customer accounts and profile information.</p></div><b id="customersSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th><th>Status</th><th>Actions</th></tr></thead>
+        <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th></tr></thead>
         <tbody id="customersBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
-    <div id="customerActionsModal" class="yt-customer-modal" hidden role="dialog" aria-modal="true" aria-labelledby="customerActionsTitle">
-      <div class="yt-customer-modal-card">
-        <div class="yt-customer-modal-head"><div><span>USER MANAGEMENT</span><h2 id="customerActionsTitle">Customer Actions</h2><p id="customerActionName">Customer</p><small id="customerActionEmail"></small></div><button type="button" class="btn" data-customer-actions-close aria-label="Close">✕</button></div>
-        <form id="customerActionsForm">
-          <label><input id="customerActionView" type="checkbox" checked> 👁️ View User <small>Show the selected user's full account details.</small></label>
-          <div id="customerActionDetails" class="yt-customer-action-details">
-            <div><span>Name</span><b id="customerActionDetailName">-</b></div>
-            <div><span>Email</span><b id="customerActionDetailEmail">-</b></div>
-            <div><span>Mobile</span><b id="customerActionDetailMobile">-</b></div>
-            <div><span>Channel</span><b id="customerActionDetailChannel">-</b></div>
-            <div><span>Joined</span><b id="customerActionDetailJoined">-</b></div>
-            <div><span>Status</span><b id="customerActionDetailStatus">-</b></div>
-          </div>
-          <label><input id="customerActionReset" type="checkbox"> 🔑 Reset Password <small>Send a secure reset link to the registered email.</small></label>
-          <label>Status <select id="customerActionStatus"><option value="active">✅ Enable User</option><option value="disabled">🚫 Disable User</option></select></label>
-          <label class="danger-option"><input id="customerActionDelete" type="checkbox"> 🗑️ Delete User</label>
-          <div class="yt-customer-modal-actions"><button type="button" class="btn" data-customer-actions-close>Cancel</button><button id="customerActionsSave" class="btn primary" type="submit">Save</button></div>
-        </form>
-      </div>
-    </div>
-
     <section class="yt-premium-view" id="view-free-user-service">
       <div class="yt-premium-section-head"><div><span>FREE SERVICE</span><h2>🎁 Free User Service</h2><p>Select a customer, choose their connected YouTube channel, then grant one or more services for free.</p></div><b id="freeUserServiceCount">0</b></div>
-      <div class="panel yt-premium-panel free-user-actions-panel" style="padding:22px;margin-bottom:18px">
-        <div class="yt-manager-head"><div><h3>Free Users • User Management</h3><p>Every normal website user is listed here. Use <b>Actions</b> to view, reset password, enable/disable, or delete the user.</p></div><button id="refreshFreeServiceUsers" class="btn" type="button">↻ Refresh Users</button></div>
-        <div class="yt-table-scroll">
-          <table class="data-table"><thead><tr><th>User</th><th>Email</th><th>Mobile</th><th>Status</th><th>Free Service</th><th>Actions</th></tr></thead>
-          <tbody id="freeServiceUsersBody"><tr><td colspan="6">Loading users…</td></tr></tbody></table>
-        </div>
-      </div>
       <div class="panel yt-premium-panel" style="padding:22px;margin-bottom:18px">
         <div class="free-service-form-grid">
           <label><b>Customer</b><select id="freeServiceCustomer" style="width:100%;margin-top:6px"><option value="">Select customer…</option></select></label>
@@ -499,8 +457,30 @@ document.documentElement.classList.add("yt-admin-boot");
     </section>
 
     <section class="yt-premium-view" id="view-history">
-      <div class="yt-premium-section-head"><div><span>HISTORY</span><h2>History</h2><p>Recent admin/customer/channel activity.</p></div></div>
-      <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">No data yet.</div></div></div>
+      <div class="yt-premium-section-head yt-history-section-head">
+        <div><span>HISTORY</span><h2>History</h2><p>Professional operational history. Deleting History does not delete Audit Log or original records.</p></div>
+        <div class="yt-history-head-actions">
+          <span class="yt-history-count"><b id="adminHistoryCount">0</b> Records</span>
+          <button id="adminHistoryRefresh" class="btn" type="button">↻ Refresh</button>
+          <button id="adminHistoryDeleteAll" class="btn danger" type="button">🗑️ Delete All</button>
+        </div>
+      </div>
+
+      <div class="panel yt-premium-panel yt-history-panel">
+        <div class="yt-history-toolbar">
+          <div class="yt-history-search-wrap"><span>🔎</span><input id="adminHistorySearch" type="search" placeholder="Search action, user, ID or details…" autocomplete="off"></div>
+          <select id="adminHistoryAction" aria-label="Filter by action">
+            <option value="">All Actions</option>
+          </select>
+        </div>
+        <div class="yt-table-scroll">
+          <table class="data-table yt-history-table">
+            <thead><tr><th>Date &amp; Time</th><th>Type</th><th>Action</th><th>User / Actor</th><th>Details</th><th>Status</th><th>Action</th></tr></thead>
+            <tbody id="adminHistoryBody"><tr><td colspan="7">Loading history…</td></tr></tbody>
+          </table>
+        </div>
+        <div id="adminHistoryEmpty" class="yt-history-empty" hidden>No matching history found.</div>
+      </div>
     </section>
 
 
@@ -1175,6 +1155,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/cms-professional.js"></script>
 <script type="module" src="../assets/js/free-user-service.js?v=4point4"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
+<script type="module" src="../assets/js/admin-history.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>
 
