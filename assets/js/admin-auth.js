@@ -547,7 +547,6 @@ function loadPremiumSectionData(name){
   if(name==="payments") loadAdminPayments();
   if(name==="service-charge") loadServiceCharges();
   if(name==="user-requests") loadAdminUserRequests();
-  if(name==="history") window.loadAdminHistory?.();
 }
 
 window.adminLogout = async () => {

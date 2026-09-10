@@ -1,6 +1,10 @@
 const sleep=ms=>new Promise(r=>setTimeout(r,ms));
-while(!window.YTCMS||!window.YTCMS_DEEP_CATALOG) await sleep(30);
-const C=window.YTCMS,CAT=window.YTCMS_DEEP_CATALOG;
+async function waitForCMS(){const end=Date.now()+8000;while(!window.YTCMS&&Date.now()<end)await sleep(40);return !!window.YTCMS}
+const ready=await waitForCMS();
+const C=window.YTCMS;
+const CAT=window.YTCMS_DEEP_CATALOG||{};
+function cmsBootMessage(text){for(const id of ['adminCmsFull','websiteCmsFull']){const r=document.getElementById(id);if(r&&(!C||!r.querySelector('[data-master-scope]'))){r.innerHTML='<div class="yt-cms-loading" style="color:#b42318">'+text+'</div>'}}}
+if(!ready){cmsBootMessage('CMS could not initialize. Please refresh the Admin page.');throw new Error('YTCMS engine unavailable after 8 seconds');}
 const ADMIN_PAGE='admin:index',sitePages=Object.keys(CAT).filter(k=>k.startsWith('site:'));
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const uid=p=>`${p}-${Date.now()}-${Math.random().toString(36).slice(2,7)}`;

@@ -94,107 +94,59 @@ async function loadRoles(){
 
 async function loadApplications(){
   const body=$('acsApplicationsBody'); if(!body)return;
-  const {data,error}=await supabase.from('service_requests').select('*').eq('is_deleted',false).order('created_at',{ascending:false}).limit(100);
+  const {data,error}=await supabase.from('service_requests').select('*').order('created_at',{ascending:false}).limit(100);
   if(error){body.innerHTML=`<tr><td colspan="6">${esc(error.message)}</td></tr>`;return;}
   body.innerHTML=(data||[]).map(r=>`<tr><td>${esc(r.id).slice(0,8)}…</td><td>${esc(r.service_type||r.service_name||'-')}</td><td><select data-status="${r.id}">${['pending','under_review','documents_required','approved','rejected','completed','payment_pending'].map(s=>`<option value="${s}" ${String(r.status||'').toLowerCase()===s?'selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}</select></td><td>${dateText(r.created_at)}</td><td><input data-note="${r.id}" placeholder="Admin note"></td><td><button class="btn primary" data-save-app="${r.id}">Save</button> <button class="btn" data-history-app="${r.id}">History</button> <button class="btn danger" data-trash-app="${r.id}">Trash</button></td></tr>`).join('')||'<tr><td colspan="6">No applications.</td></tr>';
   body.querySelectorAll('[data-history-app]').forEach(btn=>btn.onclick=async()=>{const {data,error}=await supabase.from('application_status_history').select('old_status,new_status,note,changed_at').eq('request_id',btn.dataset.historyApp).order('changed_at',{ascending:false});if(error)return alert(error.message);alert((data||[]).map(x=>`${dateText(x.changed_at)} — ${x.old_status||'NEW'} → ${x.new_status}${x.note?' — '+x.note:''}`).join('\n')||'No status history.');});
-  body.querySelectorAll('[data-trash-app]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Move this application to Trash?'))return;const {error}=await supabase.rpc('admin_soft_delete_record',{p_table:'service_requests',p_id:btn.dataset.trashApp});if(error)return alert(error.message);await log('application_trashed','service_requests',btn.dataset.trashApp);await Promise.all([loadApplications(),loadTrash()]);});
+  body.querySelectorAll('[data-trash-app]').forEach(btn=>btn.onclick=async()=>{if(!confirm('Move this application to Trash?'))return;const {error}=await supabase.rpc('admin_soft_delete_record',{p_table:'service_requests',p_id:btn.dataset.trashApp});if(error)return alert(error.message);await log('application_trashed','service_requests',btn.dataset.trashApp);await loadApplications();loadTrash();});
   body.querySelectorAll('[data-save-app]').forEach(btn=>btn.onclick=async()=>{const id=btn.dataset.saveApp;const status=body.querySelector(`[data-status="${id}"]`).value;const note=body.querySelector(`[data-note="${id}"]`).value.trim();const {error}=await supabase.from('service_requests').update({status}).eq('id',id);if(error)return alert(error.message);if(note)await supabase.from('request_notes').insert({request_id:id,note});await log('application_status_updated','service_requests',id,{status,note});await loadApplications();});
-}
-
-async function deleteAllApplications(){
-  if(!confirm('Delete ALL applications? They will be moved to Trash and can be restored.'))return;
-  const btn=$('acsApplicationsDeleteAll'); if(btn)btn.disabled=true;
-  try{const {data,error}=await supabase.rpc('admin_soft_delete_all',{p_table:'service_requests'});if(error)throw error;await log('applications_trashed_all','service_requests',null,{count:data});setMsg('acsApplicationsMsg',`${Number(data||0)} application(s) moved to Trash.`,true);await Promise.all([loadApplications(),loadTrash()]);}
-  catch(e){setMsg('acsApplicationsMsg',e?.message||'Delete All failed.');}
-  finally{if(btn)btn.disabled=false;}
 }
 
 async function loadRevenue(){
   const from=$('acsRevenueFrom')?.value; const to=$('acsRevenueTo')?.value;
   let q=supabase.from('payments').select('id,service_name,amount,status,created_at,payment_mode').order('created_at',{ascending:false}).limit(500);
   if(from)q=q.gte('created_at',`${from}T00:00:00`); if(to)q=q.lt('created_at',`${to}T23:59:59`);
-  const [{data,error},archivedRes]=await Promise.all([q,supabase.rpc('admin_get_archived_payments')]);
-  if(error){setMsg('acsRevenueMsg',error.message);return;}
-  if(archivedRes.error){setMsg('acsRevenueMsg',archivedRes.error.message);return;}
-  const archived=new Set((archivedRes.data||[]).map(x=>String(x.payment_id)));
-  const rows=(data||[]).filter(x=>!archived.has(String(x.id)));
-  const success=rows.filter(x=>['success','successful','paid','completed'].includes(String(x.status).toLowerCase()));
+  const {data,error}=await q; if(error){setMsg('acsRevenueMsg',error.message);return;}
+  const rows=data||[]; const success=rows.filter(x=>['success','successful','paid','completed'].includes(String(x.status).toLowerCase()));
   const total=success.reduce((n,x)=>n+Number(x.amount||0),0);
   $('acsRevenueTotal').textContent=money(total); $('acsRevenueCount').textContent=success.length; $('acsRevenueFailed').textContent=rows.filter(x=>['failed','failure','cancelled'].includes(String(x.status).toLowerCase())).length;
-  const body=$('acsRevenueBody'); if(body)body.innerHTML=rows.map(x=>`<tr><td>${esc(x.service_name)}</td><td>${money(x.amount)}</td><td>${esc(x.status)}</td><td>${esc(x.payment_mode||'-')}</td><td>${dateText(x.created_at)}</td><td><button class="btn danger" data-delete-revenue="${x.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="6">No payments.</td></tr>';
-  body?.querySelectorAll('[data-delete-revenue]').forEach(b=>b.onclick=async()=>{if(!confirm('Remove this payment from the Revenue view? The original payment record will remain intact.'))return;const {error}=await supabase.rpc('admin_archive_payment',{p_payment_id:b.dataset.deleteRevenue});if(error)return alert(error.message);await log('revenue_record_deleted','payments',b.dataset.deleteRevenue);await loadRevenue();});
-}
-
-async function deleteAllRevenue(){
-  if(!confirm('Delete ALL Revenue entries from this report? Original payment records will remain intact.'))return;
-  const btn=$('acsRevenueDeleteAll');if(btn)btn.disabled=true;
-  try{const {data,error}=await supabase.rpc('admin_archive_all_payments');if(error)throw error;await log('revenue_records_deleted_all','payments',null,{count:data});setMsg('acsRevenueMsg',`${Number(data||0)} revenue record(s) removed from the Revenue view.`,true);await loadRevenue();}
-  catch(e){setMsg('acsRevenueMsg',e?.message||'Revenue Delete All failed.');}
-  finally{if(btn)btn.disabled=false;}
+  const body=$('acsRevenueBody'); if(body)body.innerHTML=rows.map(x=>`<tr><td>${esc(x.service_name)}</td><td>${money(x.amount)}</td><td>${esc(x.status)}</td><td>${esc(x.payment_mode||'-')}</td><td>${dateText(x.created_at)}</td></tr>`).join('')||'<tr><td colspan="5">No payments.</td></tr>';
 }
 
 async function globalSearch(){
-  const term=$('acsSearchInput')?.value.trim(); const body=$('acsSearchBody'); if(!body)return;
-  if(!term){body.innerHTML='<tr><td colspan="5">Enter a search.</td></tr>';return;}
-  body.innerHTML='<tr><td colspan="5">Searching…</td></tr>';
-  const {data,error}=await supabase.rpc('admin_global_search',{p_term:term,p_limit:100});
-  if(error){body.innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`;return;}
-  body.innerHTML=(data||[]).map(x=>`<tr><td>${esc(x.record_type)}</td><td>${esc(x.record_id)}</td><td>${esc(x.title)}</td><td>${esc(x.detail||'')}</td><td><button class="btn" data-open-search="${esc(x.record_type)}">Open</button></td></tr>`).join('')||'<tr><td colspan="5">No results.</td></tr>';
-  body.querySelectorAll('[data-open-search]').forEach(b=>b.onclick=()=>{const type=b.dataset.openSearch;const map={user:'customers',application:'user-requests',payment:'payments',service:'services'};const view=map[type];if(view){sessionStorage.setItem('yt_admin_view',view);if(typeof window.showPremiumAdminView==='function')window.showPremiumAdminView(view);}});
+  const term=$('acsSearchInput')?.value.trim(); if(!term)return;
+  const body=$('acsSearchBody'); body.innerHTML='<tr><td colspan="4">Searching…</td></tr>';
+  const {data,error}=await supabase.rpc('admin_global_search',{p_term:term,p_limit:50});
+  if(error){body.innerHTML=`<tr><td colspan="4">${esc(error.message)}</td></tr>`;return;}
+  body.innerHTML=(data||[]).map(x=>`<tr><td>${esc(x.record_type)}</td><td>${esc(x.record_id)}</td><td>${esc(x.title)}</td><td>${esc(x.detail||'')}</td></tr>`).join('')||'<tr><td colspan="4">No results.</td></tr>';
 }
 
 async function loadAudit(){
   const body=$('acsAuditBody'); if(!body)return;
   const {data,error}=await supabase.from('activity_logs').select('id,actor_type,action,target_type,target_id,details,created_at').order('created_at',{ascending:false}).limit(200);
-  if(error){body.innerHTML=`<tr><td colspan="7">${esc(error.message)}</td></tr>`;return;}
-  body.innerHTML=(data||[]).map(x=>`<tr><td>${dateText(x.created_at)}</td><td>${esc(x.actor_type)}</td><td>${esc(x.action)}</td><td>${esc(x.target_type||'-')}</td><td>${esc(x.target_id||'-')}</td><td><code>${esc(JSON.stringify(x.details||{}))}</code></td><td><button class="btn danger" data-delete-audit="${x.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="7">No audit records.</td></tr>';
-  body.querySelectorAll('[data-delete-audit]').forEach(b=>b.onclick=async()=>{if(!confirm('Delete this audit log?'))return;const {error}=await supabase.rpc('admin_delete_audit',{p_id:b.dataset.deleteAudit});if(error)return alert(error.message);await loadAudit();});
-}
-
-async function deleteAllAudit(){
-  if(!confirm('Delete ALL audit logs permanently? This cannot be undone.'))return;
-  const btn=$('acsAuditDeleteAll');if(btn)btn.disabled=true;
-  try{const {data,error}=await supabase.rpc('admin_delete_all_audit');if(error)throw error;setMsg('acsAuditMsg',`${Number(data||0)} audit log(s) deleted.`,true);await loadAudit();}
-  catch(e){setMsg('acsAuditMsg',e?.message||'Audit Delete All failed.');}
-  finally{if(btn)btn.disabled=false;}
+  if(error){body.innerHTML=`<tr><td colspan="6">${esc(error.message)}</td></tr>`;return;}
+  body.innerHTML=(data||[]).map(x=>`<tr><td>${dateText(x.created_at)}</td><td>${esc(x.actor_type)}</td><td>${esc(x.action)}</td><td>${esc(x.target_type||'-')}</td><td>${esc(x.target_id||'-')}</td><td><code>${esc(JSON.stringify(x.details||{}))}</code></td></tr>`).join('')||'<tr><td colspan="6">No audit records.</td></tr>';
 }
 
 async function loadTrash(){
   const body=$('acsTrashBody'); if(!body)return;
-  const {data,error}=await supabase.rpc('admin_list_trash');
+  const {data,error}=await supabase.from('admin_trash').select('*').order('deleted_at',{ascending:false}).limit(100);
   if(error){body.innerHTML=`<tr><td colspan="5">${esc(error.message)}</td></tr>`;return;}
-  body.innerHTML=(data||[]).map(x=>`<tr><td>${esc(x.table_name)}</td><td>${esc(x.record_id)}</td><td>${esc(x.summary||'-')}</td><td>${dateText(x.deleted_at)}</td><td><button class="btn primary" data-restore="${x.id}">Restore</button> <button class="btn danger" data-delete-trash="${x.id}">Delete</button></td></tr>`).join('')||'<tr><td colspan="5">Trash is empty.</td></tr>';
-  body.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{if(!confirm('Restore this record?'))return;const {error}=await supabase.rpc('admin_restore_record',{p_trash_id:b.dataset.restore});if(error)return alert(error.message);await log('record_restored','admin_trash',b.dataset.restore);await Promise.all([loadTrash(),loadApplications()]);});
-  body.querySelectorAll('[data-delete-trash]').forEach(b=>b.onclick=async()=>{if(!confirm('Permanently delete this Trash record? This cannot be undone.'))return;const {error}=await supabase.rpc('admin_permanent_delete_trash',{p_trash_id:b.dataset.deleteTrash});if(error)return alert(error.message);await log('trash_record_deleted','admin_trash',b.dataset.deleteTrash);await loadTrash();});
-}
-
-async function emptyTrash(){
-  if(!confirm('Empty ALL Trash permanently? This cannot be undone.'))return;
-  const btn=$('acsTrashEmpty');if(btn)btn.disabled=true;
-  try{const {data,error}=await supabase.rpc('admin_empty_trash');if(error)throw error;setMsg('acsTrashMsg',`${Number(data||0)} Trash record(s) permanently deleted.`,true);await Promise.all([loadTrash(),loadApplications()]);}
-  catch(e){setMsg('acsTrashMsg',e?.message||'Empty Trash failed.');}
-  finally{if(btn)btn.disabled=false;}
+  body.innerHTML=(data||[]).map(x=>`<tr><td>${esc(x.table_name)}</td><td>${esc(x.record_id)}</td><td>${esc(x.summary||'-')}</td><td>${dateText(x.deleted_at)}</td><td><button class="btn primary" data-restore="${x.id}">Restore</button></td></tr>`).join('')||'<tr><td colspan="5">Trash is empty.</td></tr>';
+  body.querySelectorAll('[data-restore]').forEach(b=>b.onclick=async()=>{if(!confirm('Restore this record?'))return;const {error}=await supabase.rpc('admin_restore_record',{p_trash_id:b.dataset.restore});if(error)return alert(error.message);await log('record_restored','admin_trash',b.dataset.restore);loadTrash();});
 }
 
 async function healthCheck(){
   const body=$('acsHealthBody'); if(!body)return;
-  const summary=$('acsHealthSummary'); if(summary)summary.textContent='Checking system…';
-  body.innerHTML='<tr><td colspan="3">Checking…</td></tr>';
-  try{
-    const {data,error}=await Promise.race([
-      supabase.rpc('admin_system_health'),
-      new Promise(resolve=>setTimeout(()=>resolve({error:new Error('Health check timed out after 10 seconds.')}),10000))
-    ]);
-    if(error)throw error;
-    const labels={database:'Supabase Database',applications:'Applications',payments:'Payments',workflow:'Application Workflow',audit:'Audit Logs',trash:'Trash'};
-    const entries=Object.entries(labels).map(([key,label])=>[label,data?.[key]===true?'HEALTHY':'ERROR',data?.[key]===true?'Available':'Unavailable']);
-    body.innerHTML=entries.map(x=>`<tr><td>${esc(x[0])}</td><td class="${x[1]==='HEALTHY'?'good-text':'error-text'}"><b>${x[1]}</b></td><td>${esc(x[2])}</td></tr>`).join('');
-    if(summary)summary.textContent=entries.every(x=>x[1]==='HEALTHY')?'All systems operational ✅':'Some system components need attention ⚠️';
-  }catch(e){
-    if(summary)summary.textContent='Health check failed ❌';
-    body.innerHTML=`<tr><td colspan="3" class="error-text">${esc(e?.message||'Health check failed.')}</td></tr>`;
-  }
+  const checks=[];
+  const t=async(name,fn)=>{const s=performance.now();try{await fn();checks.push([name,'HEALTHY',Math.round(performance.now()-s)]);}catch(e){checks.push([name,'ERROR',e.message||'Failed']);}};
+  await t('Supabase Database',async()=>{const {error}=await supabase.from('admin_users').select('id').limit(1);if(error)throw error;});
+  await t('Admin Session',async()=>{const {data}=await supabase.auth.getSession();if(!data.session)throw new Error('No active session');});
+  await t('Storage',async()=>{const {error}=await supabase.storage.listBuckets();if(error)throw error;});
+  await t('Application Workflow',async()=>{const {error}=await supabase.from('application_status_history').select('id').limit(1);if(error)throw error;});
+  await t('Audit Logs',async()=>{const {error}=await supabase.from('activity_logs').select('id').limit(1);if(error)throw error;});
+  await t('Trash',async()=>{const {error}=await supabase.from('admin_trash').select('id').limit(1);if(error)throw error;});
+  body.innerHTML=checks.map(x=>`<tr><td>${esc(x[0])}</td><td class="${x[1]==='HEALTHY'?'good-text':'error-text'}"><b>${x[1]}</b></td><td>${esc(x[2])}</td></tr>`).join('');
 }
 
 async function downloadCsv(){
@@ -223,12 +175,8 @@ export async function initAdminControlSuite(){
   bind($('acsRefresh'),'click',()=>Promise.allSettled([loadApplications(),loadRoles(),loadRevenue(),loadAudit(),loadTrash(),healthCheck()]));
   bind($('acsSearchBtn'),'click',globalSearch);
   bind($('acsSearchInput'),'keydown',e=>{ if(e.key==='Enter') return globalSearch(); });
-  bind($('acsApplicationsDeleteAll'),'click',deleteAllApplications);
-  bind($('acsAuditDeleteAll'),'click',deleteAllAudit);
   bind($('acsRevenueRefresh'),'click',loadRevenue);
   bind($('acsRevenueCsv'),'click',downloadCsv);
-  bind($('acsRevenueDeleteAll'),'click',deleteAllRevenue);
-  bind($('acsTrashEmpty'),'click',emptyTrash);
   bind($('acsHealthRefresh'),'click',healthCheck);
 
   document.querySelectorAll('[data-acs-tab]').forEach(b=>{

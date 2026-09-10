@@ -113,11 +113,17 @@ if (loginForm) {
       if (error) throw error;
       if (!data?.user) throw new Error("Login response invalid.");
 
-      // Admin/Staff accounts must use the Admin/Staff login, not the normal user portal.
-      // This installation uses public.admin_users(id,email).
-      const {data:adminRow}=await supabase.from("admin_users").select("id,status").eq("id",data.user.id).maybeSingle();
-      const {data:staffRow}=await supabase.from("admin_staff_roles").select("role,status").eq("admin_id",data.user.id).maybeSingle();
-      if(adminRow || staffRow){
+      // Keep the normal-user portal independent from Admin/Staff authorization.
+      // Role checks are best-effort only: an RLS/policy error must NEVER block a
+      // legitimate normal-user login. Only an explicitly returned active admin/staff
+      // record is treated as a protected account.
+      const [adminCheck, staffCheck] = await Promise.all([
+        supabase.from("admin_users").select("id,status").eq("id", data.user.id).maybeSingle(),
+        supabase.from("admin_staff_roles").select("admin_id,role,status").eq("admin_id", data.user.id).maybeSingle()
+      ]);
+      const adminRow = adminCheck?.error ? null : adminCheck?.data;
+      const staffRow = staffCheck?.error ? null : staffCheck?.data;
+      if (adminRow || staffRow) {
         await supabase.auth.signOut();
         throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
       }
@@ -414,18 +420,10 @@ function payStatus(p) {
 
 async function loadRequestsAndPayments() {
   if (!dashboardCustomer) return;
-  const [reqs, requestNotes, requestDocuments, payments] = await Promise.all([
+  const [reqs, payments] = await Promise.all([
     safeQuery(
       supabase.from("service_requests").select("id,service_type,status,created_at").eq("customer_id",dashboardCustomer.id).order("created_at",{ascending:false}),
       [], "Requests"
-    ),
-    safeQuery(
-      supabase.from("request_notes").select("id,request_id,note,created_at").order("created_at",{ascending:false}),
-      [], "Request updates"
-    ),
-    safeQuery(
-      supabase.from("request_documents").select("id,request_id,file_name,storage_path,mime_type,created_at").order("created_at",{ascending:false}),
-      [], "Request screenshots"
     ),
     safeQuery(
       supabase.from("payments").select("id,request_id,service_name,amount,currency,status,txnid,mihpayid,error_message,created_at,updated_at").eq("customer_id",dashboardCustomer.id).order("created_at",{ascending:false}),
@@ -463,8 +461,6 @@ async function loadRequestsAndPayments() {
       const pst=payStatus(p);
       const payLabel=pst==="paid"?"Paid":pst==="failed"?"Failed":(pst==="cancelled"||pst==="canceled")?"Cancelled":"Pending";
       const payClass=pst==="paid"?"paid":pst==="failed"?"failed":(pst==="cancelled"||pst==="canceled")?"cancelled":"pending";
-      const notes=(requestNotes||[]).filter(n=>n.request_id===r.id);
-      const docs=(requestDocuments||[]).filter(d=>d.request_id===r.id && String(d.storage_path||"").includes("/admin-updates/"));
       return `<div class="yt-user-request-card">
         <div class="yt-user-request-main">
           <b>${esc(r.service_type||"Service")}</b>
@@ -472,8 +468,6 @@ async function loadRequestsAndPayments() {
             <span>Request: ${esc(String(r.id||"").slice(0,8).toUpperCase())}</span>
             <span>${esc(dateText(r.created_at))}</span>
           </div>
-          ${notes.length?`<div class="yt-user-request-updates"><strong>Admin Update</strong>${notes.map(n=>`<div class="yt-user-request-note"><span>${esc(n.note)}</span><time>${esc(dateText(n.created_at))}</time></div>`).join("")}</div>`:""}
-          ${docs.length?`<div class="yt-user-request-screenshots"><strong>Screenshot</strong>${docs.map(d=>`<button type="button" class="yt-user-request-file" data-admin-request-file="${esc(d.storage_path)}">📷 ${esc(d.file_name||"View screenshot")}</button>`).join("")}</div>`:""}
         </div>
         <div class="yt-user-status-stack">
           <span class="yt-user-status-chip ${statusClass(r.status)}">${esc(prettyStatus(r.status))}</span>
@@ -481,16 +475,6 @@ async function loadRequestsAndPayments() {
         </div>
       </div>`;
     }).join("") : '<div class="yt-user-empty-state">No service requests yet.</div>';
-    list.querySelectorAll("[data-admin-request-file]").forEach(btn=>btn.addEventListener("click",async()=>{
-      btn.disabled=true;
-      try{
-        const {data,error}=await supabase.storage.from("user-documents").createSignedUrl(btn.dataset.adminRequestFile,300);
-        if(error)throw error;
-        if(!data?.signedUrl)throw new Error("Screenshot URL unavailable.");
-        window.open(data.signedUrl,"_blank","noopener,noreferrer");
-      }catch(e){alert(e?.message||"Unable to open screenshot.");}
-      finally{btn.disabled=false;}
-    }));
   }
 
   // Payments: show Paid / Pending / Failed / Cancelled clearly with retry actions.

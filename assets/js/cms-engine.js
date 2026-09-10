@@ -4,6 +4,8 @@ const ADMIN_EMAIL='sumitkhobragade088@gmail.com';
 const clone=o=>JSON.parse(JSON.stringify(o));
 const esc=v=>String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 const slugify=v=>String(v||'page').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'')||('page-'+Date.now());
+const CMS_TIMEOUT=7000;
+const withTimeout=(promise,ms=CMS_TIMEOUT,label='CMS request')=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out')),ms))]);
 
 const DEFAULTS={
   admin_cms:{nav:{},hidden:[],order:[],pages:{},buttons:{},blocks:{},customPages:[],customButtons:[]},
@@ -29,8 +31,6 @@ function normalizeSetting(key,value){
   for(const k of ['email','phone','whatsapp','hours']) if(!String(out.contact[k]||'').trim()) out.contact[k]=d[k];
   return out;
 }
-const CMS_TIMEOUT=6000;
-const withTimeout=(promise,ms=CMS_TIMEOUT,label='CMS request')=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out')),ms))]);
 async function read(key){
   try{
     const {data,error}=await withTimeout(supabase.from('yt_cms_settings').select('value').eq('key',key).maybeSingle(),CMS_TIMEOUT,'CMS load');
@@ -40,7 +40,7 @@ async function read(key){
   return normalizeSetting(key,clone(DEFAULTS[key]||{}));
 }
 async function currentAdminUser(requiredPermission='website_cms.manage'){
-  const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+  const {data:sessionData,error:sessionError}=await withTimeout(supabase.auth.getSession(),CMS_TIMEOUT,'CMS authorization');
   if(sessionError) throw sessionError;
   const user=sessionData?.session?.user||null;
   if(!user) throw new Error('Admin authorization required');
@@ -56,8 +56,8 @@ async function currentAdminUser(requiredPermission='website_cms.manage'){
   return user;
 }
 async function write(key,value){
-  await withTimeout(currentAdminUser(key==='admin_cms'||key==='admin_theme'?'roles.manage':'website_cms.manage'),CMS_TIMEOUT,'CMS authorization');
-  const {error}=await withTimeout(supabase.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'}),CMS_TIMEOUT,'CMS save');
+  await currentAdminUser(key==='admin_cms'||key==='admin_theme'?'roles.manage':'website_cms.manage');
+  const {error}=await supabase.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'});
   if(error) throw error;
   localStorage.setItem('ytcms_'+key,JSON.stringify(value));
   return value;
@@ -127,9 +127,34 @@ function applyElementOverrides(c){
 
 async function applyAdmin(){
   const c=await read('admin_cms'),t=await read('admin_theme');applyThemeVars(t,true);applyAdvancedTheme(t,true);applyElementOverrides(c);
-  // PRIMARY ADMIN SIDEBAR IS SOURCE-LOCKED: its 30 buttons/order are defined in each canonical Admin HTML page.
-  // CMS settings must never reorder, hide, replace, or inject another Admin sidebar flow.
+  const nav=document.querySelector('.yt-premium-nav');
+  if(nav){
+    const existing=[...nav.querySelectorAll('[data-view]')];
+    existing.forEach(b=>{const k=b.dataset.view,v=adminNavConfig(c,k),sp=b.querySelector('span');if(v.label&&sp)sp.textContent=v.label;if(v.icon){const txt=[...b.childNodes].find(n=>n.nodeType===3);if(txt)txt.nodeValue=v.icon+' '}b.hidden=!!v.hidden});
+    sortByOrder(existing,c.order||[],el=>el.dataset.view);
 
+    // SYSTEM-LOCKED ADMIN PRIMARY NAV:
+    // Dashboard must remain #1, followed by Admin Control Suite, Manager,
+    // Operator and Support. CMS navigation order must never push these
+    // protected controls down or interleave other items with them.
+    const fixedNav = [
+      nav.querySelector('[data-view="dashboard"]'),
+      nav.querySelector('[data-fixed-order="2"]'),
+      nav.querySelector('[data-fixed-order="3"]'),
+      nav.querySelector('[data-fixed-order="4"]'),
+      nav.querySelector('[data-fixed-order="5"]')
+    ].filter(Boolean);
+    const fixedSet = new Set(fixedNav);
+    fixedNav.forEach((el,i)=>{ el.hidden=false; el.style.order=String(i); });
+    existing.forEach((el,i)=>{
+      if(!fixedSet.has(el)) el.style.order=String(10+i);
+    });
+
+    for(const x of (c.customPages||[]).filter(cmsLive).sort((a,b)=>(a.order??999)-(b.order??999))){
+      if(nav.querySelector(`[data-cms-custom-page="${x.id}"]`))continue;
+      const b=document.createElement('button');b.className='yt-premium-nav-btn';b.dataset.cmsCustomPage=x.id;b.style.order=String(x.order??999);b.innerHTML=`${esc(x.icon||'🧩')} <span>${esc(x.label)}</span>`;nav.appendChild(b);applyCmsVisibility(b,x);
+      let sec=document.querySelector(`[data-cms-admin-page="${x.id}"]`);if(!sec){sec=document.createElement('section');sec.className='yt-premium-view';sec.dataset.cmsAdminPage=x.id;sec.innerHTML=`<div class="yt-premium-section-head"><div><span>${esc(x.kicker||'CUSTOM PAGE')}</span><h2>${esc(x.label)}</h2><p>${esc(x.subtitle||'')}</p></div></div><div class="panel yt-premium-panel"><div>${esc(x.content||'').replace(/\n/g,'<br>')}</div></div>`;document.querySelector('.yt-premium-main')?.appendChild(sec)}applyCmsVisibility(sec,x)
+      b.addEventListener('click',()=>{document.querySelectorAll('.yt-premium-view').forEach(v=>v.classList.remove('active'));document.querySelectorAll('.yt-premium-nav-btn').forEach(v=>v.classList.remove('active'));sec.classList.add('active');b.classList.add('active');const title=document.getElementById('adminPageTitle');if(title)title.textContent=x.label;sessionStorage.setItem('yt_admin_view','cms-custom:'+x.id)});
     }
   }
   for(const [view,v] of Object.entries(c.pages||{})){const sec=document.getElementById('view-'+view);if(!sec)continue;sec.hidden=!!(v.hidden||v.inactive||v.deleted||v.status==='draft');if(v.title){const h=sec.querySelector('.yt-premium-section-head h2,.yt-premium-hero h2');if(h)h.textContent=v.title}if(v.subtitle){const p=sec.querySelector('.yt-premium-section-head p,.yt-premium-hero p');if(p)p.textContent=v.subtitle}}
