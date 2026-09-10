@@ -37,8 +37,24 @@ async function loadCustomers(){
   const {data,error}=await supabase.from("customers").select("id,user_id,full_name,email").order("full_name",{ascending:true});
   if(error){msg(`Customer list load failed: ${error.message}`);return;}
   customers=(data||[]).filter(c=>!c.user_id || !adminIds.has(String(c.user_id)));
+  renderFreeServiceUsers();
   const sel=$("freeServiceCustomer");if(!sel)return;
   sel.innerHTML='<option value="">Select customer…</option>'+customers.map(c=>`<option value="${esc(c.id)}">${esc(c.full_name||c.email||c.id)}${c.email?` • ${esc(c.email)}`:""}</option>`).join("");
+}
+function renderFreeServiceUsers(){
+  const body=$("freeServiceUsersBody"); if(!body)return;
+  if(!customers.length){body.innerHTML='<tr><td colspan="6">No normal website users found.</td></tr>';return;}
+  body.innerHTML=customers.map(c=>{
+    const status=String(c.account_status||"active").toLowerCase()==="disabled"?"disabled":"active";
+    return `<tr>
+      <td><b>${esc(c.full_name||"-")}</b></td>
+      <td>${esc(c.email||"-")}</td>
+      <td>${esc(c.mobile||"-")}</td>
+      <td><span class="yt-status-chip ${status==='active'?'good':'bad'}">${status==='active'?'Active':'Disabled'}</span></td>
+      <td><span class="yt-status-chip">Free Service User</span></td>
+      <td><button type="button" class="btn free-user-action-btn" data-customer-actions="${esc(c.id)}">Actions</button></td>
+    </tr>`;
+  }).join("");
 }
 async function loadChannels(customerId){
   const csel=$("freeServiceChannel"),ssel=$("freeServiceType"),btn=$("grantFreeService");
@@ -136,6 +152,7 @@ function bind(){
   $("clearAllFreeServices")?.addEventListener("click",()=>{const s=$("freeServiceType");if(s)[...s.options].forEach(o=>o.selected=false);syncServiceUI();});
   $("clearFreeService")?.addEventListener("click",()=>{["freeServiceCustomer","freeServiceChannel","freeServiceType"].forEach(id=>{const e=$(id);if(e){if(e.multiple)[...e.options].forEach(o=>o.selected=false);else e.value="";}});const c=$("freeServiceChannel");if(c){c.innerHTML='<option value="">Select customer first…</option>';c.disabled=true;}$("freeServiceDropdown")?.classList.remove("open");renderServiceOptions();syncServiceUI();msg("");});
   $("refreshFreeServiceGrants")?.addEventListener("click",async()=>{await loadFreeUserManager();});
+  $("refreshFreeServiceUsers")?.addEventListener("click",async()=>{await loadCustomers();});
   $("freeUserManageCustomer")?.addEventListener("change",async e=>{
     const {data}=await supabase.from("free_service_grants").select("customer_id,channel_access_id,service_type,status,expires_at,created_at,customers(full_name,email)").eq("customer_id",e.target.value).order("created_at",{ascending:false}).limit(500);
     await renderFreeUserChannels(e.target.value,data||[],$("freeUserManageSummary"),$("freeUserChannelList"));

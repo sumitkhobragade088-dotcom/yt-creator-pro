@@ -145,9 +145,21 @@ document.documentElement.classList.add("yt-admin-boot");
 #view-free-user-service .free-user-channel-card{display:flex;justify-content:space-between;align-items:center;gap:12px;border:1px solid #e4e8f0;border-radius:12px;padding:12px 14px;background:#fff}
 #view-free-user-service .free-user-channel-card b{display:block}.free-user-channel-card small{display:block;color:#667085;margin-top:3px}
 @media(max-width:760px){#view-free-user-service .free-service-form-grid{grid-template-columns:1fr}#view-free-user-service .free-user-manage-grid{grid-template-columns:1fr}}
+
+#view-free-user-service .free-user-actions-panel .yt-manager-head{margin-bottom:14px}
+#view-free-user-service .free-user-actions-panel .data-table th:last-child,#view-free-user-service .free-user-actions-panel .data-table td:last-child{white-space:nowrap}
+#view-free-user-service .free-user-actions-panel .free-user-action-btn{font-weight:800}
+@media(max-width:760px){#view-free-user-service .free-user-actions-panel{padding:16px!important}}
 </style>
 <style>
-.yt-customer-modal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(15,23,42,.62);padding:18px}.yt-customer-modal[hidden]{display:none}.yt-customer-modal-card{width:min(560px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:22px}.yt-customer-modal-head{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #eaecf0;padding-bottom:16px;margin-bottom:18px}.yt-customer-modal-head span{font-size:11px;font-weight:800;letter-spacing:.12em}.yt-customer-modal-head h2{margin:5px 0 3px}.yt-customer-modal-head p{margin:0;font-weight:700}.yt-customer-modal-head small{color:#667085}.yt-customer-modal form{display:grid;gap:14px}.yt-customer-modal label{display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #eaecf0;border-radius:10px}.yt-customer-modal label small{display:block;color:#667085}.yt-customer-modal select{margin-left:auto;padding:9px;border-radius:8px;border:1px solid #d0d5dd}.yt-customer-modal .danger-option{border-color:#fecdca}.yt-customer-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:8px}.yt-customer-modal-actions .primary{min-width:110px}.yt-status-chip.bad{background:#fee4e2;color:#b42318}</style>
+.yt-customer-modal{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:rgba(15,23,42,.62);padding:18px}.yt-customer-modal[hidden]{display:none}.yt-customer-modal-card{width:min(560px,100%);background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:22px}.yt-customer-modal-head{display:flex;justify-content:space-between;gap:16px;border-bottom:1px solid #eaecf0;padding-bottom:16px;margin-bottom:18px}.yt-customer-modal-head span{font-size:11px;font-weight:800;letter-spacing:.12em}.yt-customer-modal-head h2{margin:5px 0 3px}.yt-customer-modal-head p{margin:0;font-weight:700}.yt-customer-modal-head small{color:#667085}.yt-customer-modal form{display:grid;gap:14px}.yt-customer-modal label{display:flex;align-items:center;gap:9px;padding:12px;border:1px solid #eaecf0;border-radius:10px}.yt-customer-modal label small{display:block;color:#667085}.yt-customer-modal select{margin-left:auto;padding:9px;border-radius:8px;border:1px solid #d0d5dd}.yt-customer-modal .danger-option{border-color:#fecdca}.yt-customer-modal-actions{display:flex;justify-content:flex-end;gap:10px;padding-top:8px}.yt-customer-modal-actions .primary{min-width:110px}.yt-status-chip.bad{background:#fee4e2;color:#b42318}
+.yt-customer-action-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:12px;border:1px solid #e4e7ec;border-radius:12px;background:#f8fafc}
+.yt-customer-action-details div{display:grid;gap:3px;min-width:0}
+.yt-customer-action-details span{font-size:11px;color:#667085;text-transform:uppercase;letter-spacing:.04em;font-weight:700}
+.yt-customer-action-details b{font-size:13px;overflow-wrap:anywhere}
+.yt-customer-action-details[hidden]{display:none}
+@media(max-width:560px){.yt-customer-action-details{grid-template-columns:1fr}}
+</style>
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -313,7 +325,15 @@ document.documentElement.classList.add("yt-admin-boot");
       <div class="yt-customer-modal-card">
         <div class="yt-customer-modal-head"><div><span>USER MANAGEMENT</span><h2 id="customerActionsTitle">Customer Actions</h2><p id="customerActionName">Customer</p><small id="customerActionEmail"></small></div><button type="button" class="btn" data-customer-actions-close aria-label="Close">✕</button></div>
         <form id="customerActionsForm">
-          <label><input id="customerActionView" type="checkbox" checked disabled> 👁️ View User <small>(customer details are shown above)</small></label>
+          <label><input id="customerActionView" type="checkbox" checked> 👁️ View User <small>Show the selected user's full account details.</small></label>
+          <div id="customerActionDetails" class="yt-customer-action-details">
+            <div><span>Name</span><b id="customerActionDetailName">-</b></div>
+            <div><span>Email</span><b id="customerActionDetailEmail">-</b></div>
+            <div><span>Mobile</span><b id="customerActionDetailMobile">-</b></div>
+            <div><span>Channel</span><b id="customerActionDetailChannel">-</b></div>
+            <div><span>Joined</span><b id="customerActionDetailJoined">-</b></div>
+            <div><span>Status</span><b id="customerActionDetailStatus">-</b></div>
+          </div>
           <label><input id="customerActionReset" type="checkbox"> 🔑 Reset Password <small>Send a secure reset link to the registered email.</small></label>
           <label>Status <select id="customerActionStatus"><option value="active">✅ Enable User</option><option value="disabled">🚫 Disable User</option></select></label>
           <label class="danger-option"><input id="customerActionDelete" type="checkbox"> 🗑️ Delete User</label>
@@ -324,6 +344,13 @@ document.documentElement.classList.add("yt-admin-boot");
 
     <section class="yt-premium-view" id="view-free-user-service">
       <div class="yt-premium-section-head"><div><span>FREE SERVICE</span><h2>🎁 Free User Service</h2><p>Select a customer, choose their connected YouTube channel, then grant one or more services for free.</p></div><b id="freeUserServiceCount">0</b></div>
+      <div class="panel yt-premium-panel free-user-actions-panel" style="padding:22px;margin-bottom:18px">
+        <div class="yt-manager-head"><div><h3>Free Users • User Management</h3><p>Every normal website user is listed here. Use <b>Actions</b> to view, reset password, enable/disable, or delete the user.</p></div><button id="refreshFreeServiceUsers" class="btn" type="button">↻ Refresh Users</button></div>
+        <div class="yt-table-scroll">
+          <table class="data-table"><thead><tr><th>User</th><th>Email</th><th>Mobile</th><th>Status</th><th>Free Service</th><th>Actions</th></tr></thead>
+          <tbody id="freeServiceUsersBody"><tr><td colspan="6">Loading users…</td></tr></tbody></table>
+        </div>
+      </div>
       <div class="panel yt-premium-panel" style="padding:22px;margin-bottom:18px">
         <div class="free-service-form-grid">
           <label><b>Customer</b><select id="freeServiceCustomer" style="width:100%;margin-top:6px"><option value="">Select customer…</option></select></label>
