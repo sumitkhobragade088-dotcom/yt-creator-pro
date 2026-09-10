@@ -131,49 +131,14 @@ async function loadAdminDashboard(){
 
 function renderCustomers(rows){
   const body=$("customersBody"); if(!body) return;
-  body.innerHTML=rows.length?rows.map(c=>{
-    const disabled=String(c.account_status||"active").toLowerCase()==="disabled";
-    return `<tr>
+  body.innerHTML=rows.length?rows.map(c=>`
+    <tr>
       <td><b>${esc(c.full_name||"-")}</b></td>
       <td>${esc(c.email||"-")}</td>
       <td>${esc(c.mobile||"-")}</td>
       <td>${esc(c.channel_name||"-")}</td>
-      <td>${disabled?'<span class="yt-status-chip bad">Disabled</span>':'<span class="yt-status-chip good">Active</span>'}</td>
       <td>${dateText(c.created_at)}</td>
-      <td><div class="yt-charge-table-actions">
-        <button class="btn" type="button" data-admin-user-view="${esc(c.id)}">👁️ View</button>
-        <button class="btn primary" type="button" data-admin-user-reset="${esc(c.email||"")}">🔑 Reset Password</button>
-        <button class="btn danger" type="button" data-admin-user-toggle="${esc(c.id)}" data-disabled="${disabled?"true":"false"}">${disabled?'✅ Enable':'🚫 Disable'}</button>
-      </div></td>
-    </tr>`;
-  }).join(""):'<tr><td colspan="7">No customers yet.</td></tr>';
-  body.querySelectorAll("[data-admin-user-view]").forEach(btn=>btn.addEventListener("click",()=>{
-    const c=rows.find(x=>String(x.id)===String(btn.dataset.adminUserView));
-    if(!c)return;
-    alert(`Name: ${c.full_name||"-"}\nEmail: ${c.email||"-"}\nMobile: ${c.mobile||"-"}\nChannel: ${c.channel_name||"-"}\nStatus: ${c.account_status||"active"}`);
-  }));
-  body.querySelectorAll("[data-admin-user-reset]").forEach(btn=>btn.addEventListener("click",async()=>{
-    const email=btn.dataset.adminUserReset;if(!email)return;
-    if(!confirm(`Send a password reset link to ${email}?`))return;
-    const old=btn.textContent;btn.disabled=true;btn.textContent="Sending…";
-    try{
-      const {error}=await withTimeout(supabase.auth.resetPasswordForEmail(email,{redirectTo:new URL("reset-password.html",location.href).href}),ADMIN_TIMEOUT,"Password reset");
-      if(error)throw error;
-      btn.textContent="Sent ✓"; alert("Password reset link sent to the user's email.");
-    }catch(e){alert(e?.message||"Password reset email could not be sent.");btn.textContent=old;}
-    finally{btn.disabled=false;}
-  }));
-  body.querySelectorAll("[data-admin-user-toggle]").forEach(btn=>btn.addEventListener("click",async()=>{
-    const id=btn.dataset.adminUserToggle; const disabled=btn.dataset.disabled==="true"; if(!id)return;
-    const next=disabled?"active":"disabled";
-    if(!confirm(`${disabled?'Enable':'Disable'} this user account?`))return;
-    const old=btn.textContent;btn.disabled=true;btn.textContent="Saving…";
-    try{
-      const {error}=await withTimeout(supabase.from("customers").update({account_status:next}).eq("id",id),ADMIN_TIMEOUT,"User status");
-      if(error)throw error;
-      loadAdminDashboard();
-    }catch(e){alert(e?.message||"Unable to change user status.");btn.textContent=old;btn.disabled=false;}
-  }));
+    </tr>`).join(""):'<tr><td colspan="5">No customers yet.</td></tr>';
 }
 
 function renderChannels(customers,access){
