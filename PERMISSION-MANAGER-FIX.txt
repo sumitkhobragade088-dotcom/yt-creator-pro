@@ -1,0 +1,7 @@
+FIXED:
+- Open Channel Permissions and Give Manager Access no longer behave as identical buttons.
+- Channel Permissions opens its own official-flow guide.
+- Manager Access opens a separate invite guide with Manager email copy helper.
+- Both then open YouTube Studio, because YouTube does not provide a documented public web API/deep link that can silently invite a Manager.
+- Existing Open YouTube Studio button is now the ONLY red YouTube-style button in the Access section.
+- Banner/other buttons are not forced red.

@@ -1,0 +1,31 @@
+TOTAL USER CORRECTIONS FIX
+
+Implemented together:
+1. Home page:
+- Manager Access removed completely from public home page.
+- Top navigation only Home / Services / Login / Register.
+- Normal website has Install App button.
+- PWA manifest + service worker added.
+- If opened with ?install=1, Install App banner is shown prominently.
+
+2. Login/Register:
+- Same professional YouTube-style layout.
+- Login/Register tab switch at top of auth card.
+- Top nav Home / Services / Login / Register.
+- Existing Supabase auth IDs and logic retained.
+
+3. User Dashboard:
+- Website button removed.
+- Each sidebar view remains separate/professional.
+- Manager Access exists ONLY after login under Channel Access.
+- Channel Access contains Google Connect + Manager Email Copy + Open YouTube Studio.
+
+4. Admin Dashboard:
+- Added Share App button beside Website button.
+- Share App shares/copies NORMAL WEBSITE app link, not Admin app.
+- Shared URL opens normal website with ?install=1 so Install App callout is shown.
+
+Important browser rule:
+A web link cannot silently force-install a PWA. The shared link opens the install-ready normal website and shows the Install App action; the user must confirm installation.
+
+No Edge Function or SQL change required.

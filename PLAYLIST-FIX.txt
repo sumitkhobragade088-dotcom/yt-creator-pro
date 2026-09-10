@@ -1,0 +1,8 @@
+Playlist Manager Fix
+- Description edit/update retained and expanded.
+- Delete Playlist added (permanent, with confirmation).
+- Playlist thumbnail preview added from YouTube API.
+- Open playlist/YouTube action added.
+- Custom playlist thumbnail upload is intentionally not faked because YouTube Data API does not provide a playlist-thumbnail upload endpoint.
+
+IMPORTANT: After GitHub files are replaced, also replace/deploy Supabase youtube-manage Edge Function from supabase/functions/youtube-manage/index.ts because delete_playlist and thumbnail data are backend changes.

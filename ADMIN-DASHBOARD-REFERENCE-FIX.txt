@@ -1,0 +1,23 @@
+Only Admin Dashboard was redesigned.
+All other working website/YouTube manager files were left untouched.
+
+Behavior:
+- Sidebar stays fixed.
+- Clicking a sidebar button shows ONLY that button's data in the main area.
+- Dashboard shows ONLY overview/count cards.
+- Customers shows only customer table.
+- YouTube Channels shows only channel table.
+- Access Requests shows only access data.
+- Monetization shows only monetization data.
+- AdSense shows only AdSense data.
+- Services shows only service data.
+- History shows only history.
+- Settings shows only settings.
+
+Design follows the provided reference structure:
+- colorful professional left sidebar
+- clean white content area
+- overview metric cards
+- green/yellow/pink/red/blue/black/white accents
+
+No Edge Function or SQL changes required.

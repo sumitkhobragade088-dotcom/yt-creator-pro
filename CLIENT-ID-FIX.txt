@@ -1,0 +1,8 @@
+Correct Google OAuth Client ID:
+699096777627-on3eo7fsl0n2qij6il47vi0itkbbumpf.apps.googleusercontent.com
+
+Important:
+Use the Client ID without https://
+
+Also update the deployed Supabase Edge Function youtube-oauth:
+Replace GOOGLE_CLIENT_ID with the exact value above, then redeploy.

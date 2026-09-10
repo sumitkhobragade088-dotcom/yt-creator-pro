@@ -1,0 +1,10 @@
+YT Creator Pro - Manager Access Gate + Studio Button Fix
+
+Fixed:
+- Admin Dashboard shows Manager Access: PENDING / GRANTED.
+- Manage page has Mark Access Granted / Mark Pending controls.
+- Full management area is visually locked until manager_access=true.
+- Existing Open YouTube Studio button only is YouTube red.
+- No new duplicate red Studio button is added.
+- Permission / Give Manager Access buttons remain usable while pending.
+- Uses existing channel_access.manager_access boolean in Supabase.

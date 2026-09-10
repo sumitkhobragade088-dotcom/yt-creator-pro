@@ -1,0 +1,1 @@
+Replace ONLY admin/manage-channel.html and assets/js/staff-role-control.js. No SQL. No other files. Common sidebar is copied exactly from admin/index.html; active state is handled without changing the existing dashboard flow.

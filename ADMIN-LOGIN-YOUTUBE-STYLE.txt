@@ -1,0 +1,7 @@
+Admin Login redesigned only.
+- YouTube-inspired red/black professional visual.
+- Secure admin login card.
+- Password show/hide.
+- Existing admin authentication JS kept unchanged.
+- Back to Website retained.
+- All dashboard / YouTube manager working code untouched.

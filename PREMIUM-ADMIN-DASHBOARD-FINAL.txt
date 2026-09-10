@@ -1,0 +1,21 @@
+PREMIUM ADMIN DASHBOARD FINAL
+
+What changed:
+- Admin Dashboard visual design only + admin PWA install support.
+- Top professional buttons:
+  1) Website -> opens public website ../index.html in a NEW TAB.
+  2) Install Admin App -> uses browser PWA install prompt when available.
+  3) Refresh.
+- Sidebar remains fixed and each button shows ONLY its own data.
+- Dashboard shows ONLY overview/count cards.
+- Stronger professional visual hierarchy, spacing, shadows, cards and header.
+- Existing Supabase data logic preserved.
+- Other working YouTube manager / OAuth / Edge Function files were NOT changed.
+
+PWA files added:
+admin/manifest.webmanifest
+admin/admin-sw.js
+admin/icon-192.png
+admin/icon-512.png
+
+No SQL or Edge Function deployment is required for this dashboard-only update.

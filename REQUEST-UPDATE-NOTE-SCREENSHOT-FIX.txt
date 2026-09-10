@@ -1,0 +1,22 @@
+REQUEST UPDATE — DESCRIPTION + SCREENSHOT
+
+Replace these 3 files in the current website:
+1) assets/js/admin-auth.js
+2) assets/js/auth.js
+3) assets/css/style.css
+
+Then run this SQL once in the SAME Supabase project:
+4) REQUEST-UPDATE-NOTE-SCREENSHOT-FIX.sql
+
+What changed:
+- Existing Admin -> User Requests status dropdown and Update button remain.
+- Clicking Update opens an update box with Status, Description / Note, and optional JPG/PNG screenshot upload.
+- Admin note is saved against that exact request.
+- Screenshot is saved against that exact request/customer.
+- User -> My Requests shows the Admin Update note under the same request.
+- User -> My Requests shows a Screenshot button for admin-attached screenshots.
+- Screenshot opens using a short-lived signed URL; it is not made public.
+- Existing payment/request flow is preserved.
+- The admin-auth timeout/safe-query helpers are included so the existing withTimeout error does not break this page.
+
+Do NOT replace the whole project with this patch. Replace only the listed files and run the SQL once.

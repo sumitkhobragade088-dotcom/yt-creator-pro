@@ -1,0 +1,12 @@
+DELETE THESE OBSOLETE DUPLICATE ADMIN FILES FROM THE CURRENT BASE:
+
+index (1).html
+manage-channel.html
+login (2).html
+admin-auth.js
+manage-channel.js
+admin-sw.js
+
+Reason: obsolete root-level duplicate Admin flow. Canonical Admin implementation is under /admin/.
+Do NOT delete the canonical files under /admin/ or the separate staff-manager.html,
+staff-operator.html, staff-support.html files.

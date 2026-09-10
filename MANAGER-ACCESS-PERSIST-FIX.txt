@@ -1,0 +1,15 @@
+Manager Access Persistence Fix
+
+Problem fixed:
+- Mark Access Granted was only using browser-side Supabase update/read, so refresh could fall back to Pending when RLS/session behavior blocked or hid the saved value.
+
+New flow:
+- Get/Set Manager Access now goes through secure youtube-manage Edge Function.
+- Edge Function verifies logged-in admin first.
+- Service Role then permanently saves channel_access.manager_access.
+- Refresh/login reads the same permanent database value.
+
+After GitHub upload:
+IMPORTANT: replace Supabase Edge Function youtube-manage with this ZIP's
+supabase/functions/youtube-manage/index.ts
+and Deploy updates.

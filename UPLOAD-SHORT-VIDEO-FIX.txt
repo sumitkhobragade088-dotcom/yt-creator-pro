@@ -1,0 +1,6 @@
+Upload Fix:
+- Added Upload Type dropdown: Normal Video / YouTube Short.
+- Prevents double-click duplicate upload with uploadBusy lock.
+- False 'Upload network error' fixed: if browser loses final Google response, app verifies the video on YouTube before reporting failure.
+- Shows Video ID when available.
+- Important: YouTube API has no parameter that forces a video into Shorts. YouTube classifies Shorts based on the uploaded video's format/duration and current platform rules. The selector is for workflow/guidance, not a fake classifier.
