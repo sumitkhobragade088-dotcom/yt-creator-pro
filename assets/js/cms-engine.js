@@ -29,9 +29,11 @@ function normalizeSetting(key,value){
   for(const k of ['email','phone','whatsapp','hours']) if(!String(out.contact[k]||'').trim()) out.contact[k]=d[k];
   return out;
 }
+const CMS_TIMEOUT=6000;
+const withTimeout=(promise,ms=CMS_TIMEOUT,label='CMS request')=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error(label+' timed out')),ms))]);
 async function read(key){
   try{
-    const {data,error}=await supabase.from('yt_cms_settings').select('value').eq('key',key).maybeSingle();
+    const {data,error}=await withTimeout(supabase.from('yt_cms_settings').select('value').eq('key',key).maybeSingle(),CMS_TIMEOUT,'CMS load');
     if(!error&&data?.value){localStorage.setItem('ytcms_'+key,JSON.stringify(data.value));return normalizeSetting(key,mergeDeep(clone(DEFAULTS[key]||{}),data.value))}
   }catch(_){ }
   try{const v=JSON.parse(localStorage.getItem('ytcms_'+key)||'null');if(v)return normalizeSetting(key,mergeDeep(clone(DEFAULTS[key]||{}),v))}catch(_){ }
@@ -54,8 +56,8 @@ async function currentAdminUser(requiredPermission='website_cms.manage'){
   return user;
 }
 async function write(key,value){
-  await currentAdminUser(key==='admin_cms'||key==='admin_theme'?'roles.manage':'website_cms.manage');
-  const {error}=await supabase.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'});
+  await withTimeout(currentAdminUser(key==='admin_cms'||key==='admin_theme'?'roles.manage':'website_cms.manage'),CMS_TIMEOUT,'CMS authorization');
+  const {error}=await withTimeout(supabase.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'}),CMS_TIMEOUT,'CMS save');
   if(error) throw error;
   localStorage.setItem('ytcms_'+key,JSON.stringify(value));
   return value;
