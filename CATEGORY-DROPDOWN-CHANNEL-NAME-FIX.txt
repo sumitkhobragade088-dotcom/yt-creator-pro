@@ -1,0 +1,7 @@
+Included:
+- Upload New Video: Category ID text box replaced with named YouTube category dropdown.
+- Edit Video: same named category dropdown.
+- Selected category still sends its correct numeric YouTube category ID automatically.
+- Channel Name remains read-only through Data API.
+- Clear red 'Edit Channel Name in Studio' action added; Refresh/Sync pulls the changed name back.
+- Existing manager access gating and Studio button fixes retained.

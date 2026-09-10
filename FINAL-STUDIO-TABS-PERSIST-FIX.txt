@@ -1,0 +1,24 @@
+FIXES INCLUDED
+
+1) CHANNEL CONTENT LIKE YOUTUBE STUDIO
+- Tabs: Videos | Shorts | Live | Playlists
+- Table layout with Content, Visibility, Date, Views, Comments, Action
+- Search/filter field
+- Counts on each tab
+- Existing Edit / Manage actions retained
+
+2) MANAGER ACCESS PERMANENT
+- Frontend immediately remembers Granted in localStorage so refresh does not visually reset.
+- Backend now permanently UPSERTS channel_access.manager_access instead of only PATCHing an existing row.
+- Added MANAGER-ACCESS-PERSIST-SQL.sql to ensure manager_access exists and customer_id is unique.
+
+DEPLOY STEPS
+A. Upload/replace website files in GitHub.
+B. Supabase SQL Editor: run MANAGER-ACCESS-PERSIST-SQL.sql once.
+C. Replace Supabase Edge Function youtube-manage with:
+   supabase/functions/youtube-manage/index.ts
+   then Deploy updates.
+D. Mark Access Granted once. Refresh: it should remain GRANTED.
+
+NOTE
+YouTube Data API does not expose a direct isShort flag. Short grouping uses available duration/live metadata; final YouTube classification can differ.

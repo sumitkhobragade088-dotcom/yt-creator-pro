@@ -1,0 +1,42 @@
+YT Creator Pro TOTAL Admin Suite
+
+Included in one build:
+1) Admin Sidebar
+- Dashboard
+- Customers / Users
+- Channel Access
+- Manage Channel
+- Content Manager
+- Analytics
+- Copyright / Restrictions
+- Playlists
+- Settings
+- Logout
+
+2) Overview Analytics
+- Subscribers
+- Total Views
+- Videos count
+- Recent loaded views
+- Video-wise table: thumbnail/title/type/visibility/views/comments/date
+
+3) Copyright / Restrictions
+- Videos checked
+- API-visible restrictions
+- Processing/upload issues
+- Exact claims reminder + Open Copyright in Studio button
+
+4) Existing features preserved
+- Manager access persistence
+- Channel details / branding
+- Banner upload
+- Video/Short/Live tabs
+- Playlist create/edit/update/delete
+- Upload/edit/delete videos
+
+Deploy:
+A) GitHub: replace all files and commit.
+B) Supabase: replace youtube-manage Edge Function from:
+   supabase/functions/youtube-manage/index.ts
+   then Deploy updates.
+No new SQL is required by this combined Analytics/Sidebar/Copyright build.

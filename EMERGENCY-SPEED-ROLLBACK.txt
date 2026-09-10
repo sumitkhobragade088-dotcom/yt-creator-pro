@@ -1,0 +1,21 @@
+EMERGENCY SPEED ROLLBACK
+
+This FULL build rolls back ONLY the last Payment/User-Requests feature build
+that added extra page-load database queries.
+
+Why:
+The last build loaded customers + requests + payments + service_charges immediately
+on dashboard startup, which could make every dashboard section appear stuck on Loading.
+
+This restores the immediately previous TOTAL LOGIN REPAIR FULL build.
+
+Upload FULL ZIP contents to GitHub Pages repo, replacing matching files.
+
+DO NOT:
+- run PAID-REQUEST-FLOW-SETUP.sql
+- redeploy payu-callback for the cancelled-status patch
+- change Supabase secrets
+- change youtube-oauth / youtube-manage
+
+This rollback is intended to restore the site state from immediately before the
+latest User Requests/Payments-flow feature patch.

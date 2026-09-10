@@ -1,0 +1,16 @@
+5 paid services added to service_charges:
+YouTube Reporting Setup
+YouTube Live Streaming Setup
+YouTube Live Chat Setup / Moderation
+YouTube Embedded Player Setup
+YouTube oEmbed Setup
+
+CURRENT DEPLOYMENT:
+Run ADD-5-YOUTUBE-PAID-SERVICES.sql once in Supabase SQL Editor.
+
+User Dashboard Services, Admin Dashboard Services and Admin Service Charge already use
+the same service_charges table, so all five appear in all three places automatically.
+
+New charges start at ₹0 intentionally. Set your own charge in Admin Dashboard > Service Charge.
+The existing Apply -> Payment -> Paid Request -> Admin processing flow is reused.
+No separate user sidebar buttons were added.
