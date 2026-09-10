@@ -1,4 +1,4 @@
-/* Shared Admin sidebar behavior: one canonical structural order, persistent active state, no legacy menu injection. */
+/* Shared Admin sidebar behavior: fixed order, persistent active state, no delayed/reflowing menu. */
 (() => {
   const routes = {
     manager: "manager-control.html",
@@ -18,8 +18,8 @@
     });
   };
 
-  // Never inject or reorder the sidebar at runtime. The HTML itself is the canonical order.
-  // This prevents the legacy menu from appearing during refresh/navigation.
+  // Do not inject/reorder the sidebar after paint. The existing stylesheet owns
+  // the fixed menu order so the sidebar never jumps/reflows for a few seconds.
   if (role && routes[role]) setActive(role);
   else if (page === "manage-channel.html") setActive("manage");
   else if (page === "index.html" || page === "") {

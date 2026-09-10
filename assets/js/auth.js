@@ -42,7 +42,7 @@ function esc(v="") {
 async function ensureCustomerProfile(user) {
   const meta = user?.user_metadata || {};
   const existing = await safeQuery(
-    supabase.from("customers").select("id,is_deleted").eq("user_id", user.id).maybeSingle(),
+    supabase.from("customers").select("id").eq("user_id", user.id).maybeSingle(),
     null, "Customer profile"
   );
   if (existing?.id) return existing.id;
@@ -111,6 +111,14 @@ if (loginForm) {
       const password = $("password").value;
       const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error) throw error;
+      const uid=data?.user?.id;
+      if(uid){
+        const {data:profile}=await supabase.from("customers").select("account_status").eq("user_id",uid).maybeSingle();
+        if(String(profile?.account_status||"active").toLowerCase()==="disabled"){
+          await supabase.auth.signOut();
+          throw new Error("Your account is disabled. Please contact support.");
+        }
+      }
       if (!data?.user) throw new Error("Login response invalid.");
 
       // Admin/Staff accounts must use the Admin/Staff login, not the normal user portal.
@@ -121,9 +129,6 @@ if (loginForm) {
         await supabase.auth.signOut();
         throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
       }
-
-      const {data:customerRow}=await supabase.from("customers").select("id,is_deleted").eq("user_id",data.user.id).maybeSingle();
-      if(customerRow?.is_deleted){ await supabase.auth.signOut(); throw new Error("This account is disabled. Please contact support."); }
 
       // Do not block login on profile/table queries.
       ensureCustomerProfile(data.user).catch(console.error);
