@@ -46,19 +46,26 @@
     }, true);
   });
 
-  document.querySelectorAll(".yt-premium-nav [data-view]").forEach((button) => {
-    if (button.dataset.sidebarViewBound) return;
-    button.dataset.sidebarViewBound = "1";
-    button.addEventListener("click", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const view = button.dataset.view || "dashboard";
-      goAdmin(view);
-    }, true);
-  });
+  // The main Admin Dashboard already owns [data-view] navigation through
+  // assets/js/admin-auth.js. Binding it here as well causes a capture-phase
+  // conflict/reload loop and can briefly expose the legacy flow.
+  // Role-control pages are separate documents, so only they need this bridge
+  // back to the canonical Admin Dashboard.
+  if (page !== "index.html" && page !== "") {
+    document.querySelectorAll(".yt-premium-nav [data-view]").forEach((button) => {
+      if (button.dataset.sidebarViewBound) return;
+      button.dataset.sidebarViewBound = "1";
+      button.addEventListener("click", (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+        const view = button.dataset.view || "dashboard";
+        goAdmin(view);
+      }, true);
+    });
+  }
 
   document.getElementById("ytPremiumSidebarToggle")?.addEventListener("click", () => {
-    document.getElementById("ytPremiumSidebar")?.classList.toggle("open");
+    document.body.classList.toggle("yt-premium-sidebar-open");
   });
 
   // All sidebar state is set synchronously above before paint is allowed.
