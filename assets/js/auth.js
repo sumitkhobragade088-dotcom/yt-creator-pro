@@ -122,6 +122,12 @@ if (loginForm) {
         throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
       }
 
+      const {data:customerRow}=await supabase.from("customers").select("account_status").eq("user_id",data.user.id).maybeSingle();
+      if(String(customerRow?.account_status||"active").toLowerCase()==="disabled"){
+        await supabase.auth.signOut();
+        throw new Error("Your account is disabled. Please contact support.");
+      }
+
       // Do not block login on profile/table queries.
       ensureCustomerProfile(data.user).catch(console.error);
       msg("Login successful.", true);
