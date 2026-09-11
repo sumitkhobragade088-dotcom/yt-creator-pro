@@ -161,9 +161,13 @@ document.documentElement.classList.add("yt-admin-boot");
 
     <nav class="yt-premium-nav">
       <button class="yt-premium-nav-btn active" data-view="dashboard">🏠 <span>Dashboard</span></button>
+      <button class="yt-premium-nav-btn" data-view="control-suite" data-fixed-order="2">🛡️ <span>Admin Control Suite</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="manager" data-fixed-order="3">🟢 <span>Manager</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="operator" data-fixed-order="4">🟡 <span>Operator</span></button>
+      <button class="yt-premium-nav-btn" type="button" data-role-control="support" data-fixed-order="5">🩷 <span>Support</span></button>
       <button class="yt-premium-nav-btn" data-view="customers">👥 <span>Users / Customers</span></button>
-      <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="free-user-service">🎁 <span>Free User Service</span></button>
+      <button class="yt-premium-nav-btn" data-view="user-requests">📋 <span>User Requests</span></button>
       <button class="yt-premium-nav-btn" data-view="channels">📺 <span>YouTube Channels</span></button>
       <button class="yt-premium-nav-btn" data-view="manage">🎛️ <span>Manage Channel</span></button>
       <button class="yt-premium-nav-btn" data-view="analytics">📊 <span>Analytics / Stats</span></button>
@@ -174,18 +178,14 @@ document.documentElement.classList.add("yt-admin-boot");
       <button class="yt-premium-nav-btn" data-view="live-chat">💬 <span>Live Chat</span></button>
       <button class="yt-premium-nav-btn" data-view="embedded-player">▶️ <span>Embedded Player</span></button>
       <button class="yt-premium-nav-btn" data-view="oembed">🔗 <span>YouTube oEmbed</span></button>
-      <button class="yt-premium-nav-btn" data-view="copyright">©️ <span>Copyright / Restrictions</span></button>
       <button class="yt-premium-nav-btn" data-view="access">🔐 <span>Access Requests</span></button>
+      <button class="yt-premium-nav-btn" data-view="copyright">©️ <span>Copyright / Restrictions</span></button>
       <button class="yt-premium-nav-btn" data-view="services">🧰 <span>Services</span></button>
       <button class="yt-premium-nav-btn" data-view="payments">💳 <span>Payments / PayU</span></button>
       <button class="yt-premium-nav-btn" data-view="service-charge">₹ <span>Service Charge</span></button>
       <button class="yt-premium-nav-btn" data-view="history">🕘 <span>History</span></button>
       <button class="yt-premium-nav-btn" data-view="operations">🧭 <span>Operations Center</span></button>
       <button class="yt-premium-nav-btn" data-view="public-notifications">🔔 <span>Notifications</span></button>
-      <button class="yt-premium-nav-btn" data-view="control-suite">🛡️ <span>Admin Control Suite</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-role-control="manager">🟢 <span>Manager</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-role-control="operator">🟡 <span>Operator</span></button>
-      <button class="yt-premium-nav-btn" type="button" data-role-control="support">🩷 <span>Support</span></button>
       <button class="yt-premium-nav-btn" data-view="cms">🧩 <span>Admin Dashboard CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="website-cms">🌐 <span>Website CMS</span></button>
       <button class="yt-premium-nav-btn" data-view="editor">✏️ <span>Admin Editor</span></button>
@@ -302,8 +302,8 @@ document.documentElement.classList.add("yt-admin-boot");
     <section class="yt-premium-view" id="view-customers">
       <div class="yt-premium-section-head"><div><span>CUSTOMERS</span><h2>Users / Customers</h2><p>Customer accounts and profile information.</p></div><b id="customersSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th><th>Action</th></tr></thead>
-        <tbody id="customersBody"><tr><td colspan="6">No data yet.</td></tr></tbody></table>
+        <table class="data-table"><thead><tr><th>User Name</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="customersBody"><tr><td colspan="5">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
 
@@ -457,30 +457,8 @@ document.documentElement.classList.add("yt-admin-boot");
     </section>
 
     <section class="yt-premium-view" id="view-history">
-      <div class="yt-premium-section-head yt-history-section-head">
-        <div><span>HISTORY</span><h2>History</h2><p>Professional operational history. Deleting History does not delete Audit Log or original records.</p></div>
-        <div class="yt-history-head-actions">
-          <span class="yt-history-count"><b id="adminHistoryCount">0</b> Records</span>
-          <button id="adminHistoryRefresh" class="btn" type="button">↻ Refresh</button>
-          <button id="adminHistoryDeleteAll" class="btn danger" type="button">🗑️ Delete All</button>
-        </div>
-      </div>
-
-      <div class="panel yt-premium-panel yt-history-panel">
-        <div class="yt-history-toolbar">
-          <div class="yt-history-search-wrap"><span>🔎</span><input id="adminHistorySearch" type="search" placeholder="Search action, user, ID or details…" autocomplete="off"></div>
-          <select id="adminHistoryAction" aria-label="Filter by action">
-            <option value="">All Actions</option>
-          </select>
-        </div>
-        <div class="yt-table-scroll">
-          <table class="data-table yt-history-table">
-            <thead><tr><th>Date &amp; Time</th><th>Type</th><th>Action</th><th>User / Actor</th><th>Details</th><th>Status</th><th>Action</th></tr></thead>
-            <tbody id="adminHistoryBody"><tr><td colspan="7">Loading history…</td></tr></tbody>
-          </table>
-        </div>
-        <div id="adminHistoryEmpty" class="yt-history-empty" hidden>No matching history found.</div>
-      </div>
+      <div class="yt-premium-section-head"><div><span>HISTORY</span><h2>History</h2><p>Recent admin/customer/channel activity.</p></div></div>
+      <div class="panel yt-premium-panel"><div id="adminHistoryList" class="yt-history-list"><div class="yt-history-empty">No data yet.</div></div></div>
     </section>
 
 
@@ -1148,14 +1126,13 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 
 <script src="../assets/js/cms-deep-catalog.js"></script>
 <script src="../assets/js/cms-youtube-api-catalog.js"></script>
-<script type="module" src="../assets/js/cms-engine.js?v=cmsfix1"></script>
-<script type="module" src="../assets/js/cms-deep.js?v=cmsfix1"></script>
-<script type="module" src="../assets/js/cms-deep-admin.js?v=cmsfix1"></script>
-
-<script type="module" src="../assets/js/cms-professional.js?v=cmsfix1"></script>
+<script type="module" src="../assets/js/cms-engine.js"></script>
+<script type="module" src="../assets/js/cms-deep.js"></script>
+<script type="module" src="../assets/js/cms-deep-admin.js"></script>
+<script type="module" src="../assets/js/cms-admin-ui.js"></script>
+<script type="module" src="../assets/js/cms-professional.js"></script>
 <script type="module" src="../assets/js/free-user-service.js?v=4point4"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
-<script type="module" src="../assets/js/admin-history.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>
 
