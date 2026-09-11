@@ -79,7 +79,7 @@ async function loadAdminDashboard(){
   setText("adminEmailView", user.email || "");
 
   const [customers,access,requests] = await Promise.all([
-    safeAdminQuery(supabase.from("customers").select("id,user_id,full_name,email,mobile,channel_name,channel_url,created_at,account_status").order("created_at",{ascending:false}),[],"Customers"),
+    safeAdminQuery(supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at").order("created_at",{ascending:false}),[],"Customers"),
     safeAdminQuery(supabase.from("channel_access").select("*").order("updated_at",{ascending:false}),[],"Channel access"),
     safeAdminQuery(supabase.from("service_requests").select("*").order("created_at",{ascending:false}),[],"Service requests")
   ]);
@@ -131,76 +131,15 @@ async function loadAdminDashboard(){
 
 function renderCustomers(rows){
   const body=$("customersBody"); if(!body) return;
-  body.innerHTML=rows.length?rows.map(c=>{
-    const status=String(c.account_status||"active").toLowerCase()==="disabled"?"disabled":"active";
-    return `<tr>
+  body.innerHTML=rows.length?rows.map(c=>`
+    <tr>
       <td><b>${esc(c.full_name||"-")}</b></td>
       <td>${esc(c.email||"-")}</td>
       <td>${esc(c.mobile||"-")}</td>
       <td>${esc(c.channel_name||"-")}</td>
       <td>${dateText(c.created_at)}</td>
-      <td><span class="yt-status-chip ${status==='active'?'good':'bad'}">${status==='active'?'Active':'Disabled'}</span></td>
-      <td><button type="button" class="btn" data-customer-actions="${esc(c.id)}">Actions</button></td>
-    </tr>`;
-  }).join(""):'<tr><td colspan="7">No customers yet.</td></tr>';
+    </tr>`).join(""):'<tr><td colspan="5">No customers yet.</td></tr>';
 }
-
-function getCustomerById(id){return (dashboardCache.customers||[]).find(c=>String(c.id)===String(id))||null;}
-function openCustomerActions(id){
-  const c=getCustomerById(id); if(!c) return;
-  const modal=$("customerActionsModal"), form=$("customerActionsForm"); if(!modal||!form)return;
-  form.dataset.customerId=c.id;
-  const status=String(c.account_status||"active").toLowerCase()==="disabled"?"disabled":"active";
-  $("customerActionName").textContent=c.full_name||c.email||"Customer";
-  $("customerActionEmail").textContent=c.email||"-";
-  $("customerActionDetailName").textContent=c.full_name||"-";
-  $("customerActionDetailEmail").textContent=c.email||"-";
-  $("customerActionDetailMobile").textContent=c.mobile||"-";
-  $("customerActionDetailChannel").textContent=c.channel_name||"-";
-  $("customerActionDetailJoined").textContent=dateText(c.created_at);
-  $("customerActionDetailStatus").textContent=status==='active'?"Active":"Disabled";
-  $("customerActionStatus").value=status;
-  $("customerActionView").checked=true;
-  $("customerActionDetails").hidden=false;
-  $("customerActionReset").checked=false;
-  $("customerActionDelete").checked=false;
-  modal.hidden=false;
-}
-function closeCustomerActions(){const m=$("customerActionsModal");if(m)m.hidden=true;}
-async function saveCustomerActions(){
-  const form=$("customerActionsForm"); const id=form?.dataset.customerId; const c=getCustomerById(id); if(!c)return;
-  const status=$("customerActionStatus")?.value||"active";
-  const del=$("customerActionDelete")?.checked;
-  const btn=$("customerActionsSave"); if(btn)btn.disabled=true;
-  try{
-    if(del){
-      if(!confirm(`Delete ${c.full_name||c.email||"this user"}? This removes the customer profile and related visible customer record.`))return;
-      const {data:deleted,error}=await withTimeout(supabase.rpc("admin_delete_customer",{p_customer_id:c.id}),ADMIN_TIMEOUT,"Delete user");
-      if(deleted===false) throw new Error("User was not found.");
-      if(error)throw error;
-      showMessage("User deleted successfully.",true); closeCustomerActions(); await loadAdminDashboard(); return;
-    }
-    if(status!==String(c.account_status||"active").toLowerCase()){
-      const {error}=await withTimeout(supabase.from("customers").update({account_status:status}).eq("id",c.id),ADMIN_TIMEOUT,"Update user status");
-      if(error)throw error;
-    }
-    if($("customerActionReset")?.checked){
-      if(!c.email)throw new Error("This user has no email address for password reset.");
-      const redirectTo=new URL("reset-password.html",location.href.replace(/admin\/[^/]*$/,"")).href;
-      const {error}=await withTimeout(supabase.auth.resetPasswordForEmail(c.email,{redirectTo}),ADMIN_TIMEOUT,"Send reset email");
-      if(error)throw error;
-    }
-    showMessage($("customerActionReset")?.checked?"User changes saved. Password reset link sent.":"User changes saved.",true);
-    closeCustomerActions(); await loadAdminDashboard();
-  }catch(e){showMessage(e?.message||"Unable to save user changes.");}finally{if(btn)btn.disabled=false;}
-}
-
-document.addEventListener("click",e=>{
-  const b=e.target.closest("[data-customer-actions]"); if(b){e.preventDefault();openCustomerActions(b.dataset.customerActions);}
-  if(e.target.closest("[data-customer-actions-close]"))closeCustomerActions();
-});
-document.getElementById("customerActionView")?.addEventListener("change",e=>{const d=$("customerActionDetails");if(d)d.hidden=!e.target.checked;});
-document.getElementById("customerActionsForm")?.addEventListener("submit",e=>{e.preventDefault();saveCustomerActions();});
 
 function renderChannels(customers,access){
   const body=$("youtubeChannelsBody"); if(!body) return;
@@ -608,6 +547,7 @@ function loadPremiumSectionData(name){
   if(name==="payments") loadAdminPayments();
   if(name==="service-charge") loadServiceCharges();
   if(name==="user-requests") loadAdminUserRequests();
+  if(name==="history") window.loadAdminHistory?.();
 }
 
 window.adminLogout = async () => {

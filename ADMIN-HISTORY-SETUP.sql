@@ -83,7 +83,7 @@ returns bigint language plpgsql security definer set search_path=public as $$
 declare n bigint;
 begin
   if not public.yt_is_super_admin() then raise exception 'Only Super Admin can delete History'; end if;
-  delete from public.admin_history where id is not null;
+  delete from public.admin_history;
   get diagnostics n=row_count;
   return n;
 end $$;
