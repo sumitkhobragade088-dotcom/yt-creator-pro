@@ -42,7 +42,7 @@ function esc(v="") {
 async function ensureCustomerProfile(user) {
   const meta = user?.user_metadata || {};
   const existing = await safeQuery(
-    supabase.from("customers").select("id,is_deleted").eq("user_id", user.id).maybeSingle(),
+    supabase.from("customers").select("id").eq("user_id", user.id).maybeSingle(),
     null, "Customer profile"
   );
   if (existing?.id) return existing.id;
@@ -121,9 +121,6 @@ if (loginForm) {
         await supabase.auth.signOut();
         throw new Error("Admin/Staff account detected. Please use the Admin/Staff Login.");
       }
-
-      const {data:customerRow}=await supabase.from("customers").select("id,is_deleted").eq("user_id",data.user.id).maybeSingle();
-      if(customerRow?.is_deleted){ await supabase.auth.signOut(); throw new Error("This account is disabled. Please contact support."); }
 
       // Do not block login on profile/table queries.
       ensureCustomerProfile(data.user).catch(console.error);
