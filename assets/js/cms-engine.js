@@ -1,4 +1,10 @@
-import { supabase } from './supabase.js';
+let supabase=null;
+let supabaseLoad=null;
+async function getSupabase(){
+  if(supabase) return supabase;
+  if(!supabaseLoad) supabaseLoad=import('./supabase.js').then(m=>{supabase=m.supabase;return supabase}).catch(()=>null);
+  return supabaseLoad;
+}
 
 const ADMIN_EMAIL='sumitkhobragade088@gmail.com';
 const clone=o=>JSON.parse(JSON.stringify(o));
@@ -29,46 +35,53 @@ function normalizeSetting(key,value){
   for(const k of ['email','phone','whatsapp','hours']) if(!String(out.contact[k]||'').trim()) out.contact[k]=d[k];
   return out;
 }
-const withTimeout=(promise,ms=7000)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('CMS request timeout')),ms))]);
 async function read(key){
   try{
-    const {data,error}=await withTimeout(supabase.from('yt_cms_settings').select('value').eq('key',key).maybeSingle());
+    const db=await getSupabase();
+    if(!db) throw new Error('Supabase unavailable');
+    const {data,error}=await db.from('yt_cms_settings').select('value').eq('key',key).maybeSingle();
     if(!error&&data?.value){localStorage.setItem('ytcms_'+key,JSON.stringify(data.value));return normalizeSetting(key,mergeDeep(clone(DEFAULTS[key]||{}),data.value))}
   }catch(_){ }
   try{const v=JSON.parse(localStorage.getItem('ytcms_'+key)||'null');if(v)return normalizeSetting(key,mergeDeep(clone(DEFAULTS[key]||{}),v))}catch(_){ }
   return normalizeSetting(key,clone(DEFAULTS[key]||{}));
 }
 async function currentAdminUser(requiredPermission='website_cms.manage'){
-  const {data:sessionData,error:sessionError}=await supabase.auth.getSession();
+  const db=await getSupabase();
+  if(!db) throw new Error('Supabase unavailable');
+  const {data:sessionData,error:sessionError}=await db.auth.getSession();
   if(sessionError) throw sessionError;
   const user=sessionData?.session?.user||null;
   if(!user) throw new Error('Admin authorization required');
   const email=String(user.email||'').toLowerCase();
-  const {data:au,error:ae}=await supabase.from('admin_users').select('id,email').eq('id',user.id).maybeSingle();
+  const {data:au,error:ae}=await db.from('admin_users').select('id,email').eq('id',user.id).maybeSingle();
   if(ae||!au) throw new Error('Admin authorization required');
   if(email===ADMIN_EMAIL) return user;
-  const {data:sr,error:se}=await supabase.from('admin_staff_roles').select('role,status').eq('admin_id',user.id).maybeSingle();
+  const {data:sr,error:se}=await db.from('admin_staff_roles').select('role,status').eq('admin_id',user.id).maybeSingle();
   if(se||!sr||sr.status!=='active') throw new Error('Active admin staff access required');
   if(sr.role==='super_admin') return user;
-  const {data:rp,error:pe}=await supabase.from('admin_role_permissions').select('permission_key').eq('role',sr.role).eq('permission_key',requiredPermission).maybeSingle();
+  const {data:rp,error:pe}=await db.from('admin_role_permissions').select('permission_key').eq('role',sr.role).eq('permission_key',requiredPermission).maybeSingle();
   if(pe||!rp) throw new Error(`Permission required: ${requiredPermission}`);
   return user;
 }
 async function write(key,value){
+  const db=await getSupabase();
+  if(!db) throw new Error('Supabase unavailable; changes can be saved locally only');
   await currentAdminUser(key==='admin_cms'||key==='admin_theme'?'roles.manage':'website_cms.manage');
-  const {error}=await supabase.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'});
+  const {error}=await db.from('yt_cms_settings').upsert({key,value,updated_at:new Date().toISOString()},{onConflict:'key'});
   if(error) throw error;
   localStorage.setItem('ytcms_'+key,JSON.stringify(value));
   return value;
 }
 async function uploadMedia(file){
   if(!file) throw new Error('Choose an image first');
+  const db=await getSupabase();
+  if(!db) throw new Error('Supabase unavailable');
   await currentAdminUser();
   const ext=(file.name.split('.').pop()||'png').toLowerCase().replace(/[^a-z0-9]/g,'');
   const path=`cms/${Date.now()}-${Math.random().toString(36).slice(2,8)}.${ext}`;
-  const {error}=await supabase.storage.from('yt-cms-media').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
+  const {error}=await db.storage.from('yt-cms-media').upload(path,file,{cacheControl:'3600',upsert:false,contentType:file.type||undefined});
   if(error) throw error;
-  const {data}=supabase.storage.from('yt-cms-media').getPublicUrl(path);
+  const {data}=db.storage.from('yt-cms-media').getPublicUrl(path);
   if(!data?.publicUrl) throw new Error('Unable to create public media URL');
   return data.publicUrl;
 }
@@ -129,8 +142,6 @@ async function applyAdmin(){
   // PRIMARY ADMIN SIDEBAR IS SOURCE-LOCKED: its 30 buttons/order are defined in each canonical Admin HTML page.
   // CMS settings must never reorder, hide, replace, or inject another Admin sidebar flow.
 
-    }
-  }
   for(const [view,v] of Object.entries(c.pages||{})){const sec=document.getElementById('view-'+view);if(!sec)continue;sec.hidden=!!(v.hidden||v.inactive||v.deleted||v.status==='draft');if(v.title){const h=sec.querySelector('.yt-premium-section-head h2,.yt-premium-hero h2');if(h)h.textContent=v.title}if(v.subtitle){const p=sec.querySelector('.yt-premium-section-head p,.yt-premium-hero p');if(p)p.textContent=v.subtitle}}
 
 
@@ -194,5 +205,4 @@ function inventoryWebsite(){
   return {sections:[...document.querySelectorAll('.yt-user-public-main > section[id]')].map((el,i)=>({id:el.id,label:el.querySelector('h2')?.textContent?.trim()||el.id,order:i})),cards:[...document.querySelectorAll('#services article')].map((el,i)=>{const key='service-'+i;el.dataset.cmsSiteCard=key;return {key,label:el.querySelector('h3')?.textContent?.trim()||key,order:i}})};
 }
 window.YTCMS={read,write,uploadMedia,applyAdmin,applyWebsite,maintenanceGuard,defaults:DEFAULTS,slugify,inventoryAdminBlocks,inventoryWebsite};
-// Expose the CMS API before remote Supabase work so the other CMS modules can initialize.
-if(location.pathname.includes('/admin/')){inventoryAdminBlocks();applyAdmin().catch(err=>console.error('[CMS] Admin apply failed:',err))}else{inventoryWebsite();maintenanceGuard().then(stopped=>{if(!stopped)return applyWebsite()}).catch(err=>console.error('[CMS] Website apply failed:',err))}
+if(location.pathname.includes('/admin/')){inventoryAdminBlocks();await applyAdmin()}else{inventoryWebsite();const stopped=await maintenanceGuard();if(!stopped)await applyWebsite()}
