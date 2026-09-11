@@ -30,13 +30,19 @@ async function loadCustomers(){
   // Free User Service must show only normal website customers.
   // Admin/super-admin and staff accounts are stored in admin_users; exclude
   // any matching customer.user_id without changing the existing customer flow.
-  const {data:adminRows,error:adminError}=await supabase.from("admin_users").select("id");
-  if(adminError){msg(`Customer list load failed: ${adminError.message}`);return;}
-  const adminIds=new Set((adminRows||[]).map(r=>String(r.id)));
-
-  const {data,error}=await supabase.from("customers").select("id,user_id,full_name,email").order("full_name",{ascending:true});
-  if(error){msg(`Customer list load failed: ${error.message}`);return;}
-  customers=(data||[]).filter(c=>!c.user_id || !adminIds.has(String(c.user_id)));
+  // The Admin page is already protected by admin-auth.js. Do not block this
+  // list on a separate admin_users read: RLS on admin_users can legitimately
+  // deny that query and leave the Free Users table stuck on "Loading users…".
+  // Load the customer records directly, including the fields used by the
+  // Actions popup.
+  const {data,error}=await supabase.from("customers").select("id,user_id,full_name,email,mobile,channel_name,created_at,account_status").order("full_name",{ascending:true});
+  if(error){
+    const body=$("freeServiceUsersBody");
+    if(body) body.innerHTML=`<tr><td colspan="6">Unable to load users: ${esc(error.message)}</td></tr>`;
+    msg(`Customer list load failed: ${error.message}`);
+    return;
+  }
+  customers=data||[];
   renderFreeServiceUsers();
   const sel=$("freeServiceCustomer");if(!sel)return;
   sel.innerHTML='<option value="">Select customer…</option>'+customers.map(c=>`<option value="${esc(c.id)}">${esc(c.full_name||c.email||c.id)}${c.email?` • ${esc(c.email)}`:""}</option>`).join("");
