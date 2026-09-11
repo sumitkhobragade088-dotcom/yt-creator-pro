@@ -1,5 +1,0 @@
-Khobragade.online FINAL CLEAN LOCK
-
-This package contains the cleaned current project only. Legacy fix notes, duplicate root assets, obsolete standalone Manage Channel copies, and TypeScript scratch artifacts were removed. Canonical assets remain under assets/. Admin remains under admin/.
-
-Live Supabase, OAuth, YouTube and PayU credentials/runtime state must be verified after deployment.

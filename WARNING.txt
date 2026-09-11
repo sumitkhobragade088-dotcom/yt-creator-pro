@@ -1,1 +1,0 @@
-WARNING: Replace ONLY these 2 files in the latest working project. No SQL. No other files. Existing functions/database/payment/user flows are not intentionally changed.
