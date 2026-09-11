@@ -150,9 +150,19 @@ function openCustomerActions(id){
   const c=getCustomerById(id); if(!c) return;
   const modal=$("customerActionsModal"), form=$("customerActionsForm"); if(!modal||!form)return;
   form.dataset.customerId=c.id;
+  const status=String(c.account_status||"active").toLowerCase()==="disabled"?"disabled":"active";
   $("customerActionName").textContent=c.full_name||c.email||"Customer";
   $("customerActionEmail").textContent=c.email||"-";
-  $("customerActionStatus").value=String(c.account_status||"active").toLowerCase()==="disabled"?"disabled":"active";
+  $("customerActionDetailName").textContent=c.full_name||"-";
+  $("customerActionDetailEmail").textContent=c.email||"-";
+  $("customerActionDetailMobile").textContent=c.mobile||"-";
+  $("customerActionDetailChannel").textContent=c.channel_name||"-";
+  $("customerActionDetailJoined").textContent=dateText(c.created_at);
+  $("customerActionDetailStatus").textContent=status==='active'?"Active":"Disabled";
+  $("customerActionStatus").value=status;
+  $("customerActionView").checked=true;
+  $("customerActionDetails").hidden=false;
+  $("customerActionReset").checked=false;
   $("customerActionDelete").checked=false;
   modal.hidden=false;
 }
@@ -189,6 +199,7 @@ document.addEventListener("click",e=>{
   const b=e.target.closest("[data-customer-actions]"); if(b){e.preventDefault();openCustomerActions(b.dataset.customerActions);}
   if(e.target.closest("[data-customer-actions-close]"))closeCustomerActions();
 });
+document.getElementById("customerActionView")?.addEventListener("change",e=>{const d=$("customerActionDetails");if(d)d.hidden=!e.target.checked;});
 document.getElementById("customerActionsForm")?.addEventListener("submit",e=>{e.preventDefault();saveCustomerActions();});
 
 function renderChannels(customers,access){
