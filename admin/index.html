@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="../assets/css/cms-control.css">
 <link rel="stylesheet" href="../assets/css/cms-professional.css">
 <link rel="stylesheet" href="../assets/css/channel-content.css">
-<link rel="stylesheet" href="../assets/css/admin-editor.css">
 <link rel="stylesheet" href="../assets/css/youtube-api-tools.css">
 <style>
 html.yt-admin-boot body{visibility:hidden!important}
@@ -147,6 +146,7 @@ document.documentElement.classList.add("yt-admin-boot");
 #view-free-user-service .free-user-channel-card b{display:block}.free-user-channel-card small{display:block;color:#667085;margin-top:3px}
 @media(max-width:760px){#view-free-user-service .free-service-form-grid{grid-template-columns:1fr}#view-free-user-service .free-user-manage-grid{grid-template-columns:1fr}}
 </style>
+<link rel="stylesheet" href="../assets/css/admin-editor.css">
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -969,38 +969,30 @@ document.documentElement.classList.add("yt-admin-boot");
 
     <section class="yt-premium-view" id="view-editor">
       <div class="yt-premium-section-head">
-        <div><span>EDITOR CONTROL</span><h2>Admin Editor</h2><p>Professional control for Admin Dashboard overview and navigation labels.</p></div>
-        <div class="ae-status" id="adminEditorStatus">● Ready</div>
+        <div><span>EDITOR CONTROL</span><h2>Admin Editor</h2><p>Professional control for Admin Dashboard presentation and safe interface settings.</p></div>
+        <div class="yt-editor-head-actions"><button id="adminEditorPreview" class="btn" type="button">👁️ Preview</button><button id="adminEditorSave" class="btn primary" type="button">💾 Save Changes</button><button id="adminEditorReset" class="btn" type="button">↩ Reset</button></div>
       </div>
-      <div class="ae-grid">
-        <div class="panel yt-premium-panel ae-card ae-wide">
-          <div class="ae-card-head"><div><h3>🎨 Dashboard Overview</h3><p>Edit visible overview card labels without changing their data or existing functionality.</p></div><span>SAFE EDIT</span></div>
-          <div class="ae-fields">
-            <div class="ae-field"><label>👥 Customers — Label</label><input id="aeCustomersLabel" maxlength="60"></div>
-            <div class="ae-field"><label>📺 Channels — Label</label><input id="aeChannelsLabel" maxlength="60"></div>
-            <div class="ae-field"><label>🔐 Access Requests — Label</label><input id="aeAccessLabel" maxlength="60"></div>
-            <div class="ae-field"><label>⏳ Pending Access — Label</label><input id="aePendingLabel" maxlength="60"></div>
-            <div class="ae-field"><label>💰 Monetization — Label</label><input id="aeMonetizationLabel" maxlength="60"></div>
-            <div class="ae-field"><label>₹ AdSense — Label</label><input id="aeAdsenseLabel" maxlength="60"></div>
-            <div class="ae-field"><label>🧰 Services — Label</label><input id="aeServicesLabel" maxlength="60"></div>
-          </div>
+      <div id="adminEditorApp" class="yt-admin-editor-app">
+        <div class="yt-editor-tabs" role="tablist" aria-label="Admin Editor sections">
+          <button type="button" class="active" data-editor-tab="navigation">🧭 Navigation</button>
+          <button type="button" data-editor-tab="dashboard">📊 Dashboard</button>
+          <button type="button" data-editor-tab="sections">🧩 Sections</button>
+          <button type="button" data-editor-tab="tables">📋 Tables</button>
+          <button type="button" data-editor-tab="roles">🔐 Roles</button>
+          <button type="button" data-editor-tab="text">✏️ Text & Buttons</button>
+          <button type="button" data-editor-tab="history">🕘 History</button>
         </div>
-        <div class="panel yt-premium-panel ae-card">
-          <div class="ae-card-head"><div><h3>🧭 Sidebar Labels</h3><p>Rename navigation labels only. Routes remain unchanged.</p></div><span>SAFE</span></div>
-          <div class="ae-fields ae-scroll" id="aeSidebarFields"></div>
-        </div>
-        <div class="panel yt-premium-panel ae-card ae-wide">
-          <div class="ae-card-head"><div><h3>☁️ Global Editor Settings</h3><p>Saved in Supabase for authorized Admins, with local fallback if the server is unavailable.</p></div></div>
-          <div class="ae-options">
-            <label class="ae-toggle"><input type="checkbox" id="aeDashboardLive"><span></span><b>Apply Dashboard Editor changes</b></label>
-            <label class="ae-toggle"><input type="checkbox" id="aeSidebarLive"><span></span><b>Apply Sidebar label changes</b></label>
-          </div>
-          <div class="ae-actions"><button id="aePreview" class="btn">👁️ Preview</button><button id="aeSave" class="btn primary">💾 Save Changes</button><button id="aeReset" class="btn">↩ Reset to Default</button></div>
-          <p id="adminEditorMessage" class="ae-message" aria-live="polite"></p>
-        </div>
+        <div class="yt-editor-status" id="adminEditorStatus" role="status">Ready — changes are preview-only until Save Changes.</div>
+
+        <div class="yt-editor-panel active" data-editor-panel="navigation"><div class="yt-editor-panel-head"><div><h3>Sidebar Navigation</h3><p>Edit visible labels, visibility and order without changing the underlying routes.</p></div></div><div id="editorNavigationList" class="yt-editor-list"></div></div>
+        <div class="yt-editor-panel" data-editor-panel="dashboard"><div class="yt-editor-panel-head"><div><h3>Dashboard Cards</h3><p>Control card labels, visibility and order. Data values and IDs remain untouched.</p></div></div><div id="editorDashboardList" class="yt-editor-list"></div></div>
+        <div class="yt-editor-panel" data-editor-panel="sections"><div class="yt-editor-panel-head"><div><h3>Admin Sections</h3><p>Show or hide existing Admin sections. CMS sections are intentionally excluded.</p></div></div><div id="editorSectionList" class="yt-editor-list"></div></div>
+        <div class="yt-editor-panel" data-editor-panel="tables"><div class="yt-editor-panel-head"><div><h3>Table Columns</h3><p>Show or hide existing table columns without changing table data or actions.</p></div></div><div id="editorTableList" class="yt-editor-list"></div></div>
+        <div class="yt-editor-panel" data-editor-panel="roles"><div class="yt-editor-panel-head"><div><h3>Role Menu Visibility</h3><p>Control the three existing staff-role menu entries. Role permissions themselves remain protected by the existing role system.</p></div></div><div id="editorRoleList" class="yt-editor-list"></div></div>
+        <div class="yt-editor-panel" data-editor-panel="text"><div class="yt-editor-panel-head"><div><h3>Safe Text & Button Editor</h3><p>Edit only predefined Admin UI labels. No routes, IDs, scripts or backend actions are changed.</p></div></div><div id="editorTextList" class="yt-editor-list"></div></div>
+        <div class="yt-editor-panel" data-editor-panel="history"><div class="yt-editor-panel-head"><div><h3>Editor Change History</h3><p>Review saved Admin Editor changes.</p></div><button id="adminEditorRefreshHistory" class="btn" type="button">↻ Refresh</button></div><div id="editorHistoryList" class="yt-editor-history"><div class="yt-editor-empty">No saved editor changes yet.</div></div></div>
       </div>
     </section>
-
 
     <section class="yt-premium-view" id="view-control-suite">
   <div class="yt-premium-section-head">
@@ -1177,7 +1169,6 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/cms-professional.js"></script>
 <script type="module" src="../assets/js/free-user-service.js?v=4point4"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
-<script type="module" src="../assets/js/admin-editor.js"></script>
 <script type="module" src="../assets/js/admin-history.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>
@@ -1217,5 +1208,6 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/feature-center.js"></script>
 <script type="module">import("../assets/js/admin-control-suite.js").then(m=>m.initAdminControlSuite()).catch(console.error);</script>
 <script type="module" src="../assets/js/staff-role-control.js"></script>
+<script type="module" src="../assets/js/admin-editor.js"></script>
 </body>
 </html>
