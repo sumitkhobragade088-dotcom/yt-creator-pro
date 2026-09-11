@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="../assets/css/cms-control.css">
 <link rel="stylesheet" href="../assets/css/cms-professional.css">
 <link rel="stylesheet" href="../assets/css/channel-content.css">
+<link rel="stylesheet" href="../assets/css/admin-editor.css">
 <link rel="stylesheet" href="../assets/css/youtube-api-tools.css">
 <style>
 html.yt-admin-boot body{visibility:hidden!important}
@@ -146,7 +147,6 @@ document.documentElement.classList.add("yt-admin-boot");
 #view-free-user-service .free-user-channel-card b{display:block}.free-user-channel-card small{display:block;color:#667085;margin-top:3px}
 @media(max-width:760px){#view-free-user-service .free-service-form-grid{grid-template-columns:1fr}#view-free-user-service .free-user-manage-grid{grid-template-columns:1fr}}
 </style>
-<link rel="stylesheet" href="../assets/css/admin-editor.css">
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -969,13 +969,12 @@ document.documentElement.classList.add("yt-admin-boot");
 
     <section class="yt-premium-view" id="view-editor">
       <div class="yt-premium-section-head">
-        <div><span>EDITOR CONTROL</span><h2>Admin Editor</h2><p>Professional control for the Admin Dashboard overview and navigation labels.</p></div>
+        <div><span>EDITOR CONTROL</span><h2>Admin Editor</h2><p>Professional control for Admin Dashboard overview and navigation labels.</p></div>
         <div class="ae-status" id="adminEditorStatus">● Ready</div>
       </div>
-
       <div class="ae-grid">
         <div class="panel yt-premium-panel ae-card ae-wide">
-          <div class="ae-card-head"><div><h3>🎨 Dashboard Overview</h3><p>Edit the visible overview cards without changing their data or existing functionality.</p></div><span>SAFE EDIT</span></div>
+          <div class="ae-card-head"><div><h3>🎨 Dashboard Overview</h3><p>Edit visible overview card labels without changing their data or existing functionality.</p></div><span>SAFE EDIT</span></div>
           <div class="ae-fields">
             <div class="ae-field"><label>👥 Customers — Label</label><input id="aeCustomersLabel" maxlength="60"></div>
             <div class="ae-field"><label>📺 Channels — Label</label><input id="aeChannelsLabel" maxlength="60"></div>
@@ -986,27 +985,22 @@ document.documentElement.classList.add("yt-admin-boot");
             <div class="ae-field"><label>🧰 Services — Label</label><input id="aeServicesLabel" maxlength="60"></div>
           </div>
         </div>
-
         <div class="panel yt-premium-panel ae-card">
           <div class="ae-card-head"><div><h3>🧭 Sidebar Labels</h3><p>Rename navigation labels only. Routes remain unchanged.</p></div><span>SAFE</span></div>
           <div class="ae-fields ae-scroll" id="aeSidebarFields"></div>
         </div>
-
         <div class="panel yt-premium-panel ae-card ae-wide">
-          <div class="ae-card-head"><div><h3>⚙️ Editor Settings</h3><p>Changes are stored locally in this Admin browser. No Supabase tables or existing data are modified.</p></div></div>
+          <div class="ae-card-head"><div><h3>☁️ Global Editor Settings</h3><p>Saved in Supabase for authorized Admins, with local fallback if the server is unavailable.</p></div></div>
           <div class="ae-options">
             <label class="ae-toggle"><input type="checkbox" id="aeDashboardLive"><span></span><b>Apply Dashboard Editor changes</b></label>
             <label class="ae-toggle"><input type="checkbox" id="aeSidebarLive"><span></span><b>Apply Sidebar label changes</b></label>
           </div>
-          <div class="ae-actions">
-            <button id="aePreview" class="btn">👁️ Preview</button>
-            <button id="aeSave" class="btn primary">💾 Save Changes</button>
-            <button id="aeReset" class="btn">↩ Reset to Default</button>
-          </div>
+          <div class="ae-actions"><button id="aePreview" class="btn">👁️ Preview</button><button id="aeSave" class="btn primary">💾 Save Changes</button><button id="aeReset" class="btn">↩ Reset to Default</button></div>
           <p id="adminEditorMessage" class="ae-message" aria-live="polite"></p>
         </div>
       </div>
     </section>
+
 
     <section class="yt-premium-view" id="view-control-suite">
   <div class="yt-premium-section-head">
@@ -1183,7 +1177,7 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/cms-professional.js"></script>
 <script type="module" src="../assets/js/free-user-service.js?v=4point4"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
-<script src="../assets/js/admin-editor.js"></script>
+<script type="module" src="../assets/js/admin-editor.js"></script>
 <script type="module" src="../assets/js/admin-history.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>
