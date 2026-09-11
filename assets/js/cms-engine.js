@@ -29,9 +29,10 @@ function normalizeSetting(key,value){
   for(const k of ['email','phone','whatsapp','hours']) if(!String(out.contact[k]||'').trim()) out.contact[k]=d[k];
   return out;
 }
+const withTimeout=(promise,ms=7000)=>Promise.race([promise,new Promise((_,reject)=>setTimeout(()=>reject(new Error('CMS request timeout')),ms))]);
 async function read(key){
   try{
-    const {data,error}=await supabase.from('yt_cms_settings').select('value').eq('key',key).maybeSingle();
+    const {data,error}=await withTimeout(supabase.from('yt_cms_settings').select('value').eq('key',key).maybeSingle());
     if(!error&&data?.value){localStorage.setItem('ytcms_'+key,JSON.stringify(data.value));return normalizeSetting(key,mergeDeep(clone(DEFAULTS[key]||{}),data.value))}
   }catch(_){ }
   try{const v=JSON.parse(localStorage.getItem('ytcms_'+key)||'null');if(v)return normalizeSetting(key,mergeDeep(clone(DEFAULTS[key]||{}),v))}catch(_){ }
@@ -193,4 +194,5 @@ function inventoryWebsite(){
   return {sections:[...document.querySelectorAll('.yt-user-public-main > section[id]')].map((el,i)=>({id:el.id,label:el.querySelector('h2')?.textContent?.trim()||el.id,order:i})),cards:[...document.querySelectorAll('#services article')].map((el,i)=>{const key='service-'+i;el.dataset.cmsSiteCard=key;return {key,label:el.querySelector('h3')?.textContent?.trim()||key,order:i}})};
 }
 window.YTCMS={read,write,uploadMedia,applyAdmin,applyWebsite,maintenanceGuard,defaults:DEFAULTS,slugify,inventoryAdminBlocks,inventoryWebsite};
-if(location.pathname.includes('/admin/')){inventoryAdminBlocks();await applyAdmin()}else{inventoryWebsite();const stopped=await maintenanceGuard();if(!stopped)await applyWebsite()}
+// Expose the CMS API before remote Supabase work so the other CMS modules can initialize.
+if(location.pathname.includes('/admin/')){inventoryAdminBlocks();applyAdmin().catch(err=>console.error('[CMS] Admin apply failed:',err))}else{inventoryWebsite();maintenanceGuard().then(stopped=>{if(!stopped)return applyWebsite()}).catch(err=>console.error('[CMS] Website apply failed:',err))}
