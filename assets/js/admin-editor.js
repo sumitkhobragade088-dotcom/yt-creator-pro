@@ -30,7 +30,7 @@ function discover(){
   });
   const roles=[...document.querySelectorAll("#ytPremiumSidebar [data-role-control]")].map((b,i)=>({key:b.dataset.roleControl,label:b.querySelector("span")?.textContent?.trim()||defaultLabel(b),visible:true,order:i}));
   const text={};
-  document.querySelectorAll(".yt-premium-view:not(#view-editor):not(#view-cms):not(#view-website-cms) .yt-premium-section-head h2").forEach((el,i)=>{text[`heading:${el.closest(".yt-premium-view")?.id||i`]=defaultLabel(el);});
+  document.querySelectorAll(".yt-premium-view:not(#view-editor):not(#view-cms):not(#view-website-cms) .yt-premium-section-head h2").forEach((el,i)=>{text[`heading:${el.closest(".yt-premium-view")?.id||i}`]=defaultLabel(el);});
   document.querySelectorAll(".yt-premium-view:not(#view-editor):not(#view-cms):not(#view-website-cms) .yt-premium-section-head p").forEach((el,i)=>{text[`desc:${el.closest(".yt-premium-view")?.id||i}`]=defaultLabel(el);});
   const buttons={};
   document.querySelectorAll(".yt-premium-view:not(#view-editor):not(#view-cms):not(#view-website-cms) button[id]").forEach((b,i)=>{if(i<80)buttons[b.id]=defaultLabel(b);});
