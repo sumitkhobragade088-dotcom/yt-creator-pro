@@ -7,6 +7,7 @@
 <title>Admin Dashboard | YT Creator Pro</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="stylesheet" href="../assets/css/style.css">
+<link rel="stylesheet" href="../assets/css/admin-editor.css">
 <link rel="stylesheet" href="../assets/css/cms-control.css">
 <link rel="stylesheet" href="../assets/css/cms-professional.css">
 <link rel="stylesheet" href="../assets/css/channel-content.css">
@@ -146,7 +147,6 @@ document.documentElement.classList.add("yt-admin-boot");
 #view-free-user-service .free-user-channel-card b{display:block}.free-user-channel-card small{display:block;color:#667085;margin-top:3px}
 @media(max-width:760px){#view-free-user-service .free-service-form-grid{grid-template-columns:1fr}#view-free-user-service .free-user-manage-grid{grid-template-columns:1fr}}
 </style>
-<link rel="stylesheet" href="../assets/css/admin-editor.css">
 </head>
 <body data-admin-protected="true" class="yt-premium-admin-page">
 
@@ -968,31 +968,68 @@ document.documentElement.classList.add("yt-admin-boot");
     </section>
 
     <section class="yt-premium-view" id="view-editor">
-      <div class="yt-premium-section-head">
-        <div><span>EDITOR CONTROL</span><h2>Admin Editor</h2><p>Professional control for Admin Dashboard presentation and safe interface settings.</p></div>
-        <div class="yt-editor-head-actions"><button id="adminEditorPreview" class="btn" type="button">👁️ Preview</button><button id="adminEditorSave" class="btn primary" type="button">💾 Save Changes</button><button id="adminEditorReset" class="btn" type="button">↩ Reset</button></div>
-      </div>
-      <div id="adminEditorApp" class="yt-admin-editor-app">
-        <div class="yt-editor-tabs" role="tablist" aria-label="Admin Editor sections">
-          <button type="button" class="active" data-editor-tab="navigation">🧭 Navigation</button>
-          <button type="button" data-editor-tab="dashboard">📊 Dashboard</button>
-          <button type="button" data-editor-tab="sections">🧩 Sections</button>
-          <button type="button" data-editor-tab="tables">📋 Tables</button>
-          <button type="button" data-editor-tab="roles">🔐 Roles</button>
-          <button type="button" data-editor-tab="text">✏️ Text & Buttons</button>
-          <button type="button" data-editor-tab="history">🕘 History</button>
-        </div>
-        <div class="yt-editor-status" id="adminEditorStatus" role="status">Ready — changes are preview-only until Save Changes.</div>
+  <div class="yt-premium-section-head">
+    <div><span>EDITOR CONTROL</span><h2>Admin Editor</h2><p>Professional control for Admin Dashboard presentation and safe interface settings.</p></div>
+    <div class="ae-head-actions">
+      <button id="aePreview" class="btn" type="button">👁️ Preview</button>
+      <button id="aeSave" class="btn primary" type="button">💾 Save Changes</button>
+      <button id="aeReset" class="btn" type="button">↩ Reset</button>
+    </div>
+  </div>
+  <div class="ae-shell">
+    <div class="ae-tabs" role="tablist" aria-label="Admin Editor sections">
+      <button class="ae-tab active" type="button" data-editor-tab="navigation">🧭 Navigation</button>
+      <button class="ae-tab" type="button" data-editor-tab="dashboard">📊 Dashboard</button>
+      <button class="ae-tab" type="button" data-editor-tab="sections">🧩 Sections</button>
+      <button class="ae-tab" type="button" data-editor-tab="tables">📋 Tables</button>
+      <button class="ae-tab" type="button" data-editor-tab="roles">🔐 Roles</button>
+      <button class="ae-tab" type="button" data-editor-tab="text">✏️ Text &amp; Buttons</button>
+      <button class="ae-tab" type="button" data-editor-tab="history">🕘 History</button>
+    </div>
+    <div class="ae-status" id="aeStatus">Ready — changes are preview-only until Save Changes.</div>
 
-        <div class="yt-editor-panel active" data-editor-panel="navigation"><div class="yt-editor-panel-head"><div><h3>Sidebar Navigation</h3><p>Edit visible labels, visibility and order without changing the underlying routes.</p></div></div><div id="editorNavigationList" class="yt-editor-list"></div></div>
-        <div class="yt-editor-panel" data-editor-panel="dashboard"><div class="yt-editor-panel-head"><div><h3>Dashboard Cards</h3><p>Control card labels, visibility and order. Data values and IDs remain untouched.</p></div></div><div id="editorDashboardList" class="yt-editor-list"></div></div>
-        <div class="yt-editor-panel" data-editor-panel="sections"><div class="yt-editor-panel-head"><div><h3>Admin Sections</h3><p>Show or hide existing Admin sections. CMS sections are intentionally excluded.</p></div></div><div id="editorSectionList" class="yt-editor-list"></div></div>
-        <div class="yt-editor-panel" data-editor-panel="tables"><div class="yt-editor-panel-head"><div><h3>Table Columns</h3><p>Show or hide existing table columns without changing table data or actions.</p></div></div><div id="editorTableList" class="yt-editor-list"></div></div>
-        <div class="yt-editor-panel" data-editor-panel="roles"><div class="yt-editor-panel-head"><div><h3>Role Menu Visibility</h3><p>Control the three existing staff-role menu entries. Role permissions themselves remain protected by the existing role system.</p></div></div><div id="editorRoleList" class="yt-editor-list"></div></div>
-        <div class="yt-editor-panel" data-editor-panel="text"><div class="yt-editor-panel-head"><div><h3>Safe Text & Button Editor</h3><p>Edit only predefined Admin UI labels. No routes, IDs, scripts or backend actions are changed.</p></div></div><div id="editorTextList" class="yt-editor-list"></div></div>
-        <div class="yt-editor-panel" data-editor-panel="history"><div class="yt-editor-panel-head"><div><h3>Editor Change History</h3><p>Review saved Admin Editor changes.</p></div><button id="adminEditorRefreshHistory" class="btn" type="button">↻ Refresh</button></div><div id="editorHistoryList" class="yt-editor-history"><div class="yt-editor-empty">No saved editor changes yet.</div></div></div>
-      </div>
-    </section>
+    <div class="ae-panel active" data-editor-panel="navigation">
+      <h3>Sidebar Navigation</h3><p class="ae-muted">Edit visible labels, visibility and order without changing underlying routes.</p>
+      <div id="aeNavigationList" class="ae-list"></div>
+    </div>
+
+    <div class="ae-panel" data-editor-panel="dashboard" hidden>
+      <h3>Dashboard Cards</h3><p class="ae-muted">Edit dashboard card labels and visibility safely.</p>
+      <div id="aeDashboardList" class="ae-grid"></div>
+    </div>
+
+    <div class="ae-panel" data-editor-panel="sections" hidden>
+      <h3>Dashboard Sections</h3><p class="ae-muted">Show or hide Admin Dashboard sections. Underlying functionality remains unchanged.</p>
+      <div id="aeSectionsList" class="ae-list"></div>
+    </div>
+
+    <div class="ae-panel" data-editor-panel="tables" hidden>
+      <h3>Table Columns</h3><p class="ae-muted">Control supported table-column visibility without changing data or routes.</p>
+      <div id="aeTablesList" class="ae-list"></div>
+    </div>
+
+    <div class="ae-panel" data-editor-panel="roles" hidden>
+      <h3>Role Visibility</h3><p class="ae-muted">Control editor-visible navigation for each Admin role. Permissions are not changed here.</p>
+      <div id="aeRolesList" class="ae-list"></div>
+    </div>
+
+    <div class="ae-panel" data-editor-panel="text" hidden>
+      <h3>Text &amp; Buttons</h3><p class="ae-muted">Edit safe presentation text and button labels.</p>
+      <div id="aeTextList" class="ae-form-grid"></div>
+    </div>
+
+    <div class="ae-panel" data-editor-panel="history" hidden>
+      <div class="ae-history-head"><div><h3>Change History</h3><p class="ae-muted">Local editor changes and save/reset events.</p></div><button id="aeClearHistory" class="btn" type="button">Clear History</button></div>
+      <div id="aeHistoryList" class="ae-history"></div>
+    </div>
+
+    <div class="ae-legacy" aria-hidden="true">
+      <input id="editLabelCustomers"><input id="editLabelChannels"><input id="editLabelAccess"><input id="editLabelMonetization">
+      <span id="adminEditorMessage"></span>
+    </div>
+  </div>
+</section>
+
 
     <section class="yt-premium-view" id="view-control-suite">
   <div class="yt-premium-section-head">
@@ -1202,12 +1239,12 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 })();
 </script>
 
+<script src="../assets/js/admin-editor.js"></script>
 <script src="../assets/js/theme-i18n.js"></script>
 <script type="module" src="../assets/js/notifications.js"></script>
 <script type="module" src="../assets/js/admin-public-notifications.js"></script>
 <script type="module" src="../assets/js/feature-center.js"></script>
 <script type="module">import("../assets/js/admin-control-suite.js").then(m=>m.initAdminControlSuite()).catch(console.error);</script>
 <script type="module" src="../assets/js/staff-role-control.js"></script>
-<script type="module" src="../assets/js/admin-editor.js"></script>
 </body>
 </html>
