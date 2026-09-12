@@ -164,5 +164,6 @@ function bind(){
     await renderFreeUserChannels(e.target.value,data||[],$("freeUserManageSummary"),$("freeUserChannelList"));
   });
 }
+window.__reloadFreeUsers=loadCustomers;
 async function init(){bind();await loadCustomers();await loadServices();await loadFreeUserManager();}
 init();

@@ -138,8 +138,11 @@ function renderCustomers(rows){
       <td>${esc(c.mobile||"-")}</td>
       <td>${esc(c.channel_name||"-")}</td>
       <td>${dateText(c.created_at)}</td>
-    </tr>`).join(""):'<tr><td colspan="5">No customers yet.</td></tr>';
+      <td><button type="button" class="btn" data-customer-actions="${esc(c.id)}">Actions</button></td>
+    </tr>`).join(""): '<tr><td colspan="6">No customers yet.</td></tr>';
 }
+
+window.__reloadAdminCustomers=async()=>{try{const {data,error}=await supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at,account_status").order("created_at",{ascending:false});if(!error)renderCustomers(data||[]);}catch(e){console.error(e);}};
 
 function renderChannels(customers,access){
   const body=$("youtubeChannelsBody"); if(!body) return;
