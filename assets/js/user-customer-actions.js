@@ -1,88 +1,62 @@
-import { supabase } from './supabase.js';
+import { supabase } from "./supabase.js";
 
-const esc = (v='') => String(v).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-let modal, current;
+const $=(id)=>document.getElementById(id);
+const esc=(v="")=>String(v).replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
+const dt=(v)=>{if(!v)return "-";const d=new Date(v);return Number.isNaN(d.getTime())?"-":d.toLocaleString("en-IN",{day:"2-digit",month:"short",year:"numeric",hour:"2-digit",minute:"2-digit"});};
+let current=null;
 
-function ensureModal(){
-  if(modal) return modal;
-  const style=document.createElement('style');
-  style.textContent=`
-  #customerActionsModal{position:fixed;inset:0;z-index:99999;background:rgba(15,23,42,.58);display:flex;align-items:center;justify-content:center;padding:18px}
-  #customerActionsModal[hidden]{display:none}
-  .uca-card{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.25);padding:22px}
-  .uca-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.uca-head h3{margin:0;font-size:20px}.uca-close{border:0;background:#f2f4f7;border-radius:10px;width:38px;height:38px;cursor:pointer;font-size:20px}
-  .uca-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.uca-field label{display:block;font-size:12px;font-weight:700;color:#667085;margin-bottom:5px}.uca-field input,.uca-field select{width:100%;box-sizing:border-box;border:1px solid #d0d5dd;border-radius:9px;padding:10px 11px;background:#fff}.uca-status{display:inline-flex;padding:5px 9px;border-radius:999px;background:#eef2ff;font-weight:700;font-size:12px}.uca-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:18px;padding-top:15px;border-top:1px solid #eaecf0}.uca-actions button{border:0;border-radius:9px;padding:10px 13px;cursor:pointer;font-weight:700}.uca-view{background:#eef2ff}.uca-reset{background:#fff7ed}.uca-toggle{background:#fef3c7}.uca-save{background:#dcfce7}.uca-delete{background:#fee2e2;color:#991b1b}.uca-msg{min-height:20px;margin-top:10px;font-size:13px;font-weight:600}.uca-danger{color:#b42318}.uca-ok{color:#027a48}
-  @media(max-width:600px){.uca-grid{grid-template-columns:1fr}.uca-card{padding:16px}}
-  `;
-  document.head.appendChild(style);
-  modal=document.createElement('div'); modal.id='customerActionsModal'; modal.hidden=true;
-  modal.innerHTML=`<div class="uca-card" role="dialog" aria-modal="true" aria-labelledby="ucaTitle">
-    <div class="uca-head"><h3 id="ucaTitle">User Actions</h3><button type="button" class="uca-close" id="ucaClose" aria-label="Close">×</button></div>
-    <div class="uca-grid">
-      <div class="uca-field"><label>Full Name</label><input id="ucaName"></div>
-      <div class="uca-field"><label>Email</label><input id="ucaEmail" type="email" readonly></div>
-      <div class="uca-field"><label>Mobile</label><input id="ucaMobile"></div>
-      <div class="uca-field"><label>Channel</label><input id="ucaChannel"></div>
-      <div class="uca-field"><label>Status</label><select id="ucaStatus"><option value="active">Active</option><option value="disabled">Disabled</option></select></div>
-      <div class="uca-field"><label>User ID</label><input id="ucaUserId" readonly></div>
-    </div>
-    <div id="ucaMsg" class="uca-msg"></div>
-    <div class="uca-actions">
-      <button type="button" class="uca-view" id="ucaView">👁️ View User</button>
-      <button type="button" class="uca-reset" id="ucaReset">🔑 Reset Password</button>
-      <button type="button" class="uca-toggle" id="ucaToggle">🚫 Enable / Disable</button>
-      <button type="button" class="uca-save" id="ucaSave">💾 Save</button>
-      <button type="button" class="uca-delete" id="ucaDelete">🗑️ Delete User</button>
-    </div></div>`;
-  document.body.appendChild(modal);
-  modal.addEventListener('click',e=>{if(e.target===modal)closeModal();});
-  document.getElementById('ucaClose').onclick=closeModal;
-  document.getElementById('ucaView').onclick=viewUser;
-  document.getElementById('ucaReset').onclick=resetPassword;
-  document.getElementById('ucaToggle').onclick=toggleStatus;
-  document.getElementById('ucaSave').onclick=saveUser;
-  document.getElementById('ucaDelete').onclick=deleteUser;
-  return modal;
+function ensureStyle(){
+ if($("customerActionsStyle"))return;
+ const st=document.createElement("style");st.id="customerActionsStyle";st.textContent=`
+ .customer-actions-modal{position:fixed;inset:0;background:rgba(15,23,42,.62);display:flex;align-items:center;justify-content:center;padding:20px;z-index:100000}
+ .customer-actions-card{width:min(720px,100%);max-height:90vh;overflow:auto;background:#fff;border-radius:18px;box-shadow:0 24px 70px rgba(0,0,0,.28);padding:22px}
+ .customer-actions-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;border-bottom:1px solid #e5e7eb;padding-bottom:14px;margin-bottom:16px}
+ .customer-actions-head h3{margin:0;font-size:20px}.customer-actions-head small{color:#667085}.customer-actions-close{border:0;background:#f2f4f7;border-radius:10px;padding:8px 11px;cursor:pointer;font-size:18px}
+ .customer-actions-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.customer-actions-grid label{font-size:13px;font-weight:700;color:#344054}.customer-actions-grid input{width:100%;box-sizing:border-box;margin-top:6px;padding:10px 11px;border:1px solid #d0d5dd;border-radius:9px;font:inherit}
+ .customer-actions-status{display:inline-flex;padding:5px 10px;border-radius:999px;background:#ecfdf3;color:#027a48;font-size:12px;font-weight:700}.customer-actions-status.disabled{background:#fef3f2;color:#b42318}
+ .customer-actions-buttons{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid #e5e7eb}.customer-actions-buttons button{cursor:pointer}.customer-actions-view{background:#f8fafc;border:1px solid #d0d5dd;border-radius:9px;padding:9px 12px}.customer-actions-save{background:#2563eb;color:#fff;border:0;border-radius:9px;padding:9px 14px}.customer-actions-reset{background:#7c3aed;color:#fff;border:0;border-radius:9px;padding:9px 14px}.customer-actions-toggle{background:#f59e0b;color:#111827;border:0;border-radius:9px;padding:9px 14px}.customer-actions-delete{background:#dc2626;color:#fff;border:0;border-radius:9px;padding:9px 14px}.customer-actions-msg{margin-top:12px;min-height:20px;font-size:13px;font-weight:600}.customer-actions-viewbox{background:#f8fafc;border:1px solid #e4e7ec;border-radius:12px;padding:14px;margin-top:12px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.customer-actions-viewbox div{padding:8px;background:#fff;border-radius:8px}.customer-actions-viewbox b{display:block;font-size:11px;color:#667085;margin-bottom:3px}
+ @media(max-width:600px){.customer-actions-grid,.customer-actions-viewbox{grid-template-columns:1fr}.customer-actions-card{padding:16px}}
+ `;document.head.appendChild(st);
 }
-function setMsg(text,ok=false){const e=document.getElementById('ucaMsg');if(e){e.textContent=text;e.className='uca-msg '+(ok?'uca-ok':'uca-danger');}}
-function closeModal(){if(modal)modal.hidden=true;current=null;}
-async function loadUser(id){
-  const {data,error}=await supabase.from('customers').select('id,user_id,full_name,email,mobile,channel_name,created_at,account_status').eq('id',id).maybeSingle();
-  if(error) throw error; if(!data) throw new Error('User not found.'); return data;
+function close(){ $("customerActionsModal")?.remove(); current=null; }
+function modal(c){
+ ensureStyle();close();current=c;
+ const disabled=String(c.account_status||"active").toLowerCase()==="disabled";
+ const m=document.createElement("div");m.id="customerActionsModal";m.className="customer-actions-modal";m.innerHTML=`<div class="customer-actions-card" role="dialog" aria-modal="true" aria-label="Customer Actions">
+  <div class="customer-actions-head"><div><h3>👤 Customer Actions</h3><small>${esc(c.full_name||c.email||c.id)}</small></div><button type="button" class="customer-actions-close" data-ca-close>×</button></div>
+  <div class="customer-actions-grid">
+   <label>Name<input id="caName" value="${esc(c.full_name||"")}"></label>
+   <label>Email<input id="caEmail" type="email" value="${esc(c.email||"")}"></label>
+   <label>Mobile<input id="caMobile" value="${esc(c.mobile||"")}"></label>
+   <label>Channel<input id="caChannel" value="${esc(c.channel_name||"")}"></label>
+  </div>
+  <div style="margin-top:12px">Status: <span id="caStatus" class="customer-actions-status ${disabled?'disabled':''}">${disabled?'Disabled':'Active'}</span></div>
+  <div class="customer-actions-viewbox">
+   <div><b>Customer ID</b>${esc(c.id)}</div><div><b>User ID</b>${esc(c.user_id||"-")}</div><div><b>Joined</b>${dt(c.created_at)}</div><div><b>Account Status</b>${disabled?'Disabled':'Active'}</div>
+  </div>
+  <div class="customer-actions-buttons">
+   <button type="button" class="customer-actions-view" data-ca-view>👁️ View User</button>
+   <button type="button" class="customer-actions-reset" data-ca-reset>🔑 Reset Password</button>
+   <button type="button" class="customer-actions-toggle" data-ca-toggle>${disabled?'🚫 Enable User':'🚫 Disable User'}</button>
+   <button type="button" class="customer-actions-save" data-ca-save>💾 Save</button>
+   <button type="button" class="customer-actions-delete" data-ca-delete>🗑️ Delete User</button>
+  </div><div id="caMsg" class="customer-actions-msg"></div>
+ </div>`;
+ document.body.appendChild(m);
+ m.addEventListener("click",async e=>{if(e.target===m||e.target.closest("[data-ca-close]")){close();return}const b=e.target.closest("button");if(!b)return;
+  if(b.matches("[data-ca-view]")){showDetails();return;}
+  if(b.matches("[data-ca-save]")){await save();return;}
+  if(b.matches("[data-ca-reset]")){await resetPassword();return;}
+  if(b.matches("[data-ca-toggle]")){await toggleStatus();return;}
+  if(b.matches("[data-ca-delete]")){await deleteUser();return;}
+ });
 }
-function fill(c){
-  document.getElementById('ucaName').value=c.full_name||'';document.getElementById('ucaEmail').value=c.email||'';document.getElementById('ucaMobile').value=c.mobile||'';document.getElementById('ucaChannel').value=c.channel_name||'';document.getElementById('ucaStatus').value=String(c.account_status||'active').toLowerCase()==='disabled'?'disabled':'active';document.getElementById('ucaUserId').value=c.user_id||c.id||'';
-  document.getElementById('ucaToggle').textContent=document.getElementById('ucaStatus').value==='disabled'?'🚫 Enable User':'🚫 Disable User';
-}
-async function openActions(id){
-  ensureModal(); modal.hidden=false; setMsg('Loading user…',true);
-  try{current=await loadUser(id);fill(current);setMsg('Ready.',true);}catch(e){setMsg(e.message||'Unable to load user.');}
-}
-function viewUser(){
-  if(!current)return; const details=[`Name: ${current.full_name||'-'}`,`Email: ${current.email||'-'}`,`Mobile: ${current.mobile||'-'}`,`Channel: ${current.channel_name||'-'}`,`Status: ${current.account_status||'active'}`,`User ID: ${current.user_id||'-'}`,`Customer ID: ${current.id||'-'}`,`Joined: ${current.created_at?new Date(current.created_at).toLocaleString('en-IN'):'-'}`].join('\n'); alert(details);
-}
-async function resetPassword(){
-  if(!current?.email)return setMsg('No email is available for password reset.');
-  if(!confirm(`Send a secure password reset link to ${current.email}?`))return;
-  setMsg('Sending reset link…',true);const redirectTo=new URL('../reset-password.html',location.href).href;
-  const {error}=await supabase.auth.resetPasswordForEmail(current.email,{redirectTo}); if(error)return setMsg(error.message);setMsg('Password reset link sent successfully.',true);
-}
-async function updateStatus(status){
-  const {error}=await supabase.from('customers').update({account_status:status}).eq('id',current.id);if(error)throw error;current.account_status=status;fill(current);
-}
-async function toggleStatus(){
-  if(!current)return;const next=String(current.account_status||'active').toLowerCase()==='disabled'?'active':'disabled';if(!confirm(`Set this user to ${next === 'disabled' ? 'Disabled' : 'Active'}?`))return;setMsg('Updating status…',true);try{await updateStatus(next);setMsg(`User ${next==='disabled'?'disabled':'enabled'} successfully.`,true);refreshLists();}catch(e){setMsg(e.message||'Unable to update status.');}
-}
-async function saveUser(){
-  if(!current)return;const payload={full_name:document.getElementById('ucaName').value.trim(),mobile:document.getElementById('ucaMobile').value.trim(),channel_name:document.getElementById('ucaChannel').value.trim(),account_status:document.getElementById('ucaStatus').value};if(!payload.full_name)return setMsg('Full Name is required.');setMsg('Saving…',true);const {data,error}=await supabase.from('customers').update(payload).eq('id',current.id).select('id,user_id,full_name,email,mobile,channel_name,created_at,account_status').maybeSingle();if(error)return setMsg(error.message);current=data||{...current,...payload};fill(current);setMsg('User saved successfully.',true);refreshLists();
-}
-async function deleteUser(){
-  if(!current)return;if(!confirm(`Delete ${current.full_name||current.email||'this user'} permanently? This action cannot be undone.`))return;setMsg('Deleting user…',true);const {data,error}=await supabase.rpc('admin_delete_customer',{p_customer_id:current.id});if(error)return setMsg(error.message);if(!data)return setMsg('User was not found.');setMsg('User deleted successfully.',true);refreshLists();setTimeout(closeModal,500);
-}
-function refreshLists(){
-  window.dispatchEvent(new CustomEvent('admin-customer-changed'));
-  if(typeof window.__reloadAdminCustomers==='function')window.__reloadAdminCustomers();
-  if(typeof window.__reloadFreeUsers==='function')window.__reloadFreeUsers();
-}
-document.addEventListener('click',e=>{const btn=e.target.closest('[data-customer-actions]');if(btn){e.preventDefault();openActions(btn.dataset.customerActions);}});
-window.__openCustomerActions=openActions;
+function message(t,ok=false){const e=$("caMsg");if(e){e.textContent=t;e.style.color=ok?"#027a48":"#b42318";}}
+function showDetails(){const c=current;if(!c)return;alert(`User Details\n\nName: ${c.full_name||'-'}\nEmail: ${c.email||'-'}\nMobile: ${c.mobile||'-'}\nChannel: ${c.channel_name||'-'}\nJoined: ${dt(c.created_at)}\nStatus: ${c.account_status||'active'}\nCustomer ID: ${c.id}`);}
+async function save(){if(!current)return;const payload={full_name:$("caName")?.value.trim()||null,email:$("caEmail")?.value.trim()||null,mobile:$("caMobile")?.value.trim()||null,channel_name:$("caChannel")?.value.trim()||null};const b=document.querySelector("[data-ca-save]");if(b)b.disabled=true;message("Saving…");try{const {data,error}=await supabase.from("customers").update(payload).eq("id",current.id).select("id,user_id,full_name,email,mobile,channel_name,created_at,account_status").single();if(error)throw error;current=data;message("Saved successfully.",true);document.dispatchEvent(new CustomEvent("customer-actions-changed",{detail:data}));}catch(e){message(e?.message||"Save failed.");}finally{if(b)b.disabled=false;}}
+async function resetPassword(){if(!current?.email){message("Customer email is missing.");return}if(!confirm(`Send a secure password reset link to ${current.email}?`))return;const b=document.querySelector("[data-ca-reset]");if(b)b.disabled=true;message("Sending reset link…");try{const {error}=await supabase.auth.resetPasswordForEmail(current.email,{redirectTo:new URL("../reset-password.html",location.href).href});if(error)throw error;message("Secure reset link sent.",true);}catch(e){message(e?.message||"Reset password failed.");}finally{if(b)b.disabled=false;}}
+async function toggleStatus(){if(!current)return;const next=String(current.account_status||"active").toLowerCase()==="disabled"?"active":"disabled";if(!confirm(`${next==='disabled'?'Disable':'Enable'} this user?`))return;const b=document.querySelector("[data-ca-toggle]");if(b)b.disabled=true;message("Updating status…");try{const {data,error}=await supabase.from("customers").update({account_status:next}).eq("id",current.id).select("id,user_id,full_name,email,mobile,channel_name,created_at,account_status").single();if(error)throw error;current=data;message(`User ${next==='disabled'?'disabled':'enabled'} successfully.`,true);modal(current);document.dispatchEvent(new CustomEvent("customer-actions-changed",{detail:data}));}catch(e){message(e?.message||"Status update failed.");}finally{if(b)b.disabled=false;}}
+async function deleteUser(){if(!current)return;if(!confirm(`Permanently delete ${current.full_name||current.email||'this user'}? This cannot be undone.`))return;const b=document.querySelector("[data-ca-delete]");if(b)b.disabled=true;message("Deleting…");try{const {data,error}=await supabase.rpc("admin_delete_customer",{p_customer_id:current.id});if(error)throw error;if(data===false)throw new Error("Delete was not completed.");close();document.dispatchEvent(new CustomEvent("customer-actions-changed",{detail:{id:current.id,deleted:true}}));location.reload();}catch(e){message(e?.message||"Delete failed.");if(b)b.disabled=false;}}
+async function openFor(id){try{const {data,error}=await supabase.from("customers").select("id,user_id,full_name,email,mobile,channel_name,created_at,account_status").eq("id",id).single();if(error)throw error;modal(data);}catch(e){alert(e?.message||"Unable to load customer.");}}
+document.addEventListener("click",e=>{const b=e.target.closest("[data-customer-actions]");if(b){e.preventDefault();openFor(b.dataset.customerActions);}});
+document.addEventListener("customer-actions-changed",()=>{document.getElementById("refreshFreeServiceUsers")?.click();});

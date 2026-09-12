@@ -79,7 +79,7 @@ async function loadAdminDashboard(){
   setText("adminEmailView", user.email || "");
 
   const [customers,access,requests] = await Promise.all([
-    safeAdminQuery(supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at").order("created_at",{ascending:false}),[],"Customers"),
+    safeAdminQuery(supabase.from("customers").select("id,user_id,full_name,email,mobile,channel_name,channel_url,created_at,account_status").order("created_at",{ascending:false}),[],"Customers"),
     safeAdminQuery(supabase.from("channel_access").select("*").order("updated_at",{ascending:false}),[],"Channel access"),
     safeAdminQuery(supabase.from("service_requests").select("*").order("created_at",{ascending:false}),[],"Service requests")
   ]);
@@ -131,18 +131,18 @@ async function loadAdminDashboard(){
 
 function renderCustomers(rows){
   const body=$("customersBody"); if(!body) return;
-  body.innerHTML=rows.length?rows.map(c=>`
-    <tr>
+  body.innerHTML=rows.length?rows.map(c=>{
+    const status=String(c.account_status||"active").toLowerCase()==="disabled"?"disabled":"active";
+    return `<tr>
       <td><b>${esc(c.full_name||"-")}</b></td>
       <td>${esc(c.email||"-")}</td>
       <td>${esc(c.mobile||"-")}</td>
       <td>${esc(c.channel_name||"-")}</td>
       <td>${dateText(c.created_at)}</td>
-      <td><button type="button" class="btn" data-customer-actions="${esc(c.id)}">Actions</button></td>
-    </tr>`).join(""): '<tr><td colspan="6">No customers yet.</td></tr>';
+      <td><button type="button" class="btn customer-action-btn" data-customer-actions="${esc(c.id)}">Actions</button></td>
+    </tr>`;
+  }).join(""):'<tr><td colspan="6">No customers yet.</td></tr>';
 }
-
-window.__reloadAdminCustomers=async()=>{try{const {data,error}=await supabase.from("customers").select("id,full_name,email,mobile,channel_name,channel_url,created_at,account_status").order("created_at",{ascending:false});if(!error)renderCustomers(data||[]);}catch(e){console.error(e);}};
 
 function renderChannels(customers,access){
   const body=$("youtubeChannelsBody"); if(!body) return;

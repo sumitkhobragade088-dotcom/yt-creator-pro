@@ -303,7 +303,7 @@ document.documentElement.classList.add("yt-admin-boot");
     <section class="yt-premium-view" id="view-customers">
       <div class="yt-premium-section-head"><div><span>CUSTOMERS</span><h2>Users / Customers</h2><p>Customer accounts and profile information.</p></div><b id="customersSectionCount">0</b></div>
       <div class="panel yt-premium-panel"><div class="yt-table-scroll">
-        <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th><th>Actions</th></tr></thead>
+        <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th><th>Action</th></tr></thead>
         <tbody id="customersBody"><tr><td colspan="6">No data yet.</td></tr></tbody></table>
       </div></div>
     </section>
@@ -321,6 +321,13 @@ document.documentElement.classList.add("yt-admin-boot");
           <button id="grantFreeService" class="btn primary" type="button" disabled>🎁 Grant Free Service</button>
           <button id="clearFreeService" class="btn" type="button">Clear</button>
           <span id="freeServiceMessage" class="message"></span>
+        </div>
+      </div>
+      <div class="panel yt-premium-panel free-service-users-panel" style="margin-top:18px">
+        <div class="yt-manager-head"><div><h3>Free Service Users</h3><p>All normal website users with complete profile details and account actions.</p></div><b id="freeServiceUsersSectionCount">0</b></div>
+        <div class="yt-table-scroll">
+          <table class="data-table"><thead><tr><th>Name</th><th>Email</th><th>Mobile</th><th>Channel</th><th>Joined</th><th>Action</th></tr></thead>
+          <tbody id="freeServiceUsersBody"><tr><td colspan="6">Loading users…</td></tr></tbody></table>
         </div>
       </div>
       <div class="panel yt-premium-panel">
@@ -1153,9 +1160,9 @@ document.getElementById("shareUserApp")?.addEventListener("click",async()=>{
 <script type="module" src="../assets/js/cms-deep-admin.js"></script>
 <script type="module" src="../assets/js/cms-admin-ui.js"></script>
 <script type="module" src="../assets/js/cms-professional.js"></script>
-<script type="module" src="../assets/js/free-user-service.js?v=4point4"></script>
+<script type="module" src="../assets/js/free-user-service.js?v=4point5"></script>
+<script type="module" src="../assets/js/user-customer-actions.js?v=1"></script>
 <script type="module" src="../assets/js/admin-auth.js"></script>
-<script type="module" src="../assets/js/user-customer-actions.js"></script>
 <script type="module" src="../assets/js/admin-history.js"></script>
 <script type="module" src="../assets/js/manage-channel.js"></script>
 <script type="module" src="../assets/js/youtube-api-tools.js"></script>

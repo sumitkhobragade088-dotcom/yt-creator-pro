@@ -43,6 +43,7 @@ async function loadCustomers(){
     return;
   }
   customers=data||[];
+  const total=$("freeServiceUsersSectionCount"); if(total) total.textContent=String(customers.length);
   renderFreeServiceUsers();
   const sel=$("freeServiceCustomer");if(!sel)return;
   sel.innerHTML='<option value="">Select customer…</option>'+customers.map(c=>`<option value="${esc(c.id)}">${esc(c.full_name||c.email||c.id)}${c.email?` • ${esc(c.email)}`:""}</option>`).join("");
@@ -56,8 +57,8 @@ function renderFreeServiceUsers(){
       <td><b>${esc(c.full_name||"-")}</b></td>
       <td>${esc(c.email||"-")}</td>
       <td>${esc(c.mobile||"-")}</td>
-      <td><span class="yt-status-chip ${status==='active'?'good':'bad'}">${status==='active'?'Active':'Disabled'}</span></td>
-      <td><span class="yt-status-chip">Free Service User</span></td>
+      <td>${esc(c.channel_name||"-")}</td>
+      <td>${dt(c.created_at)}</td>
       <td><button type="button" class="btn free-user-action-btn" data-customer-actions="${esc(c.id)}">Actions</button></td>
     </tr>`;
   }).join("");
@@ -164,6 +165,5 @@ function bind(){
     await renderFreeUserChannels(e.target.value,data||[],$("freeUserManageSummary"),$("freeUserChannelList"));
   });
 }
-window.__reloadFreeUsers=loadCustomers;
 async function init(){bind();await loadCustomers();await loadServices();await loadFreeUserManager();}
 init();
